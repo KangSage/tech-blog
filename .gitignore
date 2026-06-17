@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.astro/
+.DS_Store
+*.log
+package-lock.json
+yarn.lock
+bun.lock
+bun.lockb

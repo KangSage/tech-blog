@@ -1,0 +1,81 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import summary from "@/data/security/summary.json";
+
+type SecuritySummary = {
+  lastReviewedAt: string;
+  sources: string[];
+  scope: string;
+  counts: {
+    openAdvisories: number;
+    patchAvailable: number;
+    noPatchAvailable: number;
+  };
+  history: {
+    date: string;
+    title: string;
+    summary: string;
+  }[];
+  disclaimer: string;
+};
+
+const securitySummary = summary as SecuritySummary;
+const sources = securitySummary.sources.join(", ");
+---
+
+<BaseLayout
+  title="Dependency advisory monitor"
+  description="이 페이지는 블로그 의존성 advisory 점검 현황을 요약합니다."
+  locale="ko"
+  canonicalPath="/ko/security/"
+  noindex
+>
+  <p class="eyebrow">Security</p>
+  <h1>Dependency advisory monitor</h1>
+  <p>
+    이 페이지는 이 블로그 프로젝트의 의존성 advisory 점검 현황을 수동 검토 후 요약합니다.
+    사이트 전체 보안을 보증하지 않습니다.
+  </p>
+
+  <div class="notice">
+    {securitySummary.disclaimer}
+  </div>
+
+  <section class="security-summary" aria-label="Dependency advisory summary">
+    <div class="stat">
+      <span>Open advisories</span>
+      <strong>{securitySummary.counts.openAdvisories}</strong>
+    </div>
+    <div class="stat">
+      <span>Patch available</span>
+      <strong>{securitySummary.counts.patchAvailable}</strong>
+    </div>
+    <div class="stat">
+      <span>No patch yet</span>
+      <strong>{securitySummary.counts.noPatchAvailable}</strong>
+    </div>
+  </section>
+
+  <section>
+    <h2>Scope</h2>
+    <p>{securitySummary.scope}</p>
+    <p class="meta">Last reviewed: <time datetime={securitySummary.lastReviewedAt}>{securitySummary.lastReviewedAt}</time></p>
+    <p class="meta">Sources: {sources}</p>
+  </section>
+
+  <section>
+    <h2>History</h2>
+    {securitySummary.history.length === 0 ? (
+      <p>수동 승격된 보안 히스토리가 아직 없습니다.</p>
+    ) : (
+      <ul>
+        {securitySummary.history.map((entry) => (
+          <li>
+            <time datetime={entry.date}>{entry.date}</time> · <strong>{entry.title}</strong>
+            <p>{entry.summary}</p>
+          </li>
+        ))}
+      </ul>
+    )}
+  </section>
+</BaseLayout>

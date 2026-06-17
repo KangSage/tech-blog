@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://kangsage.github.io/tech-blog/sitemap-index.xml

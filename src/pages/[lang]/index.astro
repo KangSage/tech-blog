@@ -1,0 +1,56 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { blogPath, localeHome, locales, assertLocale, type Locale } from "@/lib/i18n";
+import { getPostsByLocale, slugFromId } from "@/lib/posts";
+
+export function getStaticPaths() {
+  return locales.map((lang) => ({ params: { lang } }));
+}
+
+const lang = assertLocale(Astro.params.lang);
+const posts = await getPostsByLocale(lang);
+const titles: Record<Locale, string> = {
+  ko: "기술 블로그",
+  ja: "技術ブログ",
+  en: "Technical Blog",
+};
+const descriptions: Record<Locale, string> = {
+  ko: "웹, 도구, 보안 중심의 엔지니어링 기록.",
+  ja: "Web、ツール、セキュアなソフトウェア運用の記録。",
+  en: "Engineering notes on web, tooling, and secure software delivery.",
+};
+---
+
+<BaseLayout
+  title={titles[lang]}
+  description={descriptions[lang]}
+  locale={lang}
+  canonicalPath={localeHome(lang)}
+  alternates={locales.map((locale) => ({ locale, path: localeHome(locale) }))}
+>
+  <p class="eyebrow">Tech Blog</p>
+  <h1>{titles[lang]}</h1>
+  <p>{descriptions[lang]}</p>
+
+  {posts.length === 0 ? (
+    <p class="notice">이 언어로 공개된 글은 아직 없습니다. 번역은 글 단위로 선택적으로 추가됩니다.</p>
+  ) : (
+    <ul class="post-list">
+      {posts.map((post) => (
+        <li class="post-card">
+          <article>
+            <h2>
+              <a href={import.meta.env.BASE_URL.replace(/\/$/, "") + blogPath(lang, slugFromId(post.id))}>
+                {post.data.title}
+              </a>
+            </h2>
+            <p class="meta">
+              <time datetime={post.data.publishedAt.toISOString()}>{post.data.publishedAt.toLocaleDateString(lang)}</time>
+            </p>
+            <p>{post.data.description}</p>
+          </article>
+        </li>
+      ))}
+    </ul>
+  )}
+</BaseLayout>

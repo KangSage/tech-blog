@@ -1,0 +1,73 @@
+# Tech Blog
+
+Astro-based static technical blog for GitHub Pages.
+
+## Toolchain
+
+This repository uses `mise` and `pnpm` only.
+
+```bash
+mise install
+pnpm install --frozen-lockfile
+pnpm dev
+```
+
+Do not use `npm install`, Yarn, or Bun in this repository. Commit only `pnpm-lock.yaml`.
+
+## Content
+
+Blog posts live under:
+
+```text
+src/content/blog/<lang>/<slug>.mdx
+```
+
+Supported languages:
+
+- `ko`: primary language
+- `ja`: optional second priority
+- `en`: optional third priority
+
+Every post must include:
+
+```yaml
+---
+title: "Post title"
+description: "Short search-friendly summary"
+publishedAt: "2026-06-18"
+lang: "ko"
+translationKey: "stable-translation-key"
+tags: ["tag"]
+draft: false
+---
+```
+
+Translations are linked by `translationKey`. Do not create fallback pages for untranslated posts.
+
+## Deployment
+
+GitHub Pages is deployed from the `main` branch by `.github/workflows/deploy.yml`.
+
+Temporary site URL:
+
+```text
+https://kangsage.github.io/tech-blog/
+```
+
+When a custom domain is chosen, update `site` and `base` in `astro.config.mjs`.
+
+## Security Operations
+
+- Dependency updates are handled by Dependabot PRs.
+- OSV-Scanner runs read-only on a daily schedule and manual dispatch.
+- Public security content is manually promoted through `src/data/security/summary.json`.
+- Automated MDX security logs are intentionally forbidden.
+- The security page is a dependency advisory monitor, not a security guarantee.
+
+## Commands
+
+```bash
+pnpm check
+pnpm build
+pnpm preview
+```

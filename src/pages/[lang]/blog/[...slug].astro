@@ -1,0 +1,61 @@
+---
+import { render } from "astro:content";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { absoluteUrl, assertLocale, blogPath, type Locale } from "@/lib/i18n";
+import { getAlternates, getPublishedPosts, localeFromId, slugFromId } from "@/lib/posts";
+
+export async function getStaticPaths() {
+  const posts = await getPublishedPosts();
+  return posts.map((post) => {
+    const lang = localeFromId(post.id);
+    return {
+      params: { lang, slug: slugFromId(post.id) },
+      props: { post },
+    };
+  });
+}
+
+const lang = assertLocale(Astro.params.lang);
+const { post } = Astro.props;
+const slug = slugFromId(post.id);
+const { Content } = await render(post);
+const alternates = await getAlternates(post.data.translationKey);
+const canonicalPath = blogPath(lang, slug);
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  headline: post.data.title,
+  description: post.data.description,
+  datePublished: post.data.publishedAt.toISOString(),
+  dateModified: (post.data.updatedAt ?? post.data.publishedAt).toISOString(),
+  inLanguage: lang,
+  url: absoluteUrl(canonicalPath),
+  author: {
+    "@type": "Person",
+    name: "KangSage",
+  },
+  publisher: {
+    "@type": "Organization",
+    name: "Tech Blog",
+  },
+};
+---
+
+<BaseLayout
+  title={post.data.title}
+  description={post.data.description}
+  locale={lang as Locale}
+  canonicalPath={canonicalPath}
+  alternates={alternates}
+  jsonLd={jsonLd}
+>
+  <article>
+    <p class="eyebrow">Article</p>
+    <h1>{post.data.title}</h1>
+    <p class="meta">
+      <time datetime={post.data.publishedAt.toISOString()}>{post.data.publishedAt.toLocaleDateString(lang)}</time>
+      {post.data.updatedAt && <> · Updated <time datetime={post.data.updatedAt.toISOString()}>{post.data.updatedAt.toLocaleDateString(lang)}</time></>}
+    </p>
+    <Content />
+  </article>
+</BaseLayout>

@@ -1,0 +1,12 @@
+{
+  "lastReviewedAt": "2026-06-18T00:00:00+09:00",
+  "sources": ["GitHub Dependabot", "OSV-Scanner"],
+  "scope": "Public npm and GitHub Actions dependency advisories for this static blog repository. Runtime, build-time, and development dependencies are reviewed before any public summary is promoted.",
+  "counts": {
+    "openAdvisories": 0,
+    "patchAvailable": 0,
+    "noPatchAvailable": 0
+  },
+  "history": [],
+  "disclaimer": "This is a best-effort dependency advisory summary, not a guarantee that the site or repository is free of vulnerabilities. Detailed dependency findings are reviewed in GitHub security tooling before any public summary is updated."
+}

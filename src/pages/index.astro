@@ -1,0 +1,18 @@
+---
+import { withBase } from "@/lib/i18n";
+
+const target = withBase("/ko/");
+---
+
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="refresh" content={`0; url=${target}`} />
+    <link rel="canonical" href={target} />
+    <title>Tech Blog</title>
+  </head>
+  <body>
+    <p><a href={target}>Tech Blog로 이동</a></p>
+  </body>
+</html>
