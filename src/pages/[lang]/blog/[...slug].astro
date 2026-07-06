@@ -1,7 +1,8 @@
 ---
 import { render } from "astro:content";
 import BaseLayout from "@/layouts/BaseLayout.astro";
-import { absoluteUrl, assertLocale, blogPath, type Locale } from "@/lib/i18n";
+import { categoryLabels } from "@/lib/categories";
+import { absoluteUrl, assertLocale, blogPath, categoryPath, type Locale } from "@/lib/i18n";
 import { getAlternates, getPublishedPosts, localeFromId, slugFromId } from "@/lib/posts";
 
 export async function getStaticPaths() {
@@ -36,7 +37,7 @@ const jsonLd = {
   },
   publisher: {
     "@type": "Organization",
-    name: "Tech Blog",
+    name: "Sage Garden",
   },
 };
 ---
@@ -53,6 +54,10 @@ const jsonLd = {
     <p class="eyebrow">Article</p>
     <h1>{post.data.title}</h1>
     <p class="meta">
+      <a href={import.meta.env.BASE_URL.replace(/\/$/, "") + categoryPath(lang, post.data.category)}>
+        {categoryLabels[post.data.category][lang]}
+      </a>
+      {" · "}
       <time datetime={post.data.publishedAt.toISOString()}>{post.data.publishedAt.toLocaleDateString(lang)}</time>
       {post.data.updatedAt && <> · Updated <time datetime={post.data.updatedAt.toISOString()}>{post.data.updatedAt.toLocaleDateString(lang)}</time></>}
     </p>

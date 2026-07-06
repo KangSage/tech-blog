@@ -61,7 +61,7 @@ const canonical = absoluteUrl(canonicalPath);
         {SITE.name}
       </a>
       <nav aria-label="Primary navigation">
-        <a href={import.meta.env.BASE_URL + "ko/"}>Blog</a>
+        <a href={import.meta.env.BASE_URL + "ko/"}>Garden</a>
         <a href={import.meta.env.BASE_URL + "ko/security/"}>Security</a>
       </nav>
       <nav aria-label="Languages" class="language-nav">
@@ -76,7 +76,7 @@ const canonical = absoluteUrl(canonicalPath);
       <slot />
     </main>
     <footer class="site-footer">
-      <p>© {new Date().getFullYear()} {SITE.name}. Built as a static site with dependency advisory monitoring.</p>
+      <p>© {new Date().getFullYear()} {SITE.name}. A static garden with dependency advisory monitoring.</p>
     </footer>
   </body>
 </html>
@@ -226,6 +226,43 @@ const canonical = absoluteUrl(canonicalPath);
   .post-card h2 {
     margin: 0 0 8px;
     font-size: 1.35rem;
+  }
+
+  .post-card h3 {
+    margin: 0 0 8px;
+    font-size: 1.2rem;
+  }
+
+  .category-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin: 32px 0 40px;
+  }
+
+  .category-card {
+    display: grid;
+    gap: 8px;
+    min-height: 124px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px;
+    background: var(--surface);
+    color: var(--text);
+    text-decoration: none;
+  }
+
+  .category-card span {
+    font-weight: 700;
+  }
+
+  .category-card small {
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  .category-section {
+    margin-top: 36px;
   }
 
   .security-summary {

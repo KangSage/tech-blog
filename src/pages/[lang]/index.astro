@@ -1,6 +1,19 @@
 ---
 import BaseLayout from "@/layouts/BaseLayout.astro";
-import { blogPath, localeHome, locales, assertLocale, type Locale } from "@/lib/i18n";
+import {
+  blogPath,
+  categoryPath,
+  localeHome,
+  locales,
+  assertLocale,
+  type Locale,
+} from "@/lib/i18n";
+import {
+  categories,
+  categoryDescriptions,
+  categoryLabels,
+  type Category,
+} from "@/lib/categories";
 import { getPostsByLocale, slugFromId } from "@/lib/posts";
 
 export function getStaticPaths() {
@@ -10,15 +23,20 @@ export function getStaticPaths() {
 const lang = assertLocale(Astro.params.lang);
 const posts = await getPostsByLocale(lang);
 const titles: Record<Locale, string> = {
-  ko: "기술 블로그",
-  ja: "技術ブログ",
-  en: "Technical Blog",
+  ko: "기술과 생각을 기르는 개인 정원",
+  ja: "技術と思考を育てる個人の庭",
+  en: "A personal garden for technology and thought",
 };
 const descriptions: Record<Locale, string> = {
-  ko: "웹, 도구, 보안 중심의 엔지니어링 기록.",
-  ja: "Web、ツール、セキュアなソフトウェア運用の記録。",
-  en: "Engineering notes on web, tooling, and secure software delivery.",
+  ko: "개발, 도구, 보안, 취미를 작게 심고 오래 관찰하며 남기는 기록.",
+  ja: "開発、ツール、セキュリティ、趣味を小さく植え、長く観察して残す記録。",
+  en: "Notes on development, tooling, security, and hobbies, planted small and tended over time.",
 };
+
+const postsByCategory = categories.map((category) => ({
+  category,
+  posts: posts.filter((post) => post.data.category === category),
+}));
 ---
 
 <BaseLayout
@@ -28,29 +46,52 @@ const descriptions: Record<Locale, string> = {
   canonicalPath={localeHome(lang)}
   alternates={locales.map((locale) => ({ locale, path: localeHome(locale) }))}
 >
-  <p class="eyebrow">Tech Blog</p>
+  <p class="eyebrow">Sage Garden</p>
   <h1>{titles[lang]}</h1>
   <p>{descriptions[lang]}</p>
+
+  <section class="category-grid" aria-label="Categories">
+    {categories.map((category) => (
+      <a class="category-card" href={import.meta.env.BASE_URL.replace(/\/$/, "") + categoryPath(lang, category)}>
+        <span>{categoryLabels[category][lang]}</span>
+        <small>{categoryDescriptions[category][lang]}</small>
+      </a>
+    ))}
+  </section>
 
   {posts.length === 0 ? (
     <p class="notice">이 언어로 공개된 글은 아직 없습니다. 번역은 글 단위로 선택적으로 추가됩니다.</p>
   ) : (
-    <ul class="post-list">
-      {posts.map((post) => (
-        <li class="post-card">
-          <article>
-            <h2>
-              <a href={import.meta.env.BASE_URL.replace(/\/$/, "") + blogPath(lang, slugFromId(post.id))}>
-                {post.data.title}
-              </a>
-            </h2>
-            <p class="meta">
-              <time datetime={post.data.publishedAt.toISOString()}>{post.data.publishedAt.toLocaleDateString(lang)}</time>
-            </p>
-            <p>{post.data.description}</p>
-          </article>
-        </li>
-      ))}
-    </ul>
+    postsByCategory.map(({ category, posts }) => (
+      <section class="category-section">
+        <h2>{categoryLabels[category as Category][lang]}</h2>
+        {posts.length === 0 ? (
+          <p class="meta">{categoryDescriptions[category as Category][lang]}</p>
+        ) : (
+          <ul class="post-list">
+            {posts.map((post) => (
+              <li class="post-card">
+                <article>
+                  <p class="meta">
+                    <a href={import.meta.env.BASE_URL.replace(/\/$/, "") + categoryPath(lang, post.data.category)}>
+                      {categoryLabels[post.data.category][lang]}
+                    </a>
+                  </p>
+                  <h3>
+                    <a href={import.meta.env.BASE_URL.replace(/\/$/, "") + blogPath(lang, slugFromId(post.id))}>
+                      {post.data.title}
+                    </a>
+                  </h3>
+                  <p class="meta">
+                    <time datetime={post.data.publishedAt.toISOString()}>{post.data.publishedAt.toLocaleDateString(lang)}</time>
+                  </p>
+                  <p>{post.data.description}</p>
+                </article>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+    ))
   )}
 </BaseLayout>

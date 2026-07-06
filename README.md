@@ -1,6 +1,6 @@
-# Tech Blog
+# Sage Garden
 
-Astro-based static technical blog for GitHub Pages.
+Astro-based personal technology garden for GitHub Pages.
 
 ## Toolchain
 
@@ -37,10 +37,18 @@ description: "Short search-friendly summary"
 publishedAt: "2026-06-18"
 lang: "ko"
 translationKey: "stable-translation-key"
+category: "tech"
 tags: ["tag"]
 draft: false
 ---
 ```
+
+Supported categories:
+
+- `tech`: engineering notes
+- `lab`: tooling, AI, and workflow experiments
+- `notes`: short ideas and reading notes
+- `hobby`: non-technical hobby writing
 
 Translations are linked by `translationKey`. Do not create fallback pages for untranslated posts.
 

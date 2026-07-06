@@ -1,0 +1,59 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import {
+  categories,
+  categoryDescriptions,
+  categoryLabels,
+  type Category,
+} from "@/lib/categories";
+import { assertLocale, blogPath, categoryPath, locales, type Locale } from "@/lib/i18n";
+import { getPostsByCategory, slugFromId } from "@/lib/posts";
+
+export function getStaticPaths() {
+  return locales.flatMap((lang) =>
+    categories.map((category) => ({
+      params: { lang, category },
+    })),
+  );
+}
+
+const lang = assertLocale(Astro.params.lang);
+const category = Astro.params.category as Category;
+const posts = await getPostsByCategory(lang, category);
+const title = categoryLabels[category][lang];
+const description = categoryDescriptions[category][lang];
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  locale={lang as Locale}
+  canonicalPath={categoryPath(lang, category)}
+  alternates={locales.map((locale) => ({ locale, path: categoryPath(locale, category) }))}
+>
+  <p class="eyebrow">Category</p>
+  <h1>{title}</h1>
+  <p>{description}</p>
+
+  {posts.length === 0 ? (
+    <p class="notice">이 카테고리에는 아직 공개된 글이 없습니다.</p>
+  ) : (
+    <ul class="post-list">
+      {posts.map((post) => (
+        <li class="post-card">
+          <article>
+            <h2>
+              <a href={import.meta.env.BASE_URL.replace(/\/$/, "") + blogPath(lang, slugFromId(post.id))}>
+                {post.data.title}
+              </a>
+            </h2>
+            <p class="meta">
+              <time datetime={post.data.publishedAt.toISOString()}>{post.data.publishedAt.toLocaleDateString(lang)}</time>
+            </p>
+            <p>{post.data.description}</p>
+          </article>
+        </li>
+      ))}
+    </ul>
+  )}
+</BaseLayout>

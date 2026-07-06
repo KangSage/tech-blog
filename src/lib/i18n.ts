@@ -1,6 +1,6 @@
 export const SITE = {
-  name: "Tech Blog",
-  description: "Engineering notes on web, tooling, and secure software delivery.",
+  name: "Sage Garden",
+  description: "A personal garden for engineering notes, tool experiments, quiet ideas, and hobbies.",
   origin: "https://kangsage.github.io",
   base: "/tech-blog",
 } as const;
@@ -45,4 +45,8 @@ export function localeHome(locale: Locale): string {
 
 export function blogPath(locale: Locale, slug: string): string {
   return `/${locale}/blog/${slug}/`;
+}
+
+export function categoryPath(locale: Locale, category: string): string {
+  return `/${locale}/category/${category}/`;
 }
