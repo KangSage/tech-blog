@@ -8,6 +8,13 @@ yarn.lock
 bun.lock
 bun.lockb
 
+### IDEs ###
+.idea/
+.vscode/
+
+### Local Prompt Tools ###
+.tools/
+.promptkitignore
 .codex/*
 !.codex/agents/
 !.codex/agents/**
