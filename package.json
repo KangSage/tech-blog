@@ -12,6 +12,9 @@
     "dev": "astro dev",
     "build": "astro check && astro build",
     "check": "astro check",
+    "omx:doctor": "omx doctor",
+    "omx:setup": "omx setup --scope project --force --verbose",
+    "omx:update": "pnpm up oh-my-codex@latest -D && pnpm exec omx setup --scope project --force --verbose && pnpm exec omx doctor",
     "preview": "astro preview"
   },
   "dependencies": {
@@ -22,6 +25,7 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.9",
+    "oh-my-codex": "^0.19.0",
     "typescript": "^6.0.3"
   }
 }
