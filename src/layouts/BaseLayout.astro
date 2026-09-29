@@ -255,6 +255,35 @@ const canonical = absoluteUrl(canonicalPath);
     text-align: left;
   }
 
+  /* 접었다 펴는 글 안의 곁다리 설명 (예: 이 글을 쓰게 된 이유) */
+  article details {
+    max-width: 760px;
+    margin: 0 0 24px;
+    padding: 10px 16px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+  }
+
+  article summary {
+    cursor: pointer;
+    color: var(--muted);
+    font-weight: 600;
+  }
+
+  article summary:hover {
+    color: var(--accent);
+  }
+
+  article details[open] summary {
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+
+  article details > p:last-child {
+    margin-bottom: 4px;
+  }
+
   /* 마지막 열이 짧은 표: 넓은 화면에서는 마지막 열을 줄바꿈하지 않고 남은 폭을 앞 열이 나눠 쓴다 */
   @media (min-width: 720px) {
     .nowrap-last-col th:last-child,
