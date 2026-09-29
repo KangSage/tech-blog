@@ -77,7 +77,7 @@ export const concepts: Concept[] = [
     ],
   },
   {
-    id: "media", short: "Media set", layer: "data", title: "Media set · media reference",
+    id: "media", short: "Media set", layer: "data", title: "Media set",
     lead: "Media set은 파일 전용 저장소이고, media reference는 그 파일을 가리키는 포인터입니다.",
     analogy: "버전 관리를 켠 S3 버킷과, DB 컬럼에 저장한 S3 key의 관계와 같습니다.",
     everyday: "사진·문서를 보관하는 창고와, 장부에 적어 둔 '창고 몇 번 선반' 메모의 관계와 같습니다. 같은 선반에 새 파일을 넣어도 옛 파일은 치워지지 않고, 옛 메모는 계속 옛 파일을 가리킵니다.",
@@ -96,7 +96,7 @@ export const concepts: Concept[] = [
     ],
   },
   {
-    id: "funnel", short: "Funnel", layer: "onto", title: "Funnel 인덱싱 · Materialization",
+    id: "funnel", short: "Funnel", layer: "onto", title: "Funnel · Materialization",
     lead: "Funnel은 Dataset을 객체 저장소(OSv2)로 인덱싱합니다. Action으로 만든 편집은 인덱스에 즉시 반영됩니다.",
     analogy: "MySQL 원본을 검색용 Elasticsearch 인덱스로 동기화하고, 앱은 인덱스만 조회하는 구조와 비슷합니다. Materialization은 원본과 편집을 합쳐 다시 테이블로 저장하는 materialized view에 해당합니다.",
     everyday: "도서관 책으로 검색용 목록(색인)을 만들어 두고, 사람들은 그 목록으로 책을 찾는 것과 같습니다. Materialization은 목록에 반영된 수정 사항까지 합쳐 책을 새로 인쇄해 두는 것에 해당합니다.",
