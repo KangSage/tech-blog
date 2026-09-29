@@ -59,7 +59,7 @@ export const concepts: Concept[] = [
     related: [{ label: "코드 내보내기", href: D + "pipeline-builder/export-pipeline" }],
   },
   {
-    id: "dataset", short: "Dataset", layer: "data", title: "Dataset · 트랜잭션",
+    id: "dataset", short: "Dataset", layer: "data", title: "Dataset",
     lead: "Dataset은 파일 묶음(보통 Parquet)과 스키마로 구성되며, 변경은 트랜잭션 단위로 기록됩니다.",
     analogy: "겉모습은 테이블이지만 내부 동작은 Git 저장소에 가깝습니다. 트랜잭션 하나가 커밋 하나에 해당합니다.",
     everyday: "수정할 때마다 저장 버전이 남는 엑셀 파일과 같습니다. 구글 문서의 버전 기록처럼 예전 시점의 내용으로 되돌릴 수 있습니다.",
