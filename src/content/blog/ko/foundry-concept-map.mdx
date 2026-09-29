@@ -76,9 +76,9 @@ OSDK로 만든 앱이 받는 토큰은 사용자 권한, 앱에 설정된 최대
 한 곳의 권한을 막았다고 해서 관련 데이터가 모두 보호되지는 않습니다.\
 다음 조합은 각각 따로 설정해야 합니다.
 
-- **[Object security policy](#concept-osp) ↔ Dataset 권한**: 양방향으로 분리되어 있습니다.\
+- **[Object security policy](#concept-osp) ↔ [Dataset](#concept-dataset) 권한**: 양방향으로 분리되어 있습니다.\
   Object를 가려도 원본 Dataset은 따로 잠가야 합니다.
-- **[Media set](#concept-media) 권한 ↔ Object 정책**: 서로 별개입니다.\
+- **[Media set](#concept-media) 권한 ↔ [Object 정책](#concept-osp)**: 서로 별개입니다.\
   Property를 볼 수 없는 사용자도 Media set에서 파일을 직접 가져올 수 있습니다.\
   또한 같은 경로로 덮어써도 이전 파일은 기본적으로 삭제되지 않고 media reference로 계속 접근할 수 있으므로, 민감한 파일을 교체할 때는 보존 정책을 함께 설정해야 합니다.
 - **[OSDK](#concept-osdk) scope**: 앱 전체에 적용되는 상한일 뿐입니다.\
