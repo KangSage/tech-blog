@@ -227,6 +227,32 @@ Execute `omx setup` to install all components. Execute `omx doctor` to verify in
 ## Local Notes
 - Add repo-specific architecture notes, workflow conventions, and verification commands here.
 - This block is preserved by `omx agents-init` refreshes.
+
+### Blog workflow
+- Verify with `mise exec -- pnpm build` (runs `astro check` + build). The repo is public: commit locally and ask before pushing, merging, or deploying.
+- Deploys run on push to `main` (GitHub Pages). PRs merge into `setup/secure-astro-blog-v0`, so `main` must be updated separately until the default branch changes.
+- Post content must only state what the linked official docs (or source code) say. When asked to "check/review", report findings without editing.
+
+### Article writing rules (Korean posts) — must follow for every article
+- Write in 합니다체. Put each sentence on its own line: end prose lines with `\` (hard break), use `<br />` inside table cells; component/card text is split on sentence ends automatically.
+- Commas: do not put a comma after a connective ending (-고, -며, -지만, -면, -므로, -어서/-아서, -거나, -라, -듯, -뒤, -때, -뿐, -와/-과, -도, and -로 when it is not a parallel list). Keep commas only for noun enumerations ("수집과 가공, 업무 모델링, 권한 관리"), parallel pairs ("Contour는 Dataset, Quiver는 Object"), and numbers ("1,000개").
+- State only facts the linked official docs (or source code) support, and cite them. Analogies are fine but must not contradict the docs.
+- Use one name per concept everywhere (card title, index, map, body text). Escape `~` as `\~` in MDX, since GFM turns `~a~` into strikethrough.
+- Tags: pair each English tag with a Korean tag written without spaces (e.g. `ontology`, `온톨로지`).
+- After writing, grep the prose for `[가-힣] ?(고|며|지만|면|므로|서|거나|듯|뒤|때|뿐|와|과|도|달리|처럼|아니라), ` to catch leftover connective commas (the optional space catches forms like "할 뿐," and "과 달리,"), then review each hit by hand.
+
+### Concept map posts (`src/components/foundry/`) — checklist for adding or renaming a concept
+Recurring mistakes here were names drifting between the card, the index chip, and the map box, and map text/labels overlapping after layout changes.
+- Names live in one place: `short` (and optional `mapLines`) in `concepts.ts`. Never type a concept name into the SVG; add a `mapNodes` entry (position/size/subtitle only) in `FoundryConceptMap.astro`. The build fails if a concept has no map node or `mapLines` does not join to `short`.
+- Card `title` is the concept name, or "A · B" only when the card really covers two separate features. Keep it consistent with `short`.
+- Run `mise exec -- pnpm dev`, open the post, and check the browser console: `[concept-map] 배치 점검 통과` must appear. It warns when box text is closer than 4px to any box edge (horizontal or vertical) or when labels overlap boxes/vertical lines. Box text positions are derived from box height, so change `h` rather than hand-placing text.
+- The dev check only measures geometry; still look at the rendered map once, since it cannot judge odd-looking arrows or wording.
+- Then check by hand, since these are not automated:
+  - at 1366px, with the sidebar stuck, cycle through every card: the sidebar must not overflow (only the card body may scroll);
+  - selecting each new concept highlights only its real partners. Every line/label carries `data-edges="a:b c:d"` pairs (a shared line lists every pair it carries); relations with no drawn line go in `EXTRA_EDGES` and are shown with a dashed box outline (explained in the map legend), not as solid highlights. Only add pairs the official docs support; the dev check warns about unknown ids in pairs;
+  - at 375px, no horizontal page overflow;
+  - new links in the post body use `#concept-<id>` and switch the card without scrolling.
+- New or changed facts need an official Palantir doc link in the card's `doc`/`related`.
 <!-- OMX:AGENTS-INIT:MANUAL:END -->
 
 <!-- OMX:AGENTS:START -->
