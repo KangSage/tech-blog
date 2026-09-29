@@ -194,7 +194,7 @@ export const concepts: Concept[] = [
     ],
   },
   {
-    id: "project", short: "Project·Marking", layer: "sec", title: "Project · Role · Marking",
+    id: "project", short: "Project · Role · Marking", layer: "sec", title: "Project · Role · Marking",
     lead: "Project는 리소스를 묶는 작업 단위이자 권한 경계입니다. 리소스에 접근하려면 Role이 있어야 하고, 적용된 Marking도 모두 통과해야 합니다.",
     analogy: "Role은 MySQL의 GRANT처럼 무엇을 할 수 있는지 정합니다. Marking은 모든 요청 앞에 붙는 필수 검사 미들웨어와 같아서, 하나라도 통과하지 못하면 GRANT와 관계없이 차단됩니다.",
     everyday: "Role은 사무실 출입증의 등급(보기만 가능, 편집 가능 등)과 같습니다. Marking은 '기밀' 표시가 붙은 서류실의 추가 잠금이라, 출입증 등급이 높아도 기밀 허가가 없으면 들어갈 수 없습니다.",
