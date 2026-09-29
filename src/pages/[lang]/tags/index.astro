@@ -1,0 +1,45 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { assertLocale, href, locales, tagPath, tagsPath } from "@/lib/i18n";
+import { getLocalesWithPosts, getTagCounts } from "@/lib/posts";
+import { t } from "@/lib/ui";
+
+export function getStaticPaths() {
+  return locales.map((lang) => ({ params: { lang } }));
+}
+
+const lang = assertLocale(Astro.params.lang);
+const tags = await getTagCounts(lang);
+const withPosts = await getLocalesWithPosts();
+const alternates = locales
+  .filter((locale) => locale === lang || withPosts.includes(locale))
+  .map((locale) => ({ locale, path: tagsPath(locale) }));
+---
+
+<BaseLayout
+  title={t("navTags", lang)}
+  description={t("tagsDescription", lang)}
+  locale={lang}
+  canonicalPath={tagsPath(lang)}
+  alternates={alternates}
+  noindex={tags.length === 0}
+>
+  <header class="page-intro">
+    <h1>{t("navTags", lang)}</h1>
+    <p>{t("tagsDescription", lang)}</p>
+  </header>
+
+  {tags.length === 0 ? (
+    <p class="notice">{t("noPosts", lang)}</p>
+  ) : (
+    <ul class="chip-row tag-index">
+      {tags.map(({ tag, count }) => (
+        <li>
+          <a class="chip tag-chip" href={href(tagPath(lang, tag))}>
+            #{tag} <span class="chip-count">{count}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  )}
+</BaseLayout>

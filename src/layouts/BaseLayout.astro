@@ -1,5 +1,6 @@
 ---
-import { SITE, absoluteUrl, localeLabels, localeNames, type Locale } from "@/lib/i18n";
+import { SITE, absoluteUrl, href, localeHome, localeLabels, localeNames, tagsPath, type Locale } from "@/lib/i18n";
+import { t } from "@/lib/ui";
 
 type Alternate = {
   locale: Locale;
@@ -27,6 +28,9 @@ const {
 } = Astro.props;
 
 const pageTitle = title === SITE.name ? title : `${title} | ${SITE.name}`;
+// 현재 위치에 맞춰 헤더 메뉴를 표시한다: 태그 페이지는 '태그', 나머지 글 관련 페이지는 '글 목록'
+const path = Astro.url.pathname;
+const currentNav = path.includes("/tags/") ? "tags" : path.includes("/security/") ? "" : "posts";
 const canonical = absoluteUrl(canonicalPath);
 ---
 
@@ -60,23 +64,27 @@ const canonical = absoluteUrl(canonicalPath);
       <a class="brand" href={Astro.site ? new URL(import.meta.env.BASE_URL, Astro.site).pathname : import.meta.env.BASE_URL}>
         {SITE.name}
       </a>
-      <nav aria-label="Primary navigation">
-        <a href={import.meta.env.BASE_URL + "ko/"}>Garden</a>
-        <a href={import.meta.env.BASE_URL + "ko/security/"}>Security</a>
+      <nav aria-label="Primary navigation" class="main-nav">
+        <a href={href(localeHome(locale))} aria-current={currentNav === "posts" ? "page" : undefined}>{t("navPosts", locale)}</a>
+        <a href={href(tagsPath(locale))} aria-current={currentNav === "tags" ? "page" : undefined}>{t("navTags", locale)}</a>
       </nav>
-      <nav aria-label="Languages" class="language-nav">
+      {alternates.length > 1 && <nav aria-label="Languages" class="language-nav">
         {alternates.map((alternate) => (
           <a href={import.meta.env.BASE_URL.replace(/\/$/, "") + alternate.path} aria-current={alternate.locale === locale ? "page" : undefined}>
             {localeLabels[alternate.locale]}
           </a>
         ))}
-      </nav>
+      </nav>}
     </header>
     <main>
       <slot />
     </main>
     <footer class="site-footer">
-      <p>© {new Date().getFullYear()} {SITE.name}. A static garden with dependency advisory monitoring.</p>
+      <p>© {new Date().getFullYear()} {SITE.name}</p>
+      <nav aria-label="Site links" class="footer-nav">
+        <a href={href(`/${locale}/rss.xml`)}>RSS</a>
+        <a href={href("/ko/security/")}>{t("security", locale)}</a>
+      </nav>
     </footer>
   </body>
 </html>
@@ -148,11 +156,35 @@ const canonical = absoluteUrl(canonicalPath);
     margin-left: auto;
   }
 
+  .main-nav a,
+  .language-nav a,
+  .footer-nav a {
+    color: var(--muted);
+    text-decoration: none;
+  }
+
+  .main-nav a:hover,
+  .language-nav a:hover,
+  .footer-nav a:hover {
+    color: var(--accent);
+  }
+
+  .main-nav a[aria-current],
+  .language-nav a[aria-current] {
+    color: var(--text);
+    font-weight: 600;
+  }
+
   main {
     padding: 40px 0 56px;
   }
 
   .site-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 20px;
     padding: 24px 0 36px;
     border-top: 1px solid var(--border);
     color: var(--muted);
@@ -168,7 +200,7 @@ const canonical = absoluteUrl(canonicalPath);
   h1 {
     max-width: 820px;
     margin: 0 0 16px;
-    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-size: clamp(1.8rem, 4vw, 2.6rem);
   }
 
   h2 {
@@ -245,60 +277,216 @@ const canonical = absoluteUrl(canonicalPath);
     font-size: 0.95rem;
   }
 
-  .post-list {
-    display: grid;
-    gap: 18px;
+  [hidden] {
+    display: none !important;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  /* 페이지 머리: 제목과 한 줄 소개 */
+  .page-intro {
+    max-width: 760px;
+    margin-bottom: 28px;
+  }
+
+  .page-intro h1 {
+    margin-bottom: 8px;
+    font-size: clamp(1.6rem, 3.5vw, 2.1rem);
+  }
+
+  .page-intro p {
+    margin: 0;
+    color: var(--muted);
+  }
+
+  .page-intro .eyebrow {
+    margin-bottom: 6px;
+  }
+
+  /* 칩: 카테고리·태그 필터와 태그 목록 */
+  .chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0 0 12px;
     padding: 0;
     list-style: none;
   }
 
-  .post-card {
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--text);
+    font-size: 0.9rem;
+    text-decoration: none;
+  }
+
+  a.chip:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .chip[aria-current] {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .chip.is-empty {
+    color: var(--muted);
+    opacity: 0.55;
+  }
+
+  .chip-count {
+    color: var(--muted);
+    font-size: 0.8rem;
+    font-weight: 400;
+  }
+
+  .tag-chip {
+    font-size: 0.85rem;
+  }
+
+  /* 메인 검색 */
+  .finder {
+    max-width: 760px;
+    margin-bottom: 8px;
+  }
+
+  .finder-search {
+    display: block;
+    margin-bottom: 14px;
+  }
+
+  .finder-search input {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 10px 14px;
     border: 1px solid var(--border);
     border-radius: 8px;
-    padding: 20px;
     background: var(--surface);
+    color: var(--text);
+    font: inherit;
   }
 
-  .post-card h2 {
-    margin: 0 0 8px;
-    font-size: 1.35rem;
+  .finder-search input:focus {
+    outline: 2px solid var(--accent-soft);
+    border-color: var(--accent);
   }
 
-  .post-card h3 {
-    margin: 0 0 8px;
-    font-size: 1.2rem;
-  }
-
-  .category-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  .finder-status {
+    display: flex;
+    align-items: center;
     gap: 12px;
-    margin: 32px 0 40px;
+    margin: 4px 0 0;
+    color: var(--muted);
+    font-size: 0.9rem;
   }
 
-  .category-card {
-    display: grid;
-    gap: 8px;
-    min-height: 124px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 18px;
-    background: var(--surface);
+  .finder-clear {
+    border: 0;
+    padding: 0;
+    background: none;
+    color: var(--accent);
+    font: inherit;
+    cursor: pointer;
+  }
+
+  /* 글 목록: 줄마다 날짜·카테고리 / 제목 / 설명 / 태그 */
+  .post-rows {
+    max-width: 760px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--border);
+  }
+
+  .post-row {
+    padding: 18px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .post-row-meta {
+    display: flex;
+    gap: 10px;
+    margin: 0 0 4px;
+    color: var(--muted);
+    font-size: 0.88rem;
+  }
+
+  .post-row-meta a {
+    color: var(--muted);
+    text-decoration: none;
+  }
+
+  .post-row-meta a:hover {
+    color: var(--accent);
+  }
+
+  .post-row-title {
+    margin: 0 0 6px;
+    font-size: 1.2rem;
+    line-height: 1.35;
+  }
+
+  .post-row-title a {
     color: var(--text);
     text-decoration: none;
   }
 
-  .category-card span {
-    font-weight: 700;
+  .post-row-title a:hover {
+    color: var(--accent);
+    text-decoration: underline;
   }
 
-  .category-card small {
+  .post-row-desc {
+    margin: 0 0 8px;
     color: var(--muted);
-    line-height: 1.5;
   }
 
-  .category-section {
-    margin-top: 36px;
+  .tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: 0.85rem;
+  }
+
+  .tag {
+    color: var(--accent);
+    text-decoration: none;
+  }
+
+  .tag:hover {
+    text-decoration: underline;
+  }
+
+  .no-results {
+    color: var(--muted);
+  }
+
+  .post-head .tag-list {
+    margin-top: -4px;
+  }
+
+  .post-head .eyebrow a {
+    color: var(--accent);
+    text-decoration: none;
   }
 
   .security-summary {

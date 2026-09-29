@@ -2,8 +2,8 @@
 import { render } from "astro:content";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { categoryLabels } from "@/lib/categories";
-import { absoluteUrl, assertLocale, blogPath, categoryPath, type Locale } from "@/lib/i18n";
-import { getAlternates, getPublishedPosts, localeFromId, slugFromId } from "@/lib/posts";
+import { absoluteUrl, assertLocale, blogPath, categoryPath, href, tagPath, type Locale } from "@/lib/i18n";
+import { formatDate, getAlternates, getPublishedPosts, localeFromId, slugFromId } from "@/lib/posts";
 
 export async function getStaticPaths() {
   const posts = await getPublishedPosts();
@@ -52,16 +52,21 @@ const jsonLd = {
 >
   <article>
     <header class="post-head">
-      <p class="eyebrow">Article</p>
+      <p class="eyebrow">
+        <a href={href(categoryPath(lang, post.data.category))}>{categoryLabels[post.data.category][lang]}</a>
+      </p>
       <h1>{post.data.title}</h1>
       <p class="meta">
-        <a href={import.meta.env.BASE_URL.replace(/\/$/, "") + categoryPath(lang, post.data.category)}>
-          {categoryLabels[post.data.category][lang]}
-        </a>
-        {" · "}
-        <time datetime={post.data.publishedAt.toISOString()}>{post.data.publishedAt.toLocaleDateString(lang)}</time>
-        {post.data.updatedAt && <> · Updated <time datetime={post.data.updatedAt.toISOString()}>{post.data.updatedAt.toLocaleDateString(lang)}</time></>}
+        <time datetime={post.data.publishedAt.toISOString()}>{formatDate(post.data.publishedAt)}</time>
+        {post.data.updatedAt && <> · Updated <time datetime={post.data.updatedAt.toISOString()}>{formatDate(post.data.updatedAt)}</time></>}
       </p>
+      {post.data.tags.length > 0 && (
+        <ul class="tag-list">
+          {post.data.tags.map((tag) => (
+            <li><a class="tag" href={href(tagPath(lang, tag))}>#{tag}</a></li>
+          ))}
+        </ul>
+      )}
     </header>
     <div class="post-grid">
       <!-- 글 속 컴포넌트가 스크립트로 옮겨 넣는 고정 패널 자리. 비어 있으면 숨김 -->
