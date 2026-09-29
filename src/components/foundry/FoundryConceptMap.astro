@@ -191,7 +191,17 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
             <h3 class="ct">{c.title}</h3>
             <p class="lead">{sentences(c.lead).map((s, i) => <>{i > 0 && <br />}{s}</>)}</p>
             <div class="cbody detail">
-            <div class="ana"><b>웹·DB 비유</b><p>{sentences(c.analogy).map((s, i) => <>{i > 0 && <br />}{s}</>)}</p></div>
+            <div class="ana">
+              <div class="ana-head">
+                <b>비유로 보면</b>
+                <span class="ana-tabs" role="group" aria-label="비유 관점" hidden>
+                  <button type="button" data-view="dev" aria-pressed="true">개발자</button>
+                  <button type="button" data-view="everyday" aria-pressed="false">일반</button>
+                </span>
+              </div>
+              <p class="ana-dev"><span class="ana-kind">개발자: </span>{sentences(c.analogy).map((s, i) => <>{i > 0 && <br />}{s}</>)}</p>
+              <p class="ana-everyday"><span class="ana-kind">일반: </span>{sentences(c.everyday).map((s, i) => <>{i > 0 && <br />}{s}</>)}</p>
+            </div>
             <ul class="pts">
               {c.points.map((p) => <li><span>{sentences(p).map((s, i) => <>{i > 0 && <br />}{s}</>)}</span></li>)}
             </ul>
@@ -239,6 +249,20 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
     root.dataset.enhanced = "";
     panel.dataset.enhanced = "";
     panel.querySelectorAll<HTMLElement>(".index, .nav").forEach((el) => (el.hidden = false));
+
+    // 비유 관점(개발자/일반). 한 카드에서 고르면 모든 카드에 적용하고, 이 브라우저에 기억한다
+    const VIEW_KEY = "fcm-analogy-view";
+    function setView(view: string) {
+      if (view !== "dev" && view !== "everyday") return;
+      panel!.dataset.view = view;
+      panel!.querySelectorAll<HTMLElement>("button[data-view]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.view === view)));
+      try { localStorage.setItem(VIEW_KEY, view); } catch {}
+      updateFade();
+    }
+    panel.querySelectorAll<HTMLElement>(".ana-tabs").forEach((el) => (el.hidden = false));
+    let savedView = "dev";
+    try { savedView = localStorage.getItem(VIEW_KEY) ?? "dev"; } catch {}
+    setView(savedView);
 
     function setIndexOpen(open: boolean) {
       panel!.classList.toggle("index-open", open);
@@ -304,6 +328,8 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
       const target = event.target as Element;
       if (more && target.closest(".more") === more) return setExpanded(!panel.classList.contains("is-expanded"));
       if (indexToggle && target.closest(".index-toggle") === indexToggle) return setIndexOpen(!panel.classList.contains("index-open"));
+      const viewButton = target.closest<HTMLElement>("button[data-view]");
+      if (viewButton && panel.contains(viewButton)) return setView(viewButton.dataset.view ?? "");
       const chip = target.closest<HTMLElement>("[data-chip]");
       if (chip) return pick(chip.dataset.chip);
       const step = target.closest<HTMLElement>("[data-step]");
@@ -417,9 +443,19 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
   .ct { font-size: 1.3rem; line-height: 1.3; margin: 0; text-wrap: balance; }
   .lead { font-size: 16px; font-weight: 500; margin: 0; line-height: 1.55; }
   .ana { background: var(--t); border-radius: 10px; padding: 12px 14px; }
-  /* 카드 안 라벨(웹·DB 비유, 주의)은 본문과 같은 글꼴로, 한 줄을 따로 차지 */
+  /* 카드 안 라벨(비유로 보면, 주의)은 본문과 같은 글꼴로, 한 줄을 따로 차지 */
   .ana b, .warn b { display: block; font-size: 12px; font-weight: 700; margin-bottom: 2px; }
-  .ana b { color: var(--c); }
+  .ana b { color: var(--c); margin: 0; }
+  .ana { display: grid; gap: 6px; }
+  .ana-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .ana-tabs[hidden] { display: none; }
+  .ana-tabs { display: inline-flex; border: 1px solid var(--c); border-radius: 7px; overflow: hidden; background: var(--surface); }
+  .ana-tabs button { border: 0; background: none; padding: 2px 9px; font-size: 12px; cursor: pointer; color: var(--c); }
+  .ana-tabs button[aria-pressed="true"] { background: var(--c); color: var(--surface); font-weight: 600; }
+  .ana-kind { font-weight: 600; }
+  /* 스크립트가 켜지면 고른 관점의 비유만 보여 준다 (없으면 둘 다 표시) */
+  [data-view] .ana-kind { display: none; }
+  [data-view="dev"] .ana-everyday, [data-view="everyday"] .ana-dev { display: none; }
   .ana p { margin: 0; }
   .pts { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
   .pts li { display: grid; grid-template-columns: 8px minmax(0, 1fr); gap: 10px; }
