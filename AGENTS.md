@@ -227,6 +227,23 @@ Execute `omx setup` to install all components. Execute `omx doctor` to verify in
 ## Local Notes
 - Add repo-specific architecture notes, workflow conventions, and verification commands here.
 - This block is preserved by `omx agents-init` refreshes.
+
+### Blog workflow
+- Verify with `mise exec -- pnpm build` (runs `astro check` + build). The repo is public: commit locally and ask before pushing, merging, or deploying.
+- Deploys run on push to `main` (GitHub Pages). PRs merge into `setup/secure-astro-blog-v0`, so `main` must be updated separately until the default branch changes.
+- Post content must only state what the linked official docs (or source code) say. When asked to "check/review", report findings without editing.
+
+### Concept map posts (`src/components/foundry/`) — checklist for adding or renaming a concept
+Recurring mistakes here were names drifting between the card, the index chip, and the map box, and map text/labels overlapping after layout changes.
+- Names live in one place: `short` (and optional `mapLines`) in `concepts.ts`. Never type a concept name into the SVG; add a `mapNodes` entry (position/size/subtitle only) in `FoundryConceptMap.astro`. The build fails if a concept has no map node or `mapLines` does not join to `short`.
+- Card `title` is the concept name, or "A · B" only when the card really covers two separate features. Keep it consistent with `short`.
+- Run `mise exec -- pnpm dev`, open the post, and check the browser console: `[concept-map] 배치 점검 통과` must appear, with no warnings about text overflowing a box or labels overlapping boxes/vertical lines.
+- Then check by hand, since these are not automated:
+  - at 1366px, with the sidebar stuck, cycle through every card: the sidebar must not overflow (only the card body may scroll);
+  - selecting each new concept highlights the right related boxes (`data-rel`, and `data-bus` for shared lines);
+  - at 375px, no horizontal page overflow;
+  - new links in the post body use `#concept-<id>` and switch the card without scrolling.
+- New or changed facts need an official Palantir doc link in the card's `doc`/`related`.
 <!-- OMX:AGENTS-INIT:MANUAL:END -->
 
 <!-- OMX:AGENTS:START -->

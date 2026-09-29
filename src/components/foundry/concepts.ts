@@ -12,8 +12,10 @@ export const layerLabels: Record<Layer, string> = {
 
 export interface Concept {
   id: string;
-  /** 개념 목록 버튼에 쓰는 이름 */
+  /** 개념 목록 버튼과 개념 지도 상자에 쓰는 이름. 이 이름 하나만 고치면 목록·지도가 함께 바뀐다 */
   short: string;
+  /** 지도 상자에서 이름을 여러 줄로 나눌 때만 지정. 이어 붙이면 short와 같아야 한다(빌드 시 검사) */
+  mapLines?: string[];
   layer: Layer;
   title: string;
   lead: string;
@@ -280,6 +282,7 @@ export const concepts: Concept[] = [
   },
   {
     id: "analytics", short: "Contour · Quiver · Object Explorer", layer: "app", title: "Contour · Quiver · Object Explorer",
+    mapLines: ["Contour · Quiver", "Object Explorer"],
     lead: "코드 없이 데이터를 분석하고 대시보드를 만드는 앱들입니다. Contour는 Dataset, Quiver는 Object와 시계열, Object Explorer는 Object 검색과 탐색에 맞춰져 있습니다.",
     analogy: "Metabase나 Tableau 같은 BI 도구에 해당합니다. Contour는 테이블(Dataset) 기반, Quiver는 ORM 모델(Object) 기반 분석이고, Object Explorer는 관리자 화면의 검색·필터 목록과 비슷합니다.",
     everyday: "엑셀의 필터·피벗·차트 기능을 떼어 낸 분석 도구들입니다. 데이터를 걸러 보고, 차트로 만들고, 다른 사람과 대시보드로 공유합니다.",
