@@ -3,6 +3,6 @@ strictDepBuilds: true
 dangerouslyAllowAllBuilds: false
 blockExoticSubdeps: true
 allowBuilds:
-  esbuild@0.27.7: true
+  esbuild@0.28.2: true
   oh-my-codex: true
   sharp@0.34.5: true
