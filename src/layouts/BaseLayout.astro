@@ -195,6 +195,27 @@ const canonical = absoluteUrl(canonicalPath);
     color: inherit;
   }
 
+  article table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 0.95rem;
+  }
+
+  article th,
+  article td {
+    border: 1px solid var(--border);
+    padding: 8px 12px;
+    vertical-align: top;
+  }
+
+  article th {
+    background: var(--accent-soft);
+    text-align: left;
+  }
+
   .eyebrow {
     margin: 0 0 8px;
     color: var(--muted);

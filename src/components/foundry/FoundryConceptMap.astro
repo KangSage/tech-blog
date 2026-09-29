@@ -1,0 +1,386 @@
+---
+// Foundry 개념 지도: 위→아래 데이터 흐름 그림 + 개념 카드.
+// 카드는 모두 빌드 시 HTML로 렌더링되고(JS 없이도 전부 보임), 스크립트가 켜지면 하나씩 전환하는 탐색기로 바뀐다.
+import { concepts, layerLabels, type Layer } from "./concepts";
+
+const layers = Object.entries(layerLabels) as [Layer, string][];
+---
+
+<div class="fcm" data-fcm>
+  <ul class="legend" aria-label="색 구분">
+    {layers.map(([layer, label]) => <li class={`l-${layer}`}><i></i>{label}</li>)}
+  </ul>
+
+  <div class="explore">
+    <figure class="fig" id="concept-map">
+      <svg class="map" viewBox="0 0 360 716" role="group" aria-label="Foundry 흐름: 원본 파일에서 Python transform·Pipeline Builder가 Dataset을 만들고, Funnel이 Ontology로 인덱싱하며, Action·Function·Compute module을 거쳐 Workshop·React 앱이 사용함. Project·Role·Marking이 전체를 감쌈.">
+        <defs>
+          <marker id="fcm-ah" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+            <path class="ahp" d="M0,1 L9,5 L0,9 z"></path>
+          </marker>
+        </defs>
+
+        <!-- 권한 레일 -->
+        <g class="node l-sec" data-id="project" tabindex="0" role="button" aria-label="1번 Project · Role · Marking">
+          <rect class="box" x="2" y="80" width="14" height="490" rx="7"></rect>
+          <circle class="dot" cx="9" cy="92" r="6"></circle><text class="dn" x="9" y="92">1</text>
+          <text class="rt" transform="translate(9 335) rotate(-90)">Project · Role · Marking — 전체를 감쌈</text>
+        </g>
+
+        <!-- 원본 -->
+        <g class="src"><rect x="116" y="8" width="140" height="32" rx="6"></rect><text class="t" x="186" y="28">엑셀 · 원본 파일</text></g>
+        <line class="ar" x1="176" y1="40" x2="108" y2="78" marker-end="url(#fcm-ah)"></line>
+        <line class="ar" x1="196" y1="40" x2="264" y2="78" marker-end="url(#fcm-ah)"></line>
+        <text class="lab" x="186" y="66">입력</text>
+
+        <!-- 가공 -->
+        <g class="node l-data" data-id="transform" tabindex="0" role="button" aria-label="3번 Code Repositories · Python transform">
+          <rect class="box" x="24" y="80" width="156" height="52" rx="8"></rect>
+          <circle class="dot" cx="34" cy="90" r="7"></circle><text class="dn" x="34" y="90">3</text>
+          <text class="t" x="102" y="107">Python transform</text>
+          <text class="s" x="102" y="123">Code Repositories</text>
+        </g>
+        <g class="node l-data" data-id="pb" tabindex="0" role="button" aria-label="추가 1 Pipeline Builder">
+          <rect class="box" x="192" y="80" width="156" height="52" rx="8"></rect>
+          <circle class="dot" cx="202" cy="90" r="7"></circle><text class="dn" x="202" y="90">+1</text>
+          <text class="t" x="270" y="107">Pipeline Builder</text>
+          <text class="s" x="270" y="123">클릭 → transform 생성</text>
+        </g>
+        <line class="ar" x1="102" y1="132" x2="102" y2="168" marker-end="url(#fcm-ah)"></line>
+        <line class="ar" x1="270" y1="132" x2="192" y2="168" marker-end="url(#fcm-ah)"></line>
+        <text class="lab as" x="108" y="154">build</text>
+        <text class="lab as" x="234" y="154">build</text>
+
+        <!-- 저장 -->
+        <g class="node l-data" data-id="dataset" tabindex="0" role="button" aria-label="2번 Dataset과 트랜잭션">
+          <rect class="box" x="24" y="170" width="204" height="52" rx="8"></rect>
+          <circle class="dot" cx="34" cy="180" r="7"></circle><text class="dn" x="34" y="180">2</text>
+          <text class="t" x="126" y="197">Dataset</text>
+          <text class="s" x="126" y="213">트랜잭션 · SNAPSHOT / APPEND …</text>
+        </g>
+        <g class="node l-data" data-id="media" tabindex="0" role="button" aria-label="8번 Media set">
+          <rect class="box" x="240" y="170" width="108" height="52" rx="8"></rect>
+          <circle class="dot" cx="250" cy="180" r="7"></circle><text class="dn" x="250" y="180">8</text>
+          <text class="t" x="294" y="197">Media set</text>
+          <text class="s" x="294" y="213">파일 · 불변 아이템</text>
+        </g>
+
+        <!-- 인덱싱 -->
+        <line class="ar" x1="126" y1="222" x2="126" y2="234"></line>
+        <g class="node l-onto" data-id="funnel" tabindex="0" role="button" aria-label="5번 Funnel 인덱싱">
+          <rect class="box" x="66" y="234" width="120" height="24" rx="12"></rect>
+          <circle class="dot" cx="79" cy="246" r="7"></circle><text class="dn" x="79" y="246">5</text>
+          <text class="t" x="132" y="250" style="font-size:11px">Funnel 인덱싱</text>
+        </g>
+        <line class="ar" x1="126" y1="258" x2="126" y2="274" marker-end="url(#fcm-ah)"></line>
+        <g class="node link l-onto" data-id="funnel" tabindex="0" role="button" aria-label="5번 Materialization">
+          <rect class="hit" x="204" y="224" width="96" height="52"></rect>
+          <line class="ar dash" x1="212" y1="276" x2="212" y2="224" marker-end="url(#fcm-ah)"></line>
+          <text class="lab as" x="218" y="253">Materialization</text>
+        </g>
+        <g class="node link l-data" data-id="media" tabindex="0" role="button" aria-label="8번 media reference">
+          <rect class="hit" x="310" y="224" width="46" height="52"></rect>
+          <line class="ar dash" x1="320" y1="222" x2="320" y2="274" marker-end="url(#fcm-ah)"></line>
+          <text class="lab as" x="325" y="244">media</text>
+          <text class="lab as" x="325" y="256">ref</text>
+        </g>
+
+        <!-- 온톨로지 -->
+        <g class="node l-onto" data-id="onto" tabindex="0" role="button" aria-label="4번 Ontology">
+          <rect class="box" x="24" y="276" width="324" height="92" rx="10"></rect>
+          <circle class="dot" cx="34" cy="286" r="7"></circle><text class="dn" x="34" y="286">4</text>
+          <text class="tb" x="186" y="302">Ontology (OSv2)</text>
+          <text class="s" x="186" y="320">Object type · Property · Link type · Object set</text>
+          <text class="lab as" x="36" y="349">앱이 보고 쓰는 층</text>
+        </g>
+        <g class="node l-sec" data-id="osp" tabindex="0" role="button" aria-label="11번 Object security policy">
+          <rect class="box" x="196" y="332" width="144" height="26" rx="6"></rect>
+          <circle class="dot" cx="208" cy="345" r="7"></circle><text class="dn" x="208" y="345">11</text>
+          <text class="t" x="276" y="349" style="font-size:10px">Object security policy</text>
+        </g>
+
+        <!-- 로직 → 온톨로지 -->
+        <line class="ar" x1="74" y1="410" x2="74" y2="370" marker-end="url(#fcm-ah)"></line>
+        <line class="ar" x1="186" y1="410" x2="186" y2="370" marker-end="url(#fcm-ah)"></line>
+        <line class="ar dash" x1="298" y1="410" x2="298" y2="370" marker-end="url(#fcm-ah)"></line>
+        <text class="lab as" x="80" y="394">편집</text>
+        <text class="lab as" x="192" y="394">조회</text>
+        <text class="lab as" x="304" y="394">서비스 유저</text>
+
+        <g class="node l-logic" data-id="action" tabindex="0" role="button" aria-label="6번 Action type">
+          <rect class="box" x="24" y="412" width="100" height="52" rx="8"></rect>
+          <circle class="dot" cx="34" cy="422" r="7"></circle><text class="dn" x="34" y="422">6</text>
+          <text class="t" x="74" y="439">Action type</text>
+          <text class="s" x="74" y="455">+ 제출 조건</text>
+        </g>
+        <g class="node l-logic" data-id="function" tabindex="0" role="button" aria-label="7번 Function">
+          <rect class="box" x="136" y="412" width="100" height="52" rx="8"></rect>
+          <circle class="dot" cx="146" cy="422" r="7"></circle><text class="dn" x="146" y="422">7</text>
+          <text class="t" x="186" y="439">Function</text>
+          <text class="s" x="186" y="455">TS · Python</text>
+        </g>
+        <g class="node l-logic" data-id="cm" tabindex="0" role="button" aria-label="12번 Compute module">
+          <rect class="box" x="248" y="412" width="100" height="52" rx="8"></rect>
+          <circle class="dot" cx="258" cy="422" r="7"></circle><text class="dn" x="258" y="422">12</text>
+          <text class="t" x="298" y="439" style="font-size:11px">Compute module</text>
+          <text class="s" x="298" y="455">Docker 컨테이너</text>
+        </g>
+
+        <!-- 앱 → 로직 -->
+        <line class="ar" x1="74" y1="484" x2="74" y2="466" marker-end="url(#fcm-ah)"></line>
+        <line class="ar" x1="186" y1="484" x2="186" y2="466" marker-end="url(#fcm-ah)"></line>
+        <line class="ar" x1="298" y1="484" x2="298" y2="466" marker-end="url(#fcm-ah)"></line>
+        <line class="ar" x1="74" y1="484" x2="298" y2="484"></line>
+        <line class="ar" x1="102" y1="516" x2="102" y2="486" marker-end="url(#fcm-ah)"></line>
+        <line class="ar" x1="270" y1="516" x2="270" y2="486" marker-end="url(#fcm-ah)"></line>
+        <text class="lab" x="186" y="505">실행 · 호출 · 조회</text>
+
+        <g class="node l-app" data-id="workshop" tabindex="0" role="button" aria-label="13번 Workshop">
+          <rect class="box" x="24" y="518" width="156" height="52" rx="8"></rect>
+          <circle class="dot" cx="34" cy="528" r="7"></circle><text class="dn" x="34" y="528">13</text>
+          <text class="t" x="102" y="545">Workshop</text>
+          <text class="s" x="102" y="561">로우코드 앱 빌더</text>
+        </g>
+        <g class="node l-app" data-id="osdk" tabindex="0" role="button" aria-label="9번 OSDK와 Developer Console">
+          <rect class="box" x="192" y="518" width="156" height="52" rx="8"></rect>
+          <circle class="dot" cx="202" cy="528" r="7"></circle><text class="dn" x="202" y="528">9</text>
+          <text class="t" x="270" y="545">React 앱 (OSDK)</text>
+          <text class="s" x="270" y="561">Developer Console</text>
+        </g>
+        <line class="ar" x1="270" y1="570" x2="270" y2="584"></line>
+        <g class="node l-sec" data-id="oauth" tabindex="0" role="button" aria-label="10번 OAuth">
+          <rect class="box" x="208" y="584" width="124" height="26" rx="13"></rect>
+          <circle class="dot" cx="221" cy="597" r="7"></circle><text class="dn" x="221" y="597">10</text>
+          <text class="t" x="276" y="601" style="font-size:11px">OAuth · PKCE</text>
+        </g>
+        <text class="lab" x="270" y="628">토큰 = 사용자 권한 ∩ scope</text>
+
+        <!-- 운영 -->
+        <text class="lab as" x="24" y="660">운영 도구 — 모든 층에 걸침</text>
+        <g class="node l-ops" data-id="oma" tabindex="0" role="button" aria-label="추가 2 Ontology Manager">
+          <rect class="box" x="24" y="668" width="100" height="40" rx="8"></rect>
+          <circle class="dot" cx="34" cy="678" r="7"></circle><text class="dn" x="34" y="678">+2</text>
+          <text class="t" x="74" y="699" style="font-size:10px">Ontology Manager</text>
+        </g>
+        <g class="node l-ops" data-id="branch" tabindex="0" role="button" aria-label="추가 3 Global Branching">
+          <rect class="box" x="136" y="668" width="100" height="40" rx="8"></rect>
+          <circle class="dot" cx="146" cy="678" r="7"></circle><text class="dn" x="146" y="678">+3</text>
+          <text class="t" x="186" y="699" style="font-size:10px">Global Branching</text>
+        </g>
+        <g class="node l-ops" data-id="market" tabindex="0" role="button" aria-label="추가 4 Marketplace">
+          <rect class="box" x="248" y="668" width="100" height="40" rx="8"></rect>
+          <circle class="dot" cx="258" cy="678" r="7"></circle><text class="dn" x="258" y="678">+4</text>
+          <text class="t" x="298" y="699" style="font-size:10px">Marketplace</text>
+        </g>
+      </svg>
+      <figcaption>실선 화살표 = 데이터가 가는 방향. 점선 = 역방향 저장(Materialization)·파일 참조(media ref)·서비스 유저 호출. 호박색 = 권한·보안 개념.</figcaption>
+    </figure>
+
+    <section class="panel" aria-label="개념 카드">
+      <div class="chips" aria-label="개념 번호" hidden>
+        {concepts.map((c) => (
+          <button type="button" class={`chip l-${c.layer}`} data-chip={c.id} aria-label={`${c.n}번 ${c.title}`} aria-pressed="false">
+            <i></i>{c.n}
+          </button>
+        ))}
+      </div>
+
+      <div class="cards" aria-live="polite">
+        {concepts.map((c) => (
+          <article class={`card l-${c.layer}`} id={`concept-${c.id}`} data-card={c.id}>
+            <div class="cmeta">
+              <span class="num">{c.n}</span>
+              <span>{layerLabels[c.layer]} · {c.n.startsWith("+") ? "추가 개념" : "핵심 개념"}</span>
+            </div>
+            <h3 class="ct">{c.title}</h3>
+            <p class="lead">{c.lead}</p>
+            <div class="ana"><b>웹·DB 비유</b><p>{c.analogy}</p></div>
+            <ul class="pts">
+              {c.points.map((p) => <li>{p}</li>)}
+            </ul>
+            {c.warn && <p class="warn"><b>주의</b>{c.warn}</p>}
+            <div class="docs">
+              <a class="doc" href={c.doc} target="_blank" rel="noopener noreferrer">공식 문서 ↗</a>
+              {c.related.map((r) => <a class="rel" href={r.href} target="_blank" rel="noopener noreferrer">{r.label} ↗</a>)}
+            </div>
+          </article>
+        ))}
+      </div>
+
+      <div class="nav" hidden>
+        <a class="back" href="#concept-map">↑ 그림</a>
+        <button type="button" data-step="-1">이전</button>
+        <button type="button" data-step="1">다음</button>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script>
+  const root = document.querySelector<HTMLElement>("[data-fcm]");
+  if (root) {
+    const cards = Array.from(root.querySelectorAll<HTMLElement>("[data-card]"));
+    const ids = cards.map((card) => card.dataset.card ?? "");
+    const chips = root.querySelector<HTMLElement>(".chips");
+    const panel = root.querySelector<HTMLElement>(".panel");
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let current = 0;
+
+    root.dataset.enhanced = "";
+    root.querySelectorAll<HTMLElement>(".chips, .nav").forEach((el) => (el.hidden = false));
+
+    function render(index: number) {
+      current = index;
+      const id = ids[index];
+      cards.forEach((card, i) => card.classList.toggle("is-active", i === index));
+      root!.querySelectorAll(".map [data-id]").forEach((node) => node.classList.toggle("sel", node.getAttribute("data-id") === id));
+      root!.querySelectorAll<HTMLElement>("[data-chip]").forEach((chip) => {
+        const on = chip.dataset.chip === id;
+        chip.setAttribute("aria-pressed", String(on));
+        if (on && chips) {
+          const br = chip.getBoundingClientRect();
+          const cr = chips.getBoundingClientRect();
+          chips.scrollLeft += br.left - cr.left - (cr.width - br.width) / 2;
+        }
+      });
+    }
+
+    function showPanel() {
+      if (!panel) return;
+      const top = panel.getBoundingClientRect().top;
+      if (top < 0 || top > window.innerHeight - 140) {
+        panel.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+      }
+    }
+
+    function pick(id: string | null | undefined, scroll: boolean) {
+      const index = id ? ids.indexOf(id) : -1;
+      if (index < 0) return;
+      render(index);
+      history.replaceState(null, "", `#concept-${id}`);
+      if (scroll) showPanel();
+    }
+
+    document.addEventListener("click", (event) => {
+      const target = event.target as Element;
+      const chip = target.closest<HTMLElement>("[data-chip]");
+      if (chip) return pick(chip.dataset.chip, false);
+      const step = target.closest<HTMLElement>("[data-step]");
+      if (step && root.contains(step)) {
+        return pick(ids[(current + Number(step.dataset.step) + ids.length) % ids.length], false);
+      }
+      const node = target.closest(".map [data-id]");
+      if (node) return pick(node.getAttribute("data-id"), true);
+      // 본문의 개념 링크(#concept-…)도 카드 전환으로 처리
+      const link = target.closest<HTMLAnchorElement>('a[href^="#concept-"]');
+      const linkId = link?.getAttribute("href")?.slice("#concept-".length);
+      if (link && linkId && ids.includes(linkId)) {
+        event.preventDefault();
+        pick(linkId, true);
+      }
+    });
+
+    root.querySelectorAll<HTMLElement>(".map [data-id]").forEach((node) => {
+      node.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          pick(node.getAttribute("data-id"), true);
+        }
+      });
+    });
+
+    const initial = location.hash.replace("#concept-", "");
+    render(ids.includes(initial) ? ids.indexOf(initial) : ids.indexOf("onto"));
+  }
+</script>
+
+<style>
+  .fcm {
+    --fcm-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+    --c-sec: #a86a12; --c-data: #0e7f80; --c-onto: #4a4fc4; --c-logic: #b8324f; --c-app: #2c7a4e; --c-ops: #5f6b7d;
+    --t-sec: #f8f0e4; --t-data: #e4f2f2; --t-onto: #ecedfa; --t-logic: #f8e7eb; --t-app: #e6f1ea; --t-ops: #edeff2;
+    --s-sec: #eedcbf; --s-data: #c4e2e2; --s-onto: #d5d6f3; --s-logic: #efcbd3; --s-app: #c8e1d2; --s-ops: #d8dce2;
+    margin: 24px 0 8px;
+    font-size: 15px;
+  }
+  .l-sec { --c: var(--c-sec); --t: var(--t-sec); --s: var(--s-sec); }
+  .l-data { --c: var(--c-data); --t: var(--t-data); --s: var(--s-data); }
+  .l-onto { --c: var(--c-onto); --t: var(--t-onto); --s: var(--s-onto); }
+  .l-logic { --c: var(--c-logic); --t: var(--t-logic); --s: var(--s-logic); }
+  .l-app { --c: var(--c-app); --t: var(--t-app); --s: var(--s-app); }
+  .l-ops { --c: var(--c-ops); --t: var(--t-ops); --s: var(--s-ops); }
+
+  button { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 0; padding: 0; list-style: none; font-size: 13px; color: var(--muted); }
+  .legend li { display: inline-flex; align-items: center; gap: 6px; }
+  .legend i { width: 10px; height: 10px; border-radius: 3px; background: var(--t); border: 1.5px solid var(--c); }
+
+  .explore { display: grid; gap: 20px; margin-top: 20px; }
+  @media (min-width: 860px) {
+    .explore { grid-template-columns: minmax(0, 440px) minmax(0, 1fr); gap: 28px; align-items: start; }
+    [data-enhanced] .panel { position: sticky; top: 16px; }
+    .back { display: none; }
+  }
+
+  .fig { margin: 0; min-width: 0; }
+  .fig svg { display: block; width: 100%; max-width: 440px; height: auto; margin: 0 auto; }
+  .fig figcaption { font-size: 13px; color: var(--muted); margin-top: 10px; line-height: 1.5; }
+
+  .map text { fill: var(--text); font-family: inherit; text-anchor: middle; }
+  .map .t { font-size: 12px; font-weight: 600; }
+  .map .tb { font-size: 13px; font-weight: 700; }
+  .map .s, .map .lab { font-size: 10px; fill: var(--muted); }
+  .map .as { text-anchor: start; }
+  .map .dn { font: 500 7.5px var(--fcm-mono); fill: var(--surface); dominant-baseline: central; }
+  .map .ar { stroke: var(--muted); stroke-width: 1.2; fill: none; }
+  .map .dash { stroke-dasharray: 4 3; }
+  .map .ahp { fill: var(--muted); }
+  .map .src rect { fill: none; stroke: var(--muted); stroke-dasharray: 4 3; }
+  .map .rt { font-size: 9.5px; font-weight: 600; fill: var(--c-sec); dominant-baseline: central; }
+  .map .hit { fill: transparent; }
+  [data-enhanced] .node { cursor: pointer; }
+  .node:focus { outline: none; }
+  .node .box { fill: var(--t); stroke: var(--c); stroke-width: 1.2; }
+  .node .dot { fill: var(--c); }
+  [data-enhanced] .node:hover .box { stroke-width: 2; }
+  .node.sel .box { fill: var(--s); stroke-width: 2.4; }
+  .node:focus-visible .box { stroke: var(--accent); stroke-width: 2.6; }
+  .node.link:hover .lab, .node.link.sel .lab, .node.link:focus-visible .lab { fill: var(--c); font-weight: 600; }
+  .node.link.sel .ar { stroke: var(--c); stroke-width: 1.8; }
+
+  .panel { display: grid; gap: 12px; min-width: 0; }
+  .cards { display: grid; gap: 16px; }
+  [data-enhanced] .card:not(.is-active) { display: none; }
+
+  .chips { display: flex; gap: 6px; overflow-x: auto; padding: 0 4px 6px; margin: 0 -4px; scrollbar-width: thin; }
+  .chips[hidden], .nav[hidden] { display: none; }
+  .chip { flex: 0 0 auto; height: 30px; min-width: 34px; padding: 0 8px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); font: 500 12px var(--fcm-mono); display: inline-flex; align-items: center; justify-content: center; gap: 5px; cursor: pointer; }
+  .chip i { width: 6px; height: 6px; border-radius: 50%; background: var(--c); }
+  .chip[aria-pressed="true"] { background: var(--s); border-color: var(--c); }
+
+  .card { scroll-margin-top: 16px; background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--c); border-radius: 12px; padding: 16px 18px 18px; display: grid; gap: 12px; min-width: 0; }
+  .cmeta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font: 500 12px var(--fcm-mono); color: var(--muted); }
+  .num { background: var(--c); color: var(--surface); border-radius: 6px; padding: 1px 8px; }
+  .ct { font-size: 1.3rem; line-height: 1.3; margin: 0; text-wrap: balance; }
+  .lead { font-size: 16px; font-weight: 500; margin: 0; line-height: 1.55; }
+  .ana { background: var(--t); border-radius: 10px; padding: 12px 14px; }
+  .ana b { display: block; font: 500 11px var(--fcm-mono); letter-spacing: 0.06em; color: var(--c); margin-bottom: 3px; }
+  .ana p { margin: 0; }
+  .pts { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+  .pts li { display: grid; grid-template-columns: 8px minmax(0, 1fr); gap: 10px; }
+  .pts li::before { content: ""; width: 6px; height: 6px; background: var(--c); margin-top: 0.62em; border-radius: 1px; }
+  .warn { border: 1px dashed var(--muted); border-radius: 10px; padding: 10px 12px; margin: 0; }
+  .warn b { font: 600 11px var(--fcm-mono); letter-spacing: 0.06em; margin-right: 6px; }
+  .docs { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; font-size: 13px; }
+  .doc { display: inline-flex; align-items: center; padding: 7px 12px; border-radius: 9px; background: var(--text); color: var(--surface); text-decoration: none; font-weight: 600; }
+
+  .nav { display: flex; gap: 6px; justify-content: flex-end; }
+  .nav button, .back { height: 34px; padding: 0 12px; border-radius: 9px; border: 1px solid var(--border); background: var(--surface); cursor: pointer; font-size: 13px; display: inline-flex; align-items: center; text-decoration: none; color: var(--text); }
+  .back { margin-right: auto; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { scroll-behavior: auto !important; transition: none !important; }
+  }
+</style>
