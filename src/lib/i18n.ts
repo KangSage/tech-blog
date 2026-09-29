@@ -50,3 +50,16 @@ export function blogPath(locale: Locale, slug: string): string {
 export function categoryPath(locale: Locale, category: string): string {
   return `/${locale}/category/${category}/`;
 }
+
+export function tagsPath(locale: Locale): string {
+  return `/${locale}/tags/`;
+}
+
+export function tagPath(locale: Locale, tag: string): string {
+  return `/${locale}/tags/${encodeURIComponent(tag)}/`;
+}
+
+// base 경로를 붙인 사이트 내부 링크 (예: /tech-blog/ko/tags/)
+export function href(path: string): string {
+  return import.meta.env.BASE_URL.replace(/\/$/, "") + path;
+}

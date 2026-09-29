@@ -1,20 +1,10 @@
 ---
+import PostFinder from "@/components/PostFinder.astro";
+import PostList from "@/components/PostList.astro";
 import BaseLayout from "@/layouts/BaseLayout.astro";
-import {
-  blogPath,
-  categoryPath,
-  localeHome,
-  locales,
-  assertLocale,
-  type Locale,
-} from "@/lib/i18n";
-import {
-  categories,
-  categoryDescriptions,
-  categoryLabels,
-  type Category,
-} from "@/lib/categories";
-import { getPostsByLocale, slugFromId } from "@/lib/posts";
+import { assertLocale, localeHome, locales } from "@/lib/i18n";
+import { getLocalesWithPosts, getPostsByLocale, getTagCounts } from "@/lib/posts";
+import { t } from "@/lib/ui";
 
 export function getStaticPaths() {
   return locales.map((lang) => ({ params: { lang } }));
@@ -22,76 +12,34 @@ export function getStaticPaths() {
 
 const lang = assertLocale(Astro.params.lang);
 const posts = await getPostsByLocale(lang);
-const titles: Record<Locale, string> = {
-  ko: "기술과 생각을 기르는 개인 정원",
-  ja: "技術と思考を育てる個人の庭",
-  en: "A personal garden for technology and thought",
-};
-const descriptions: Record<Locale, string> = {
-  ko: "개발, 도구, 보안, 취미를 작게 심고 오래 관찰하며 남기는 기록.",
-  ja: "開発、ツール、セキュリティ、趣味を小さく植え、長く観察して残す記録。",
-  en: "Notes on development, tooling, security, and hobbies, planted small and tended over time.",
-};
-
-const postsByCategory = categories.map((category) => ({
-  category,
-  posts: posts.filter((post) => post.data.category === category),
-}));
+const tags = await getTagCounts(lang);
+const withPosts = await getLocalesWithPosts();
+// 언어 전환에는 글이 있는 언어만 보여 준다 (현재 언어는 항상 포함)
+const alternates = locales
+  .filter((locale) => locale === lang || withPosts.includes(locale))
+  .map((locale) => ({ locale, path: localeHome(locale) }));
 ---
 
 <BaseLayout
-  title={titles[lang]}
-  description={descriptions[lang]}
+  title={t("homeTitle", lang)}
+  description={t("homeDescription", lang)}
   locale={lang}
   canonicalPath={localeHome(lang)}
-  alternates={locales.map((locale) => ({ locale, path: localeHome(locale) }))}
+  alternates={alternates}
+  noindex={posts.length === 0}
 >
-  <p class="eyebrow">Sage Garden</p>
-  <h1>{titles[lang]}</h1>
-  <p>{descriptions[lang]}</p>
-
-  <section class="category-grid" aria-label="Categories">
-    {categories.map((category) => (
-      <a class="category-card" href={import.meta.env.BASE_URL.replace(/\/$/, "") + categoryPath(lang, category)}>
-        <span>{categoryLabels[category][lang]}</span>
-        <small>{categoryDescriptions[category][lang]}</small>
-      </a>
-    ))}
-  </section>
+  <header class="page-intro">
+    <h1>{t("homeTitle", lang)}</h1>
+    <p>{t("homeDescription", lang)}</p>
+  </header>
 
   {posts.length === 0 ? (
-    <p class="notice">이 언어로 공개된 글은 아직 없습니다. 번역은 글 단위로 선택적으로 추가됩니다.</p>
+    <p class="notice">{t("noPosts", lang)}</p>
   ) : (
-    postsByCategory.map(({ category, posts }) => (
-      <section class="category-section">
-        <h2>{categoryLabels[category as Category][lang]}</h2>
-        {posts.length === 0 ? (
-          <p class="meta">{categoryDescriptions[category as Category][lang]}</p>
-        ) : (
-          <ul class="post-list">
-            {posts.map((post) => (
-              <li class="post-card">
-                <article>
-                  <p class="meta">
-                    <a href={import.meta.env.BASE_URL.replace(/\/$/, "") + categoryPath(lang, post.data.category)}>
-                      {categoryLabels[post.data.category][lang]}
-                    </a>
-                  </p>
-                  <h3>
-                    <a href={import.meta.env.BASE_URL.replace(/\/$/, "") + blogPath(lang, slugFromId(post.id))}>
-                      {post.data.title}
-                    </a>
-                  </h3>
-                  <p class="meta">
-                    <time datetime={post.data.publishedAt.toISOString()}>{post.data.publishedAt.toLocaleDateString(lang)}</time>
-                  </p>
-                  <p>{post.data.description}</p>
-                </article>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-    ))
+    <>
+      <PostFinder posts={posts} tags={tags} lang={lang} />
+      <PostList posts={posts} lang={lang} />
+      <p class="no-results" data-no-results hidden>{t("noResults", lang)}</p>
+    </>
   )}
 </BaseLayout>

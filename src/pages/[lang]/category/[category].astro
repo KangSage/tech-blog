@@ -1,13 +1,10 @@
 ---
+import PostList from "@/components/PostList.astro";
 import BaseLayout from "@/layouts/BaseLayout.astro";
-import {
-  categories,
-  categoryDescriptions,
-  categoryLabels,
-  type Category,
-} from "@/lib/categories";
-import { assertLocale, blogPath, categoryPath, locales, type Locale } from "@/lib/i18n";
-import { getPostsByCategory, slugFromId } from "@/lib/posts";
+import { categories, categoryDescriptions, categoryLabels, type Category } from "@/lib/categories";
+import { assertLocale, categoryPath, href, localeHome, locales, type Locale } from "@/lib/i18n";
+import { getLocalesWithPosts, getPostsByCategory, getPostsByLocale } from "@/lib/posts";
+import { t } from "@/lib/ui";
 
 export function getStaticPaths() {
   return locales.flatMap((lang) =>
@@ -20,8 +17,13 @@ export function getStaticPaths() {
 const lang = assertLocale(Astro.params.lang);
 const category = Astro.params.category as Category;
 const posts = await getPostsByCategory(lang, category);
+const allPosts = await getPostsByLocale(lang);
 const title = categoryLabels[category][lang];
 const description = categoryDescriptions[category][lang];
+const withPosts = await getLocalesWithPosts();
+const alternates = locales
+  .filter((locale) => locale === lang || withPosts.includes(locale))
+  .map((locale) => ({ locale, path: categoryPath(locale, category) }));
 ---
 
 <BaseLayout
@@ -29,31 +31,36 @@ const description = categoryDescriptions[category][lang];
   description={description}
   locale={lang as Locale}
   canonicalPath={categoryPath(lang, category)}
-  alternates={locales.map((locale) => ({ locale, path: categoryPath(locale, category) }))}
+  alternates={alternates}
+  noindex={posts.length === 0}
 >
-  <p class="eyebrow">Category</p>
-  <h1>{title}</h1>
-  <p>{description}</p>
+  <header class="page-intro">
+    <p class="eyebrow">{t("categoriesLabel", lang)}</p>
+    <h1>{title}</h1>
+    <p>{description}</p>
+  </header>
+
+  <nav class="chip-row" aria-label={t("categoriesLabel", lang)}>
+    <a class="chip" href={href(localeHome(lang))}>
+      {t("all", lang)} <span class="chip-count">{allPosts.length}</span>
+    </a>
+    {categories.map((item) => {
+      const count = allPosts.filter((post) => post.data.category === item).length;
+      return count > 0 || item === category ? (
+        <a class="chip" href={href(categoryPath(lang, item))} aria-current={item === category ? "page" : undefined}>
+          {categoryLabels[item][lang]} <span class="chip-count">{count}</span>
+        </a>
+      ) : (
+        <span class="chip is-empty" aria-disabled="true">
+          {categoryLabels[item][lang]} <span class="chip-count">0</span>
+        </span>
+      );
+    })}
+  </nav>
 
   {posts.length === 0 ? (
-    <p class="notice">이 카테고리에는 아직 공개된 글이 없습니다.</p>
+    <p class="no-results">{t("noResults", lang)}</p>
   ) : (
-    <ul class="post-list">
-      {posts.map((post) => (
-        <li class="post-card">
-          <article>
-            <h2>
-              <a href={import.meta.env.BASE_URL.replace(/\/$/, "") + blogPath(lang, slugFromId(post.id))}>
-                {post.data.title}
-              </a>
-            </h2>
-            <p class="meta">
-              <time datetime={post.data.publishedAt.toISOString()}>{post.data.publishedAt.toLocaleDateString(lang)}</time>
-            </p>
-            <p>{post.data.description}</p>
-          </article>
-        </li>
-      ))}
-    </ul>
+    <PostList posts={posts} lang={lang} />
   )}
 </BaseLayout>

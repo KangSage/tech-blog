@@ -1,0 +1,43 @@
+---
+// 글 목록: 메인·카테고리·태그 페이지가 공통으로 쓴다.
+// 각 항목의 data-* 속성은 메인 페이지의 검색·필터(PostFinder)가 읽는다.
+import { categoryLabels } from "@/lib/categories";
+import { blogPath, categoryPath, href, tagPath, type Locale } from "@/lib/i18n";
+import { formatDate, slugFromId, type BlogPost } from "@/lib/posts";
+
+interface Props {
+  posts: BlogPost[];
+  lang: Locale;
+  headingLevel?: 2 | 3;
+}
+
+const { posts, lang, headingLevel = 2 } = Astro.props;
+const Heading = `h${headingLevel}` as "h2" | "h3";
+---
+
+<ul class="post-rows">
+  {posts.map((post) => (
+    <li
+      class="post-row"
+      data-category={post.data.category}
+      data-tags={post.data.tags.join(" ")}
+      data-search={[post.data.title, post.data.description, ...post.data.tags].join(" ").toLowerCase()}
+    >
+      <p class="post-row-meta">
+        <time datetime={post.data.publishedAt.toISOString()}>{formatDate(post.data.publishedAt)}</time>
+        <a href={href(categoryPath(lang, post.data.category))}>{categoryLabels[post.data.category][lang]}</a>
+      </p>
+      <Heading class="post-row-title">
+        <a href={href(blogPath(lang, slugFromId(post.id)))}>{post.data.title}</a>
+      </Heading>
+      <p class="post-row-desc">{post.data.description}</p>
+      {post.data.tags.length > 0 && (
+        <ul class="tag-list">
+          {post.data.tags.map((tag) => (
+            <li><a class="tag" href={href(tagPath(lang, tag))}>#{tag}</a></li>
+          ))}
+        </ul>
+      )}
+    </li>
+  ))}
+</ul>

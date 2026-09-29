@@ -1,0 +1,140 @@
+---
+// 메인 페이지의 검색창과 카테고리·태그 필터.
+// JS가 없으면 필터 버튼은 카테고리·태그 페이지 링크로 동작하고, 검색창은 숨는다.
+// JS가 있으면 바로 아래 PostList 항목을 제목·설명·태그로 걸러 주고, 상태를 주소(?q=&category=&tag=)에 남긴다.
+import { categories, categoryLabels } from "@/lib/categories";
+import { categoryPath, href, localeHome, tagPath, type Locale } from "@/lib/i18n";
+import type { BlogPost } from "@/lib/posts";
+import { t } from "@/lib/ui";
+
+interface Props {
+  posts: BlogPost[];
+  tags: { tag: string; count: number }[];
+  lang: Locale;
+}
+
+const { posts, tags, lang } = Astro.props;
+const categoryCounts = categories.map((category) => ({
+  category,
+  count: posts.filter((post) => post.data.category === category).length,
+}));
+---
+
+<div class="finder" data-finder data-count-template={t("postCount", lang)}>
+  <label class="finder-search" hidden>
+    <span class="sr-only">{t("searchLabel", lang)}</span>
+    <input type="search" placeholder={t("searchPlaceholder", lang)} autocomplete="off" />
+  </label>
+
+  <nav class="chip-row" aria-label={t("categoriesLabel", lang)}>
+    <a class="chip" href={href(localeHome(lang))} data-filter-category="" aria-current="true">
+      {t("all", lang)} <span class="chip-count">{posts.length}</span>
+    </a>
+    {categoryCounts.map(({ category, count }) =>
+      count > 0 ? (
+        <a class="chip" href={href(categoryPath(lang, category))} data-filter-category={category}>
+          {categoryLabels[category][lang]} <span class="chip-count">{count}</span>
+        </a>
+      ) : (
+        <span class="chip is-empty" aria-disabled="true">
+          {categoryLabels[category][lang]} <span class="chip-count">0</span>
+        </span>
+      ),
+    )}
+  </nav>
+
+  {tags.length > 0 && (
+    <nav class="chip-row" aria-label={t("tagsLabel", lang)}>
+      {tags.map(({ tag, count }) => (
+        <a class="chip tag-chip" href={href(tagPath(lang, tag))} data-filter-tag={tag}>
+          #{tag} <span class="chip-count">{count}</span>
+        </a>
+      ))}
+    </nav>
+  )}
+
+  <p class="finder-status" aria-live="polite" hidden>
+    <span data-result-count></span>
+    <button type="button" class="finder-clear" hidden>{t("clearFilters", lang)}</button>
+  </p>
+</div>
+
+<script>
+  const finder = document.querySelector<HTMLElement>("[data-finder]");
+  const rows = Array.from(document.querySelectorAll<HTMLElement>(".post-row"));
+  if (finder) {
+    const search = finder.querySelector<HTMLLabelElement>(".finder-search")!;
+    const input = search.querySelector("input")!;
+    const status = finder.querySelector<HTMLElement>(".finder-status")!;
+    const countEl = finder.querySelector<HTMLElement>("[data-result-count]")!;
+    const clear = finder.querySelector<HTMLButtonElement>(".finder-clear")!;
+    const empty = document.querySelector<HTMLElement>("[data-no-results]");
+    const template = finder.dataset.countTemplate ?? "{n}";
+    search.hidden = false;
+    status.hidden = false;
+
+    const params = new URLSearchParams(location.search);
+    const state = {
+      q: params.get("q") ?? "",
+      category: params.get("category") ?? "",
+      tag: params.get("tag") ?? "",
+    };
+    input.value = state.q;
+
+    function apply() {
+      const words = state.q.toLowerCase().split(/\s+/).filter(Boolean);
+      let shown = 0;
+      rows.forEach((row) => {
+        const match =
+          (!state.category || row.dataset.category === state.category) &&
+          (!state.tag || (row.dataset.tags ?? "").split(" ").includes(state.tag)) &&
+          words.every((word) => (row.dataset.search ?? "").includes(word));
+        row.hidden = !match;
+        if (match) shown += 1;
+      });
+      countEl.textContent = template.replace("{n}", String(shown));
+      if (empty) empty.hidden = shown > 0;
+      clear.hidden = !(state.q || state.category || state.tag);
+
+      finder!.querySelectorAll<HTMLElement>("[data-filter-category]").forEach((chip) => {
+        chip.toggleAttribute("aria-current", chip.dataset.filterCategory === state.category);
+      });
+      finder!.querySelectorAll<HTMLElement>("[data-filter-tag]").forEach((chip) => {
+        chip.toggleAttribute("aria-current", chip.dataset.filterTag === state.tag);
+      });
+
+      const next = new URLSearchParams();
+      if (state.q) next.set("q", state.q);
+      if (state.category) next.set("category", state.category);
+      if (state.tag) next.set("tag", state.tag);
+      const query = next.toString();
+      history.replaceState(null, "", query ? `?${query}` : location.pathname);
+    }
+
+    input.addEventListener("input", () => {
+      state.q = input.value.trim();
+      apply();
+    });
+    finder.addEventListener("click", (event) => {
+      const target = event.target as Element;
+      const category = target.closest<HTMLElement>("[data-filter-category]");
+      const tag = target.closest<HTMLElement>("[data-filter-tag]");
+      if (category) {
+        event.preventDefault();
+        state.category = category.dataset.filterCategory ?? "";
+      } else if (tag) {
+        event.preventDefault();
+        state.tag = state.tag === tag.dataset.filterTag ? "" : (tag.dataset.filterTag ?? "");
+      } else if (target.closest(".finder-clear")) {
+        state.q = "";
+        state.category = "";
+        state.tag = "";
+        input.value = "";
+      } else {
+        return;
+      }
+      apply();
+    });
+    apply();
+  }
+</script>

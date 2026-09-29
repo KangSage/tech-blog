@@ -1,0 +1,36 @@
+---
+import PostList from "@/components/PostList.astro";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { assertLocale, href, locales, tagPath, tagsPath } from "@/lib/i18n";
+import { getPostsByTag, getTagCounts } from "@/lib/posts";
+import { t } from "@/lib/ui";
+
+// 글이 있는 언어·태그 조합만 페이지를 만든다
+export async function getStaticPaths() {
+  const paths = [];
+  for (const lang of locales) {
+    for (const { tag } of await getTagCounts(lang)) paths.push({ params: { lang, tag } });
+  }
+  return paths;
+}
+
+const lang = assertLocale(Astro.params.lang);
+const tag = Astro.params.tag as string;
+const posts = await getPostsByTag(lang, tag);
+---
+
+<BaseLayout
+  title={`#${tag}`}
+  description={t("tagPageDescription", lang, { tag })}
+  locale={lang}
+  canonicalPath={tagPath(lang, tag)}
+  alternates={[{ locale: lang, path: tagPath(lang, tag) }]}
+>
+  <header class="page-intro">
+    <p class="eyebrow"><a href={href(tagsPath(lang))}>{t("navTags", lang)}</a></p>
+    <h1>#{tag}</h1>
+    <p>{t("tagPageDescription", lang, { tag })} {t("postCount", lang, { n: posts.length })}</p>
+  </header>
+
+  <PostList posts={posts} lang={lang} />
+</BaseLayout>
