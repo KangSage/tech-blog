@@ -43,7 +43,7 @@ export const concepts: Concept[] = [
   {
     id: "pb", short: "Pipeline Builder", layer: "data", title: "Pipeline Builder",
     lead: "클릭으로 파이프라인을 구성하는 도구입니다. 백엔드가 transform 코드를 생성하고 build 전에 스키마를 검사합니다.",
-    analogy: "엑셀 Power Query와 비슷합니다. 단계를 쌓으면 뒤에서 코드가 만들어집니다.",
+    analogy: "Zapier나 n8n처럼 블록을 선으로 이어 흐름을 만드는 노코드 도구와 비슷합니다. 다만 이어 붙이는 블록이 필터·조인·그룹화 같은 SQL 연산이고, 뒤에서 그 연산을 수행하는 transform 코드가 자동으로 만들어집니다.",
     points: [
       "Expression은 컬럼 → 컬럼, Transform은 테이블 → 테이블 변환입니다.",
       "엔진은 Spark(배치 중심)와 Flink(스트리밍 중심)를 지원합니다.",
@@ -91,7 +91,7 @@ export const concepts: Concept[] = [
   {
     id: "funnel", short: "Funnel", layer: "onto", title: "Funnel 인덱싱 · Materialization",
     lead: "Funnel은 Dataset을 객체 저장소(OSv2)로 인덱싱합니다. Action으로 만든 편집은 인덱스에 즉시 반영됩니다.",
-    analogy: "원본 DB를 Elasticsearch로 동기화하는 구조와 비슷합니다. Materialization은 materialized view(쿼리 결과를 테이블로 저장)에 해당합니다.",
+    analogy: "MySQL 원본을 검색용 Elasticsearch 인덱스로 동기화하고, 앱은 인덱스만 조회하는 구조와 비슷합니다. Materialization은 원본과 편집을 합쳐 다시 테이블로 저장하는 materialized view에 해당합니다.",
     points: [
       "Dataset build가 끝나도 Funnel 파이프라인을 거쳐야 하므로 앱 반영은 조금 늦습니다.",
       "Action 편집은 인덱스에 즉시 반영되고 Funnel이 관리하는 Dataset에 주기적으로 저장됩니다. 원본 backing Dataset은 바뀌지 않습니다.",
@@ -141,7 +141,7 @@ export const concepts: Concept[] = [
   {
     id: "cm", short: "Compute module", layer: "logic", title: "Compute module",
     lead: "직접 만든 Docker 컨테이너를 Foundry 안에서 실행합니다.",
-    analogy: "Cloud Run이나 큐 워커에 가깝습니다. HTTP 서버가 아니라 처리할 이벤트를 폴링하는 방식입니다.",
+    analogy: "Docker 이미지로 배포하는 큐 워커에 가깝습니다. 요청을 받는 HTTP 서버가 아니라, 처리할 작업을 직접 가져와(폴링) 처리합니다.",
     points: [
       "Function mode: 함수로 등록해 Workshop·OSDK에서 호출합니다.",
       "Pipeline mode: 입력을 받아 출력으로 처리합니다. job token은 입출력에만 쓸 수 있습니다.",
@@ -166,7 +166,7 @@ export const concepts: Concept[] = [
   {
     id: "osdk", short: "OSDK", layer: "app", title: "OSDK · Developer Console",
     lead: "OSDK는 Ontology에서 생성되는 타입 있는 클라이언트이고, Developer Console은 커스텀 앱을 관리하는 콘솔입니다.",
-    analogy: "OpenAPI codegen으로 만든 클라이언트와 Firebase 콘솔의 조합에 가깝습니다.",
+    analogy: "Prisma Client처럼 스키마(Ontology)에서 생성되는 타입 있는 클라이언트입니다. Developer Console은 GitHub의 OAuth App 설정처럼 앱을 등록하고 허용 범위(scope)를 관리하는 곳입니다.",
     points: [
       "토큰의 접근 범위 = 사용자 권한 ∩ 앱 최대 scope ∩ 요청 scope",
       "웹 호스팅은 정적 SPA만 지원합니다. 서버 로직은 Function과 Action으로 구현합니다.",
@@ -182,7 +182,7 @@ export const concepts: Concept[] = [
   {
     id: "project", short: "Project·Marking", layer: "sec", title: "Project · Role · Marking",
     lead: "Project는 리소스를 묶는 작업 단위이자 권한 경계입니다. 리소스에 접근하려면 Role이 있어야 하고, 적용된 Marking도 모두 통과해야 합니다.",
-    analogy: "Role은 RBAC 권한(열쇠), Marking은 그보다 먼저 요청을 검사하는 필수 미들웨어(자물쇠)에 가깝습니다.",
+    analogy: "Role은 MySQL의 GRANT처럼 무엇을 할 수 있는지 정합니다. Marking은 모든 요청 앞에 붙는 필수 검사 미들웨어와 같아서, 하나라도 통과하지 못하면 GRANT와 관계없이 차단됩니다.",
     points: [
       "Role(Owner·Editor·Viewer)은 프로젝트 단위의 GRANT로, 무엇을 할 수 있는지를 정합니다.",
       "Marking은 all-or-nothing입니다. 하나라도 통과하지 못하면 Role과 관계없이 접근할 수 없습니다.",
@@ -262,7 +262,7 @@ export const concepts: Concept[] = [
   {
     id: "market", short: "Marketplace", layer: "ops", title: "Marketplace · Foundry DevOps",
     lead: "리소스를 product로 묶어 버전을 관리하고 환경별로 설치합니다.",
-    analogy: "Helm chart와 앱 스토어를 합친 구조입니다.",
+    analogy: "npm 패키지처럼 리소스 묶음에 버전을 붙여 배포하고, DEV·TEST·PROD 환경마다 설치·업그레이드하는 구조입니다.",
     points: [
       "Product는 Input(연결할 의존 리소스)과 Output(설치로 생성되는 리소스)으로 구성됩니다.",
       "Store는 product 모음이며, 저장된 프로젝트의 권한을 상속합니다.",
