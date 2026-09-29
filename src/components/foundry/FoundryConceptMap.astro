@@ -5,6 +5,7 @@
 import { concepts, layerLabels, type Layer } from "./concepts";
 
 const layers = Object.entries(layerLabels) as [Layer, string][];
+const groups = layers.map(([layer, label]) => ({ layer, label, items: concepts.filter((c) => c.layer === layer) }));
 // 마침표 등으로 끝나는 문장마다 줄을 바꿔 보여준다
 const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
 ---
@@ -24,9 +25,8 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
         </defs>
 
         <!-- 권한 레일 -->
-        <g class="node l-sec" data-id="project" tabindex="0" role="button" aria-label="1번 Project · Role · Marking">
+        <g class="node l-sec" data-id="project" tabindex="0" role="button" aria-label="Project · Role · Marking">
           <rect class="box" x="2" y="80" width="14" height="490" rx="7"></rect>
-          <circle class="dot" cx="9" cy="92" r="6"></circle><text class="dn" x="9" y="92">1</text>
           <text class="rt" transform="translate(9 335) rotate(-90)">Project · Role · Marking — 전체를 감쌈</text>
         </g>
 
@@ -37,15 +37,13 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
         <text class="lab" x="186" y="66">입력</text>
 
         <!-- 가공 -->
-        <g class="node l-data" data-id="transform" tabindex="0" role="button" aria-label="3번 Code Repositories · Python transform">
+        <g class="node l-data" data-id="transform" tabindex="0" role="button" aria-label="Code Repositories · Python transform">
           <rect class="box" x="24" y="80" width="156" height="52" rx="8"></rect>
-          <circle class="dot" cx="34" cy="90" r="7"></circle><text class="dn" x="34" y="90">3</text>
           <text class="t" x="102" y="107">Python transform</text>
           <text class="s" x="102" y="123">Code Repositories</text>
         </g>
-        <g class="node l-data" data-id="pb" tabindex="0" role="button" aria-label="추가 1 Pipeline Builder">
+        <g class="node l-data" data-id="pb" tabindex="0" role="button" aria-label="Pipeline Builder">
           <rect class="box" x="192" y="80" width="156" height="52" rx="8"></rect>
-          <circle class="dot" cx="202" cy="90" r="7"></circle><text class="dn" x="202" y="90">+1</text>
           <text class="t" x="270" y="107">Pipeline Builder</text>
           <text class="s" x="270" y="123">클릭 → transform 생성</text>
         </g>
@@ -55,33 +53,30 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
         <text class="lab as" x="234" y="154">build</text>
 
         <!-- 저장 -->
-        <g class="node l-data" data-id="dataset" tabindex="0" role="button" aria-label="2번 Dataset과 트랜잭션">
+        <g class="node l-data" data-id="dataset" tabindex="0" role="button" aria-label="Dataset과 트랜잭션">
           <rect class="box" x="24" y="170" width="204" height="52" rx="8"></rect>
-          <circle class="dot" cx="34" cy="180" r="7"></circle><text class="dn" x="34" y="180">2</text>
           <text class="t" x="126" y="197">Dataset</text>
           <text class="s" x="126" y="213">트랜잭션 · SNAPSHOT / APPEND …</text>
         </g>
-        <g class="node l-data" data-id="media" tabindex="0" role="button" aria-label="8번 Media set">
+        <g class="node l-data" data-id="media" tabindex="0" role="button" aria-label="Media set">
           <rect class="box" x="240" y="170" width="108" height="52" rx="8"></rect>
-          <circle class="dot" cx="250" cy="180" r="7"></circle><text class="dn" x="250" y="180">8</text>
           <text class="t" x="294" y="197">Media set</text>
           <text class="s" x="294" y="213">파일 · 불변 아이템</text>
         </g>
 
         <!-- 인덱싱 -->
         <line class="ar" x1="126" y1="222" x2="126" y2="234"></line>
-        <g class="node l-onto" data-id="funnel" tabindex="0" role="button" aria-label="5번 Funnel 인덱싱">
+        <g class="node l-onto" data-id="funnel" tabindex="0" role="button" aria-label="Funnel 인덱싱">
           <rect class="box" x="66" y="234" width="120" height="24" rx="12"></rect>
-          <circle class="dot" cx="79" cy="246" r="7"></circle><text class="dn" x="79" y="246">5</text>
-          <text class="t" x="132" y="250" style="font-size:11px">Funnel 인덱싱</text>
+          <text class="t" x="126" y="250" style="font-size:11px">Funnel 인덱싱</text>
         </g>
         <line class="ar" x1="126" y1="258" x2="126" y2="274" marker-end="url(#fcm-ah)"></line>
-        <g class="node link l-onto" data-id="funnel" tabindex="0" role="button" aria-label="5번 Materialization">
+        <g class="node link l-onto" data-id="funnel" tabindex="0" role="button" aria-label="Materialization">
           <rect class="hit" x="204" y="224" width="96" height="52"></rect>
           <line class="ar dash" x1="212" y1="276" x2="212" y2="224" marker-end="url(#fcm-ah)"></line>
           <text class="lab as" x="218" y="253">Materialization</text>
         </g>
-        <g class="node link l-data" data-id="media" tabindex="0" role="button" aria-label="8번 media reference">
+        <g class="node link l-data" data-id="media" tabindex="0" role="button" aria-label="media reference">
           <rect class="hit" x="310" y="224" width="46" height="52"></rect>
           <line class="ar dash" x1="320" y1="222" x2="320" y2="274" marker-end="url(#fcm-ah)"></line>
           <text class="lab as" x="325" y="244">media</text>
@@ -89,17 +84,15 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
         </g>
 
         <!-- 온톨로지 -->
-        <g class="node l-onto" data-id="onto" tabindex="0" role="button" aria-label="4번 Ontology">
+        <g class="node l-onto" data-id="onto" tabindex="0" role="button" aria-label="Ontology">
           <rect class="box" x="24" y="276" width="324" height="92" rx="10"></rect>
-          <circle class="dot" cx="34" cy="286" r="7"></circle><text class="dn" x="34" y="286">4</text>
           <text class="tb" x="186" y="302">Ontology (OSv2)</text>
           <text class="s" x="186" y="320">Object type · Property · Link type · Object set</text>
           <text class="lab as" x="36" y="349">앱이 보고 쓰는 층</text>
         </g>
-        <g class="node l-sec" data-id="osp" tabindex="0" role="button" aria-label="11번 Object security policy">
+        <g class="node l-sec" data-id="osp" tabindex="0" role="button" aria-label="Object security policy">
           <rect class="box" x="196" y="332" width="144" height="26" rx="6"></rect>
-          <circle class="dot" cx="208" cy="345" r="7"></circle><text class="dn" x="208" y="345">11</text>
-          <text class="t" x="276" y="349" style="font-size:10px">Object security policy</text>
+          <text class="t" x="268" y="349" style="font-size:10px">Object security policy</text>
         </g>
 
         <!-- 로직 → 온톨로지 -->
@@ -110,21 +103,18 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
         <text class="lab as" x="192" y="394">조회</text>
         <text class="lab as" x="304" y="394">서비스 유저</text>
 
-        <g class="node l-logic" data-id="action" tabindex="0" role="button" aria-label="6번 Action type">
+        <g class="node l-logic" data-id="action" tabindex="0" role="button" aria-label="Action type">
           <rect class="box" x="24" y="412" width="100" height="52" rx="8"></rect>
-          <circle class="dot" cx="34" cy="422" r="7"></circle><text class="dn" x="34" y="422">6</text>
           <text class="t" x="74" y="439">Action type</text>
           <text class="s" x="74" y="455">+ 제출 조건</text>
         </g>
-        <g class="node l-logic" data-id="function" tabindex="0" role="button" aria-label="7번 Function">
+        <g class="node l-logic" data-id="function" tabindex="0" role="button" aria-label="Function">
           <rect class="box" x="136" y="412" width="100" height="52" rx="8"></rect>
-          <circle class="dot" cx="146" cy="422" r="7"></circle><text class="dn" x="146" y="422">7</text>
           <text class="t" x="186" y="439">Function</text>
           <text class="s" x="186" y="455">TS · Python</text>
         </g>
-        <g class="node l-logic" data-id="cm" tabindex="0" role="button" aria-label="12번 Compute module">
+        <g class="node l-logic" data-id="cm" tabindex="0" role="button" aria-label="Compute module">
           <rect class="box" x="248" y="412" width="100" height="52" rx="8"></rect>
-          <circle class="dot" cx="258" cy="422" r="7"></circle><text class="dn" x="258" y="422">12</text>
           <text class="t" x="298" y="439" style="font-size:11px">Compute module</text>
           <text class="s" x="298" y="455">Docker 컨테이너</text>
         </g>
@@ -138,41 +128,35 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
         <line class="ar" x1="270" y1="516" x2="270" y2="486" marker-end="url(#fcm-ah)"></line>
         <text class="lab" x="186" y="505">실행 · 호출 · 조회</text>
 
-        <g class="node l-app" data-id="workshop" tabindex="0" role="button" aria-label="13번 Workshop">
+        <g class="node l-app" data-id="workshop" tabindex="0" role="button" aria-label="Workshop">
           <rect class="box" x="24" y="518" width="156" height="52" rx="8"></rect>
-          <circle class="dot" cx="34" cy="528" r="7"></circle><text class="dn" x="34" y="528">13</text>
           <text class="t" x="102" y="545">Workshop</text>
           <text class="s" x="102" y="561">로우코드 앱 빌더</text>
         </g>
-        <g class="node l-app" data-id="osdk" tabindex="0" role="button" aria-label="9번 OSDK와 Developer Console">
+        <g class="node l-app" data-id="osdk" tabindex="0" role="button" aria-label="OSDK와 Developer Console">
           <rect class="box" x="192" y="518" width="156" height="52" rx="8"></rect>
-          <circle class="dot" cx="202" cy="528" r="7"></circle><text class="dn" x="202" y="528">9</text>
           <text class="t" x="270" y="545">React 앱 (OSDK)</text>
           <text class="s" x="270" y="561">Developer Console</text>
         </g>
         <line class="ar" x1="270" y1="570" x2="270" y2="584"></line>
-        <g class="node l-sec" data-id="oauth" tabindex="0" role="button" aria-label="10번 OAuth">
+        <g class="node l-sec" data-id="oauth" tabindex="0" role="button" aria-label="OAuth">
           <rect class="box" x="208" y="584" width="124" height="26" rx="13"></rect>
-          <circle class="dot" cx="221" cy="597" r="7"></circle><text class="dn" x="221" y="597">10</text>
-          <text class="t" x="276" y="601" style="font-size:11px">OAuth · PKCE</text>
+          <text class="t" x="270" y="601" style="font-size:11px">OAuth · PKCE</text>
         </g>
         <text class="lab" x="270" y="628">토큰 = 사용자 권한 ∩ scope</text>
 
         <!-- 운영 -->
         <text class="lab as" x="24" y="660">운영 도구 — 모든 층에 걸침</text>
-        <g class="node l-ops" data-id="oma" tabindex="0" role="button" aria-label="추가 2 Ontology Manager">
+        <g class="node l-ops" data-id="oma" tabindex="0" role="button" aria-label="Ontology Manager">
           <rect class="box" x="24" y="668" width="100" height="40" rx="8"></rect>
-          <circle class="dot" cx="34" cy="678" r="7"></circle><text class="dn" x="34" y="678">+2</text>
           <text class="t" x="74" y="699" style="font-size:10px">Ontology Manager</text>
         </g>
-        <g class="node l-ops" data-id="branch" tabindex="0" role="button" aria-label="추가 3 Global Branching">
+        <g class="node l-ops" data-id="branch" tabindex="0" role="button" aria-label="Global Branching">
           <rect class="box" x="136" y="668" width="100" height="40" rx="8"></rect>
-          <circle class="dot" cx="146" cy="678" r="7"></circle><text class="dn" x="146" y="678">+3</text>
           <text class="t" x="186" y="699" style="font-size:10px">Global Branching</text>
         </g>
-        <g class="node l-ops" data-id="market" tabindex="0" role="button" aria-label="추가 4 Marketplace">
+        <g class="node l-ops" data-id="market" tabindex="0" role="button" aria-label="Marketplace">
           <rect class="box" x="248" y="668" width="100" height="40" rx="8"></rect>
-          <circle class="dot" cx="258" cy="678" r="7"></circle><text class="dn" x="258" y="678">+4</text>
           <text class="t" x="298" y="699" style="font-size:10px">Marketplace</text>
         </g>
       </svg>
@@ -180,11 +164,18 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
     </figure>
 
     <section class="panel" aria-label="개념 카드">
-      <div class="chips" aria-label="개념 번호" hidden>
-        {concepts.map((c) => (
-          <button type="button" class={`chip l-${c.layer}`} data-chip={c.id} aria-label={`${c.n}번 ${c.title}`} aria-pressed="false">
-            <i></i>{c.n}
-          </button>
+      <div class="chips" aria-label="개념 목록" hidden>
+        {groups.map((g) => (
+          <div class={`chip-group l-${g.layer}`} role="group" aria-label={g.label}>
+            <span class="glabel">{g.label}</span>
+            <span class="gitems">
+              {g.items.map((c) => (
+                <button type="button" class={`chip l-${c.layer}`} data-chip={c.id} aria-label={c.title} aria-pressed="false">
+                  <i></i>{c.short}
+                </button>
+              ))}
+            </span>
+          </div>
         ))}
       </div>
 
@@ -192,8 +183,7 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
         {concepts.map((c) => (
           <article class={`card l-${c.layer}`} id={`concept-${c.id}`} data-card={c.id}>
             <div class="cmeta">
-              <span class="num">{c.n}</span>
-              <span>{layerLabels[c.layer]} · {c.n.startsWith("+") ? "추가 개념" : "핵심 개념"}</span>
+              <span class="num">{layerLabels[c.layer]}</span>
             </div>
             <h3 class="ct">{c.title}</h3>
             <p class="lead">{sentences(c.lead).map((s, i) => <>{i > 0 && <br />}{s}</>)}</p>
@@ -237,6 +227,9 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
       aside.hidden = false;
       panel.dataset.docked = "";
     }
+    // 카드 id는 JS가 없을 때의 앵커용. 켜진 뒤에는 지워서 #concept-… 해시로 브라우저가 스크롤하지 않게 한다
+    cards.forEach((card) => card.removeAttribute("id"));
+    const scroller = aside ?? panel;
     root.dataset.enhanced = "";
     panel.dataset.enhanced = "";
     panel.querySelectorAll<HTMLElement>(".chips, .nav").forEach((el) => (el.hidden = false));
@@ -264,6 +257,7 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
         }
       });
       panel!.scrollTop = 0;
+      scroller.scrollTop = 0;
     }
 
     // 스크롤 위치는 건드리지 않고 카드만 바꾼다 (패널은 항상 화면에 고정되어 있음)
@@ -307,6 +301,13 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
 
     const initial = location.hash.replace("#concept-", "");
     render(ids.includes(initial) ? ids.indexOf(initial) : ids.indexOf("onto"));
+    // #concept-… 주소로 들어오면 브라우저가 이미 옛 카드 위치로 스크롤했으므로 지도 위치로 맞춘다
+    if (ids.includes(initial)) {
+      window.addEventListener("load", () => {
+        scroller.scrollTop = 0;
+        root.scrollIntoView({ block: "start" });
+      }, { once: true });
+    }
   }
 </script>
 
@@ -345,7 +346,6 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
   .map .tb { font-size: 13px; font-weight: 700; }
   .map .s, .map .lab { font-size: 10px; fill: var(--muted); }
   .map .as { text-anchor: start; }
-  .map .dn { font: 500 7.5px var(--fcm-mono); fill: var(--surface); dominant-baseline: central; }
   .map .ar { stroke: var(--muted); stroke-width: 1.2; fill: none; }
   .map .dash { stroke-dasharray: 4 3; }
   .map .ahp { fill: var(--muted); }
@@ -355,7 +355,6 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
   [data-enhanced] .node { cursor: pointer; }
   .node:focus { outline: none; }
   .node .box { fill: var(--t); stroke: var(--c); stroke-width: 1.2; }
-  .node .dot { fill: var(--c); }
   [data-enhanced] .node:hover .box { stroke-width: 2; }
   .node.sel .box { fill: var(--s); stroke-width: 2.4; }
   .node:focus-visible .box { stroke: var(--accent); stroke-width: 2.6; }
@@ -366,15 +365,19 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
   .cards { display: grid; gap: 16px; }
   [data-enhanced] .card:not(.is-active) { display: none; }
 
-  .chips { display: flex; gap: 6px; overflow-x: auto; padding: 0 4px 6px; margin: 0 -4px; scrollbar-width: thin; }
+  /* 개념 목록: 넓은 화면은 층별로 줄을 나누고, 좁은 화면(상단 고정)은 한 줄 가로 스크롤 */
+  .chips { display: grid; gap: 6px; }
+  .chip-group { display: grid; grid-template-columns: 4.6em minmax(0, 1fr); align-items: start; gap: 6px; }
+  .gitems { display: flex; flex-wrap: wrap; gap: 4px 5px; }
+  .glabel { padding-top: 5px; font-size: 11px; font-weight: 600; color: var(--c); }
   .chips[hidden], .nav[hidden] { display: none; }
-  .chip { flex: 0 0 auto; height: 30px; min-width: 34px; padding: 0 8px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); font: 500 12px var(--fcm-mono); display: inline-flex; align-items: center; justify-content: center; gap: 5px; cursor: pointer; }
+  .chip { flex: 0 0 auto; height: 26px; padding: 0 8px; border-radius: 7px; border: 1px solid var(--border); background: var(--surface); font-size: 12px; white-space: nowrap; display: inline-flex; align-items: center; gap: 5px; cursor: pointer; }
   .chip i { width: 6px; height: 6px; border-radius: 50%; background: var(--c); }
   .chip[aria-pressed="true"] { background: var(--s); border-color: var(--c); }
 
   .card { scroll-margin-top: 16px; background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--c); border-radius: 12px; padding: 16px 18px 18px; display: grid; gap: 12px; min-width: 0; }
   .cmeta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font: 500 12px var(--fcm-mono); color: var(--muted); }
-  .num { background: var(--c); color: var(--surface); border-radius: 6px; padding: 1px 8px; }
+  .num { background: var(--c); color: var(--surface); border-radius: 6px; padding: 1px 8px; font-family: inherit; font-weight: 600; }
   .ct { font-size: 1.3rem; line-height: 1.3; margin: 0; text-wrap: balance; }
   .lead { font-size: 16px; font-weight: 500; margin: 0; line-height: 1.55; }
   .ana { background: var(--t); border-radius: 10px; padding: 12px 14px; }
@@ -396,7 +399,9 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
   /* 좁은 화면에서 상단에 고정된 패널: 제목·요약만 보이고 '자세히'로 펼침 */
   @media (max-width: 1179px) {
     [data-docked] { gap: 8px; }
-    [data-docked] .chips { padding-bottom: 4px; }
+    [data-docked] .chips { display: flex; gap: 5px; overflow-x: auto; padding: 0 4px 4px; margin: 0 -4px; scrollbar-width: thin; }
+    [data-docked] .chip-group, [data-docked] .gitems { display: contents; }
+    [data-docked] .glabel { display: none; }
     [data-docked] .card { padding: 10px 14px 12px; gap: 8px; border-radius: 10px; }
     [data-docked] .ct { font-size: 1.05rem; }
     [data-docked] .lead { font-size: 14px; }
