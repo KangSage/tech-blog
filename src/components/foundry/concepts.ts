@@ -208,7 +208,7 @@ export const concepts: Concept[] = [
     related: [{ label: "Markings", href: D + "security/markings" }],
   },
   {
-    id: "osp", short: "Object security", layer: "sec", title: "Object security policy",
+    id: "osp", short: "Object security policy", layer: "sec", title: "Object security policy",
     lead: "Object의 행 단위 조회 권한입니다. Property security policy와 함께 쓰면 셀 단위까지 제어할 수 있습니다.",
     analogy: "Postgres RLS에 해당합니다. 모든 SELECT에 DB가 자동으로 WHERE 조건을 붙이는 것과 같습니다.",
     everyday: "같은 명부를 열어도 사람마다 자기 담당 고객의 줄만 보이도록 나머지를 자동으로 가려 주는 것과 같습니다.",
@@ -259,7 +259,7 @@ export const concepts: Concept[] = [
     ],
   },
   {
-    id: "branch", short: "Branching", layer: "ops", title: "Global Branching",
+    id: "branch", short: "Global Branching", layer: "ops", title: "Global Branching",
     lead: "여러 앱에 걸친 변경을 브랜치 하나로 묶어 테스트한 뒤 Main에 병합합니다. 2026년 5월에 GA가 되었습니다.",
     analogy: "Git feature branch와 PR에 해당합니다. 다만 코드뿐 아니라 파이프라인·Ontology·화면까지 함께 다룹니다.",
     everyday: "원본을 바로 고치지 않고 사본에서 먼저 고쳐 본 뒤, 검토를 받아 원본에 반영하는 방식입니다. 구글 문서의 '제안 모드'와 비슷합니다.",
