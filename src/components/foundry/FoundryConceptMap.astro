@@ -168,6 +168,7 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
         <ul class="map-legend">
           <li><svg viewBox="0 0 30 10" aria-hidden="true"><line class="lg-line" x1="1" y1="5" x2="23" y2="5"></line><path class="lg-head" d="M22,1 L29,5 L22,9 z"></path></svg>실선: 데이터가 흐르는 방향 또는 아래 층이 위 층을 호출·읽기·쓰기 하는 방향</li>
           <li><svg viewBox="0 0 30 10" aria-hidden="true"><line class="lg-line lg-dash" x1="1" y1="5" x2="23" y2="5"></line><path class="lg-head" d="M22,1 L29,5 L22,9 z"></path></svg>점선: 역방향 저장(Materialization), 파일 참조(media ref), 서비스 유저 권한으로 접근</li>
+          <li><svg viewBox="0 0 30 10" aria-hidden="true"><rect class="lg-extra" x="1" y="1" width="28" height="8" rx="3"></rect></svg>점선 테두리 상자: 개념을 골랐을 때 그림에 선은 없지만 함께 동작하는 개념 (예: Automate가 실행하는 Action)</li>
           <li><svg viewBox="0 0 30 10" aria-hidden="true"><rect class="lg-frame" x="1" y="1" width="28" height="8" rx="3"></rect></svg>호박색 점선 테두리: Project · Role · Marking 권한이 데이터부터 앱까지 전체를 감쌈</li>
         </ul>
         <p class="map-hint">개념을 고르면 그 개념과 연결된 상자와 화살표만 진하게 표시됩니다.</p>
@@ -333,8 +334,18 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
         el.classList.toggle("rel-on", on);
         if (on) pairs.forEach(addPartner);
       });
-      EXTRA_EDGES.forEach(addPartner);
-      nodeEls.forEach((node) => node.classList.toggle("rel-on", focus && related.has(node.dataset.id ?? "")));
+      // 선이 없는 관계는 따로 모아 점선 테두리로 구분한다 (선으로도 이어져 있으면 진한 강조가 우선)
+      const extra = new Set<string>();
+      EXTRA_EDGES.forEach(([a, b]) => {
+        if (a === id) extra.add(b);
+        if (b === id) extra.add(a);
+      });
+      nodeEls.forEach((node) => {
+        const nid = node.dataset.id ?? "";
+        const on = focus && related.has(nid);
+        node.classList.toggle("rel-on", on);
+        node.classList.toggle("rel-extra", focus && !on && extra.has(nid));
+      });
     }
 
     function render(index: number) {
@@ -504,6 +515,7 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
   .lg-dash { stroke-dasharray: 4 3; }
   .lg-head { fill: var(--muted); }
   .lg-frame { fill: none; stroke: var(--c-sec); stroke-width: 1.4; stroke-dasharray: 4 3; }
+  .lg-extra { fill: var(--surface); stroke: var(--muted); stroke-width: 1.4; stroke-dasharray: 3 2; }
   .map-hint { margin: 6px 0 0; }
 
   .map text { fill: var(--text); font-family: inherit; text-anchor: middle; }
@@ -522,7 +534,8 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
   .node.sel .frame { stroke-width: 2.4; }
   /* 연결 강조: 개념을 고르면 연결되지 않은 상자·화살표를 흐리게 */
   .map [data-edges], .map .node { transition: opacity 0.15s; }
-  .map.focus [data-edges]:not(.rel-on), .map.focus .node:not(.rel-on):not(.frame-node) { opacity: 0.25; }
+  .map.focus [data-edges]:not(.rel-on), .map.focus .node:not(.rel-on):not(.rel-extra):not(.frame-node) { opacity: 0.25; }
+  .node.rel-extra .box { stroke-dasharray: 4 3; stroke-width: 1.8; }
   .map.focus .ar.rel-on, .map.focus .rel-on .ar { stroke: var(--text); stroke-width: 1.6; }
   .map.focus .lab.rel-on, .map.focus .rel-on .lab { fill: var(--text); }
   .map .hit { fill: transparent; }
