@@ -113,8 +113,15 @@ const canonical = absoluteUrl(canonicalPath);
   .site-header,
   .site-footer,
   main {
-    width: min(960px, calc(100% - 32px));
+    width: min(var(--site-width, 960px), calc(100% - 32px));
     margin: 0 auto;
+  }
+
+  /* 사이드 패널이 있는 글: 넓은 화면에서 본문 760px + 패널 360px 폭으로 확장 */
+  @media (min-width: 1180px) {
+    :root:has(.post-aside:not([hidden])) {
+      --site-width: 1148px;
+    }
   }
 
   .site-header {

@@ -1,9 +1,12 @@
 ---
 // Foundry 개념 지도: 위→아래 데이터 흐름 그림 + 개념 카드.
-// 카드는 모두 빌드 시 HTML로 렌더링되고(JS 없이도 전부 보임), 스크립트가 켜지면 하나씩 전환하는 탐색기로 바뀐다.
+// 카드는 모두 빌드 시 HTML로 렌더링되고(JS 없이도 전부 보임), 스크립트가 켜지면 카드 패널을
+// 글 페이지의 #post-aside(넓은 화면은 오른쪽 사이드, 좁은 화면은 상단 고정)로 옮겨 하나씩 전환한다.
 import { concepts, layerLabels, type Layer } from "./concepts";
 
 const layers = Object.entries(layerLabels) as [Layer, string][];
+// 마침표 등으로 끝나는 문장마다 줄을 바꿔 보여준다
+const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
 ---
 
 <div class="fcm" data-fcm>
@@ -193,13 +196,13 @@ const layers = Object.entries(layerLabels) as [Layer, string][];
               <span>{layerLabels[c.layer]} · {c.n.startsWith("+") ? "추가 개념" : "핵심 개념"}</span>
             </div>
             <h3 class="ct">{c.title}</h3>
-            <p class="lead">{c.lead}</p>
-            <div class="ana"><b>웹·DB 비유</b><p>{c.analogy}</p></div>
-            <ul class="pts">
-              {c.points.map((p) => <li>{p}</li>)}
+            <p class="lead">{sentences(c.lead).map((s, i) => <>{i > 0 && <br />}{s}</>)}</p>
+            <div class="ana detail"><b>웹·DB 비유</b><p>{sentences(c.analogy).map((s, i) => <>{i > 0 && <br />}{s}</>)}</p></div>
+            <ul class="pts detail">
+              {c.points.map((p) => <li><span>{sentences(p).map((s, i) => <>{i > 0 && <br />}{s}</>)}</span></li>)}
             </ul>
-            {c.warn && <p class="warn"><b>주의</b>{c.warn}</p>}
-            <div class="docs">
+            {c.warn && <p class="warn detail"><b>주의</b><span>{sentences(c.warn).map((s, i) => <>{i > 0 && <br />}{s}</>)}</span></p>}
+            <div class="docs detail">
               <a class="doc" href={c.doc} target="_blank" rel="noopener noreferrer">공식 문서 ↗</a>
               {c.related.map((r) => <a class="rel" href={r.href} target="_blank" rel="noopener noreferrer">{r.label} ↗</a>)}
             </div>
@@ -208,9 +211,10 @@ const layers = Object.entries(layerLabels) as [Layer, string][];
       </div>
 
       <div class="nav" hidden>
-        <a class="back" href="#concept-map">↑ 그림</a>
-        <button type="button" data-step="-1">이전</button>
-        <button type="button" data-step="1">다음</button>
+        <a class="back" href="#concept-map">↑ 지도</a>
+        <button type="button" class="more" aria-expanded="false">자세히 ▾</button>
+        <button type="button" class="step" data-step="-1">이전</button>
+        <button type="button" class="step" data-step="1">다음</button>
       </div>
     </section>
   </div>
@@ -218,23 +222,39 @@ const layers = Object.entries(layerLabels) as [Layer, string][];
 
 <script>
   const root = document.querySelector<HTMLElement>("[data-fcm]");
-  if (root) {
-    const cards = Array.from(root.querySelectorAll<HTMLElement>("[data-card]"));
+  const panel = root?.querySelector<HTMLElement>(".panel");
+  if (root && panel) {
+    const cards = Array.from(panel.querySelectorAll<HTMLElement>("[data-card]"));
     const ids = cards.map((card) => card.dataset.card ?? "");
-    const chips = root.querySelector<HTMLElement>(".chips");
-    const panel = root.querySelector<HTMLElement>(".panel");
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const chips = panel.querySelector<HTMLElement>(".chips");
+    const more = panel.querySelector<HTMLButtonElement>(".more");
     let current = 0;
 
+    // 카드 패널을 글 페이지의 고정 자리로 옮긴다. 자리가 없으면 그림 옆(제자리)에서 동작
+    const aside = document.getElementById("post-aside");
+    if (aside) {
+      aside.append(panel);
+      aside.hidden = false;
+      panel.dataset.docked = "";
+    }
     root.dataset.enhanced = "";
-    root.querySelectorAll<HTMLElement>(".chips, .nav").forEach((el) => (el.hidden = false));
+    panel.dataset.enhanced = "";
+    panel.querySelectorAll<HTMLElement>(".chips, .nav").forEach((el) => (el.hidden = false));
+
+    function setExpanded(open: boolean) {
+      panel!.classList.toggle("is-expanded", open);
+      if (more) {
+        more.setAttribute("aria-expanded", String(open));
+        more.textContent = open ? "접기 ▴" : "자세히 ▾";
+      }
+    }
 
     function render(index: number) {
       current = index;
       const id = ids[index];
       cards.forEach((card, i) => card.classList.toggle("is-active", i === index));
       root!.querySelectorAll(".map [data-id]").forEach((node) => node.classList.toggle("sel", node.getAttribute("data-id") === id));
-      root!.querySelectorAll<HTMLElement>("[data-chip]").forEach((chip) => {
+      panel!.querySelectorAll<HTMLElement>("[data-chip]").forEach((chip) => {
         const on = chip.dataset.chip === id;
         chip.setAttribute("aria-pressed", String(on));
         if (on && chips) {
@@ -243,40 +263,34 @@ const layers = Object.entries(layerLabels) as [Layer, string][];
           chips.scrollLeft += br.left - cr.left - (cr.width - br.width) / 2;
         }
       });
+      panel!.scrollTop = 0;
     }
 
-    function showPanel() {
-      if (!panel) return;
-      const top = panel.getBoundingClientRect().top;
-      if (top < 0 || top > window.innerHeight - 140) {
-        panel.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
-      }
-    }
-
-    function pick(id: string | null | undefined, scroll: boolean) {
+    // 스크롤 위치는 건드리지 않고 카드만 바꾼다 (패널은 항상 화면에 고정되어 있음)
+    function pick(id: string | null | undefined) {
       const index = id ? ids.indexOf(id) : -1;
       if (index < 0) return;
       render(index);
       history.replaceState(null, "", `#concept-${id}`);
-      if (scroll) showPanel();
     }
 
     document.addEventListener("click", (event) => {
       const target = event.target as Element;
+      if (more && target.closest(".more") === more) return setExpanded(!panel.classList.contains("is-expanded"));
       const chip = target.closest<HTMLElement>("[data-chip]");
-      if (chip) return pick(chip.dataset.chip, false);
+      if (chip) return pick(chip.dataset.chip);
       const step = target.closest<HTMLElement>("[data-step]");
-      if (step && root.contains(step)) {
-        return pick(ids[(current + Number(step.dataset.step) + ids.length) % ids.length], false);
+      if (step && panel.contains(step)) {
+        return pick(ids[(current + Number(step.dataset.step) + ids.length) % ids.length]);
       }
       const node = target.closest(".map [data-id]");
-      if (node) return pick(node.getAttribute("data-id"), true);
-      // 본문의 개념 링크(#concept-…)도 카드 전환으로 처리
+      if (node) return pick(node.getAttribute("data-id"));
+      // 본문의 개념 링크(#concept-…)도 이동 없이 카드 전환으로 처리
       const link = target.closest<HTMLAnchorElement>('a[href^="#concept-"]');
       const linkId = link?.getAttribute("href")?.slice("#concept-".length);
       if (link && linkId && ids.includes(linkId)) {
         event.preventDefault();
-        pick(linkId, true);
+        pick(linkId);
       }
     });
 
@@ -284,12 +298,12 @@ const layers = Object.entries(layerLabels) as [Layer, string][];
       node.addEventListener("keydown", (event) => {
         if (event.key === "Enter" || event.key === " ") {
           event.preventDefault();
-          pick(node.getAttribute("data-id"), true);
+          pick(node.getAttribute("data-id"));
         }
       });
     });
 
-    window.addEventListener("hashchange", () => pick(location.hash.replace("#concept-", ""), true));
+    window.addEventListener("hashchange", () => pick(location.hash.replace("#concept-", "")));
 
     const initial = location.hash.replace("#concept-", "");
     render(ids.includes(initial) ? ids.indexOf(initial) : ids.indexOf("onto"));
@@ -297,14 +311,15 @@ const layers = Object.entries(layerLabels) as [Layer, string][];
 </script>
 
 <style>
-  .fcm {
+  /* 패널은 스크립트가 .fcm 밖(#post-aside)으로 옮기므로 색 변수를 패널에도 둔다 */
+  .fcm, .panel {
     --fcm-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
     --c-sec: #a86a12; --c-data: #0e7f80; --c-onto: #4a4fc4; --c-logic: #b8324f; --c-app: #2c7a4e; --c-ops: #5f6b7d;
     --t-sec: #f8f0e4; --t-data: #e4f2f2; --t-onto: #ecedfa; --t-logic: #f8e7eb; --t-app: #e6f1ea; --t-ops: #edeff2;
     --s-sec: #eedcbf; --s-data: #c4e2e2; --s-onto: #d5d6f3; --s-logic: #efcbd3; --s-app: #c8e1d2; --s-ops: #d8dce2;
-    margin: 24px 0 8px;
     font-size: 15px;
   }
+  .fcm { margin: 24px 0 8px; }
   .l-sec { --c: var(--c-sec); --t: var(--t-sec); --s: var(--s-sec); }
   .l-data { --c: var(--c-data); --t: var(--t-data); --s: var(--s-data); }
   .l-onto { --c: var(--c-onto); --t: var(--t-onto); --s: var(--s-onto); }
@@ -320,11 +335,6 @@ const layers = Object.entries(layerLabels) as [Layer, string][];
   .legend i { width: 10px; height: 10px; border-radius: 3px; background: var(--t); border: 1.5px solid var(--c); }
 
   .explore { display: grid; gap: 20px; margin-top: 20px; }
-  @media (min-width: 860px) {
-    .explore { grid-template-columns: minmax(0, 440px) minmax(0, 1fr); gap: 28px; align-items: start; }
-    [data-enhanced] .panel { position: sticky; top: 16px; }
-    .back { display: none; }
-  }
 
   .fig { margin: 0; min-width: 0; }
   .fig svg { display: block; width: 100%; max-width: 440px; height: auto; margin: 0 auto; }
@@ -381,6 +391,21 @@ const layers = Object.entries(layerLabels) as [Layer, string][];
   .nav { display: flex; gap: 6px; justify-content: flex-end; }
   .nav button, .back { height: 34px; padding: 0 12px; border-radius: 9px; border: 1px solid var(--border); background: var(--surface); cursor: pointer; font-size: 13px; display: inline-flex; align-items: center; text-decoration: none; color: var(--text); }
   .back { margin-right: auto; }
+  .more { display: none !important; }
+
+  /* 좁은 화면에서 상단에 고정된 패널: 제목·요약만 보이고 '자세히'로 펼침 */
+  @media (max-width: 1179px) {
+    [data-docked] { gap: 8px; }
+    [data-docked] .chips { padding-bottom: 4px; }
+    [data-docked] .card { padding: 10px 14px 12px; gap: 8px; border-radius: 10px; }
+    [data-docked] .ct { font-size: 1.05rem; }
+    [data-docked] .lead { font-size: 14px; }
+    [data-docked]:not(.is-expanded) .detail { display: none; }
+    [data-docked].is-expanded { max-height: 65vh; overflow-y: auto; }
+    [data-docked] .more { display: inline-flex !important; }
+    [data-docked] .step { display: none; }
+    [data-docked] .nav button, [data-docked] .back { height: 30px; }
+  }
 
   @media (prefers-reduced-motion: reduce) {
     * { scroll-behavior: auto !important; transition: none !important; }
