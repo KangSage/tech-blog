@@ -173,7 +173,7 @@ export const concepts: Concept[] = [
     related: [],
   },
   {
-    id: "action", short: "Action", layer: "logic", title: "Action type · Submission criteria",
+    id: "action", short: "Action type", layer: "logic", title: "Action type",
     lead: "Object를 수정하는 방법을 정의합니다. Action 한 번 실행이 트랜잭션 하나입니다.",
     analogy: "서버 측 쓰기 API(POST)와 서버 측 validation을 합친 것입니다.",
     everyday: "정해진 양식의 신청서와 같습니다. 양식대로 작성하고 결재 조건을 통과해야만 내용이 실제로 반영됩니다.",
