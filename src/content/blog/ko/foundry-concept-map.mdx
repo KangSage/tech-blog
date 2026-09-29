@@ -70,20 +70,9 @@ OSDK로 만든 앱이 받는 토큰은 사용자 권한, 앱에 설정된 최대
 한 곳의 권한을 막았다고 해서 관련 데이터가 모두 보호되지는 않습니다. 다음 조합은 각각 따로 설정해야 합니다.
 
 - **[11 Object security policy](#concept-osp) ↔ Dataset 권한**: 양방향으로 분리되어 있습니다. Object를 가려도 원본 Dataset은 따로 잠가야 합니다.
-- **[8 Media set](#concept-media) 권한 ↔ Object 정책**: 서로 별개입니다. Property를 볼 수 없는 사용자도 Media set에서 파일을 직접 가져올 수 있습니다.
+- **[8 Media set](#concept-media) 권한 ↔ Object 정책**: 서로 별개입니다. Property를 볼 수 없는 사용자도 Media set에서 파일을 직접 가져올 수 있습니다. 또한 같은 경로로 덮어써도 이전 파일은 기본적으로 삭제되지 않고 media reference로 계속 접근할 수 있으므로, 민감한 파일을 교체할 때는 보존 정책을 함께 설정해야 합니다.
 - **[9 OSDK](#concept-osdk) scope**: 앱 전체에 적용되는 상한일 뿐입니다. 사용자별 차등이나 "앱을 통해서만 접근" 같은 제약은 걸 수 없습니다.
 - **[12 Compute module](#concept-cm) Application permissions**: 호출한 사용자와 관계없이 서비스 유저의 권한으로 고정되어 동작합니다.
-
-## 공식 문서로 확인되지 않은 부분
-
-다음 항목은 이 글을 정리하는 시점에 공식 문서만으로는 명확한 답을 찾지 못했습니다. 실제로 적용하기 전에 사용하는 환경에서 직접 확인하는 것을 권합니다.
-
-- **[2 Dataset](#concept-dataset)**: 보존 정책으로 오래된 트랜잭션 파일이 정리된 뒤에도 해당 시점으로 롤백할 수 있는가
-- **[8 Media set](#concept-media)**: 덮어써진 이전 media item은 어떤 정책으로 보존되거나 삭제되는가
-- **[10 OAuth](#concept-oauth)**: OSDK 인증 라이브러리가 PKCE를 자동으로 처리하는가
-- **[+1 Pipeline Builder](#concept-pb)**: 생성된 코드를 Code Repositories로 꺼내 편집할 수 있는가
-- **[+2 Ontology Manager](#concept-oma)**: SuperRepo(베타)가 어떤 환경에 제공되는가
-- **[+3 Global Branching](#concept-branch)**: OSDK React 앱과 Developer Console이 Global Branching과 연동되는가
 
 ## 정리
 
@@ -93,5 +82,5 @@ OSDK로 만든 앱이 받는 토큰은 사용자 권한, 앱에 설정된 최대
 
 ---
 
-각 카드의 설명은 Palantir 공식 문서를 근거로 하며, Global Branching의 Object 인스턴스 병합 관련 내용만 커뮤니티 답변을 기준으로 했습니다.
+각 카드의 설명은 카드 하단에 링크한 Palantir 공식 문서를 근거로 하며, OSDK의 PKCE 처리 방식은 공식 [osdk-ts](https://github.com/palantir/osdk-ts) 저장소의 소스 코드로 확인했습니다.
 이 글은 2026년 9월 29일 기준으로 작성되었으며, Foundry는 업데이트가 잦으므로 최신 내용은 공식 문서를 확인하시기 바랍니다.

@@ -289,6 +289,8 @@ const layers = Object.entries(layerLabels) as [Layer, string][];
       });
     });
 
+    window.addEventListener("hashchange", () => pick(location.hash.replace("#concept-", ""), true));
+
     const initial = location.hash.replace("#concept-", "");
     render(ids.includes(initial) ? ids.indexOf(initial) : ids.indexOf("onto"));
   }
