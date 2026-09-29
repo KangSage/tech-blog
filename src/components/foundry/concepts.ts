@@ -40,7 +40,7 @@ export const concepts: Concept[] = [
     everyday: "여러 거래처에서 오는 자료를 한곳에서 받아 두는 회사의 문서 수발실과 같습니다. 거래처별 연락처와 출입 방법(Source)을 등록해 두고, 정해진 때마다 자료를 받아 옵니다(Sync).",
     points: [
       "Source: 외부 시스템 하나에 대한 연결입니다. 대상 위치(보통 URL)와 인증 정보를 담습니다.",
-      "Sync: Source의 데이터를 Dataset, stream, Iceberg 테이블, media set 등으로 가져옵니다.",
+      "Sync: Source의 데이터를 Dataset, stream, Iceberg 테이블, Media set 등으로 가져옵니다.",
       "데이터는 외부에서 미리 가공하지 않고 원본 그대로(as-is) 가져오는 것을 원칙으로 합니다.",
       "실패 시 자동 재시도와 데이터 상태 모니터링을 기본으로 제공합니다.",
     ],
@@ -50,7 +50,7 @@ export const concepts: Concept[] = [
   },
   {
     id: "transform", short: "Python transform", layer: "data", title: "Python transform",
-    lead: "입력 Dataset을 읽어 출력 Dataset을 쓰는 배치 코드입니다. build가 실행될 때 동작합니다.",
+    lead: "입력 Dataset을 읽어 출력 Dataset을 쓰는 배치 코드입니다. Build가 실행될 때 동작합니다.",
     analogy: "API 핸들러가 아니라 cron 배치 잡에 가깝습니다. Code Repositories는 웹 IDE와 Git 저장소를 합친 도구입니다.",
     everyday: "매일 밤 정해진 시간에 재료를 한꺼번에 손질해 두는 주방의 밑준비와 같습니다. 주문이 들어올 때마다 요리하는 것이 아니라, 미리 처리해 둔 결과를 다음 단계가 가져다 씁니다.",
     points: [
@@ -64,15 +64,17 @@ export const concepts: Concept[] = [
   },
   {
     id: "pb", short: "Pipeline Builder", layer: "data", title: "Pipeline Builder",
-    lead: "클릭으로 파이프라인을 구성하는 도구입니다. 백엔드가 transform 코드를 생성하고 build 전에 스키마를 검사합니다.",
+    lead: "클릭으로 파이프라인을 구성하는 도구입니다. 백엔드가 transform 코드를 생성하고 Build 전에 스키마를 검사합니다.",
     analogy: "Zapier나 n8n처럼 블록을 선으로 이어 흐름을 만드는 노코드 도구와 비슷합니다. 다만 이어 붙이는 블록이 필터·조인·그룹화 같은 SQL 연산이고, 뒤에서 그 연산을 수행하는 transform 코드가 자동으로 만들어집니다.",
     everyday: "블록을 끼워 맞추듯 '거르기 → 합치기 → 묶기' 같은 단계를 화면에서 이어 붙이는 도구입니다. 단계를 다 이으면, 그 작업을 실제로 수행하는 프로그램이 자동으로 만들어집니다.",
     points: [
       "Expression은 컬럼을 받아 컬럼 하나를 내고, Transform은 테이블 전체를 받아 테이블을 냅니다.",
       "실행 엔진으로 Spark와 Flink를 쓰며, DataFusion 기반의 Faster pipelines로 배치·증분 파이프라인을 더 빠르게 실행할 수 있습니다.",
-      "출력 검사를 통과하지 못하면 build를 막아 하류 파이프라인이 깨지는 것을 방지합니다.",
+      "출력 검사를 통과하지 못하면 Build를 막아 하류 파이프라인이 깨지는 것을 방지합니다.",
+      "생성된 코드는 기존 Java transforms 저장소로만 내보낼 수 있습니다(PySpark 불가, 기본 배치 파이프라인만). 대상 브랜치의 기존 코드는 삭제되고, 되돌릴 수 없는 단방향 작업입니다.",
+      "UDF·LLM 호출·미디어 연산 등은 내보낸 코드에서 TODO로 남으며, 결과가 원래 파이프라인과 다를 수 있습니다.",
     ],
-    warn: "스트리밍 파이프라인은 Palantir 담당자에게 요청해야 쓸 수 있습니다. 생성 코드는 기존 Java transforms 저장소로만 내보낼 수 있습니다(PySpark 불가, 기본 배치 파이프라인만). 대상 브랜치의 기존 코드는 삭제되고, 되돌릴 수 없는 단방향 작업입니다. UDF·LLM 호출·미디어 연산 등은 TODO로 남으며 결과가 원래 파이프라인과 다를 수 있습니다.",
+    warn: "스트리밍 파이프라인은 Palantir 담당자에게 요청해야 쓸 수 있습니다.",
     doc: D + "pipeline-builder/overview",
     related: [
       { label: "Expression과 Transform", href: D + "pipeline-builder/transforms-overview" },
@@ -81,14 +83,14 @@ export const concepts: Concept[] = [
   },
   {
     id: "builds", short: "Builds · Schedules", layer: "data", title: "Builds · Schedules",
-    lead: "Build는 transform 로직을 실행해 출력 Dataset을 새로 계산하는 작업이고, Schedule은 그 build를 언제 실행할지 정합니다.",
-    analogy: "CI의 빌드 잡과 cron 스케줄러를 합친 것과 같습니다. 코드를 커밋하면 실행 정의(JobSpec)가 갱신되고, 트리거 조건이 맞으면 build가 실행됩니다.",
+    lead: "Build는 transform 로직을 실행해 출력 Dataset을 새로 계산하는 작업이고, Schedule은 그 Build를 언제 실행할지 정합니다.",
+    analogy: "CI의 빌드 잡과 cron 스케줄러를 합친 것과 같습니다. 코드를 커밋하면 실행 정의(JobSpec)가 갱신되고, 트리거 조건이 맞으면 Build가 실행됩니다.",
     everyday: "공장의 생산 지시서(Build)와 생산 일정표(Schedule)와 같습니다. 지시서대로 재료를 가공해 제품을 만들고, 일정표에 따라 정해진 때마다 다시 생산합니다.",
     points: [
       "Build는 job으로 구성됩니다. job 하나는 같은 로직으로 하나 이상의 출력 Dataset을 계산하며, 출력이 여럿이면 항상 함께 갱신됩니다.",
       "JobSpec은 job을 만드는 방법의 정의로, Code Repositories에 transform 코드를 커밋하면 게시됩니다.",
       "Build 한 번은 출력을 한 번 계산할 뿐이므로, 데이터가 계속 흐르게 하려면 Schedule로 반복 실행합니다.",
-      "Schedule의 trigger가 충족되면 build가 실행되고, 이전 실행이 끝나지 않았으면 끝난 뒤에 실행됩니다.",
+      "Schedule의 trigger가 충족되면 Build가 실행되고, 이전 실행이 끝나지 않았으면 끝난 뒤에 실행됩니다.",
     ],
     doc: D + "data-integration/builds",
     related: [{ label: "Schedules", href: D + "data-integration/schedules" }],
@@ -102,7 +104,7 @@ export const concepts: Concept[] = [
       "SNAPSHOT: 전체를 교체합니다(TRUNCATE + INSERT).",
       "APPEND: 새 파일만 추가합니다. 증분 파이프라인의 기반입니다.",
       "UPDATE: 파일을 추가하거나 덮어씁니다. 덮어쓰면 하류의 증분 처리가 깨집니다.",
-      "DELETE: 파일을 삭제합니다. 과거 시점의 view에는 남아 있습니다.",
+      "DELETE: 현재 view에서 파일 참조만 뺍니다. 실제 파일은 지우지 않으며, 주로 보존(retention) 작업에 씁니다.",
     ],
     warn: "Data Lineage → History → Rollback to transaction으로 롤백할 수 있지만, 되돌아가는 것은 데이터뿐이며 로직은 그대로입니다. 보존 정책(retention)으로 삭제된 트랜잭션으로는 롤백할 수 없습니다. 보존 정책은 삭제 표시 후 보통 7일 뒤 실제로 지우며, 그 이후에는 복구할 수 없습니다.",
     doc: D + "data-integration/datasets",
@@ -118,11 +120,11 @@ export const concepts: Concept[] = [
     everyday: "사진·문서를 보관하는 창고와, 장부에 적어 둔 '창고 몇 번 선반' 메모의 관계와 같습니다. 같은 선반에 새 파일을 넣어도 옛 파일은 치워지지 않고, 옛 메모는 계속 옛 파일을 가리킵니다.",
     points: [
       "같은 경로에 다시 업로드하면 경고 없이 새 media item으로 덮어씁니다. 기존 reference는 계속 이전 파일을 가리킵니다.",
-      "덮어써진 item은 기본적으로 삭제되지 않고 버전 이력에 남으며 build에서도 처리될 수 있습니다. 정리하려면 '덮어쓰거나 삭제된 뒤 N일 후 영구 삭제' 보존 정책을 설정합니다.",
+      "덮어써진 item은 기본적으로 삭제되지 않고 버전 이력에 남으며 Build에서도 처리될 수 있습니다. 정리하려면 '덮어쓰거나 삭제된 뒤 N일 후 영구 삭제' 보존 정책을 설정합니다.",
       "Object type의 Capabilities 탭에서 media source를 지정해야 연결됩니다.",
       "reference는 Action의 파일 업로드나 Python transform으로 만들 수 있습니다.",
     ],
-    warn: "Media set 권한은 Object 정책과 별개입니다. 파일을 보호하려면 Media set을 따로 잠가야 합니다. 보존 기간을 줄이면 기간이 지난 item은 즉시 접근할 수 없게 되고, 다시 늘려도 복구되지 않습니다.",
+    warn: "Media set 권한은 Object security policy와 별개입니다. 파일을 보호하려면 Media set을 따로 잠가야 합니다. 보존 기간을 줄이면 기간이 지난 item은 즉시 접근할 수 없게 되고, 다시 늘려도 복구되지 않습니다.",
     doc: D + "media-sets-advanced-formats/media-overview",
     related: [
       { label: "Ontology에서 쓰기", href: D + "media-sets-advanced-formats/media-in-ontology" },
@@ -138,8 +140,8 @@ export const concepts: Concept[] = [
     everyday: "도서관 책으로 검색용 목록(색인)을 만들어 두고, 사람들은 그 목록으로 책을 찾는 것과 같습니다. Materialization은 목록에 반영된 수정 사항까지 합쳐 책을 새로 인쇄해 두는 것에 해당합니다.",
     points: [
       "Funnel 파이프라인에는 batch와 streaming 두 종류가 있습니다. 쓰기·편집의 지연을 줄여야 하면 direct datasource를 쓸 수 있습니다.",
-      "Action 편집은 원본 backing Dataset이 아니라 Funnel이 관리하는 Dataset에 저장됩니다. 원본과 편집을 합친 이 Dataset은 원본에 새 트랜잭션이 생길 때, 또는 편집이 있었다면 6시간마다 build됩니다.",
-      "Materialization은 원본과 편집을 합친 Dataset입니다. OSv2에서는 선택 사항이며, 하류 파이프라인이나 대량 다운로드에 씁니다.",
+      "Action 편집은 원본 backing Dataset이 아니라 Funnel이 내부에서 관리하는 Dataset에 저장됩니다. 이 Dataset은 원본에 새 트랜잭션이 생길 때, 또는 편집이 있었다면 6시간마다 Build됩니다.",
+      "Materialization은 사용자가 따로 만드는 출력 Dataset으로, 원본과 편집을 합친 각 Object의 최신 상태를 담습니다. OSv2에서는 선택 사항이며, 하류 파이프라인이나 대량 다운로드에 씁니다.",
     ],
     doc: D + "object-indexing/overview",
     related: [
@@ -149,7 +151,7 @@ export const concepts: Concept[] = [
   },
   {
     id: "onto", short: "Ontology", layer: "onto", title: "Ontology",
-    lead: "Dataset 위에 업무 의미를 부여하는 계층입니다. 앱은 Dataset이 아니라 Ontology를 읽고 씁니다.",
+    lead: "Dataset 위에 업무 의미를 부여하는 계층입니다. 업무용 앱(Workshop·OSDK)은 Dataset이 아니라 Ontology를 읽고 씁니다.",
     analogy: "ORM 모델 계층에 해당합니다. Object type = 테이블, Object = 행, Property = 컬럼, Link type = 조인/FK, Object set = WHERE 결과입니다.",
     everyday: "엑셀 표를 '고객', '주문'처럼 실제 업무에서 쓰는 말로 정리한 명부와 같습니다. 한 줄은 고객 한 명, 칸은 이름·연락처 같은 항목이고, Link는 '이 고객의 주문 목록' 같은 연결입니다.",
     points: [
@@ -216,7 +218,7 @@ export const concepts: Concept[] = [
     everyday: "회사 밖 전문 업체에 일을 맡기는 것과 같습니다. 업체는 자기에게 익숙한 방식(언어·도구)으로 일하고, Application permissions를 쓰면 누가 맡겼든 업체 자신의 출입 권한으로 일합니다.",
     points: [
       "Function mode: 컨테이너에 함수를 올려 Workshop이나 Slate 같은 앱에서 호출합니다.",
-      "Pipeline mode: 외부 소스의 데이터를 stream·Dataset·media set으로 가져오는 것처럼, 입력을 받아 출력으로 처리합니다. job token은 입출력 리소스에만 쓸 수 있습니다.",
+      "Pipeline mode: 외부 소스의 데이터를 stream·Dataset·Media set으로 가져오는 것처럼, 입력을 받아 출력으로 처리합니다. job token은 입출력 리소스에만 쓸 수 있습니다.",
       "Function mode 권한은 '플랫폼 권한 없음'과 'Application permissions' 중에서 고릅니다. Application permissions는 호출한 사용자와 관계없이 연결된 서비스 유저의 권한으로 동작합니다.",
     ],
     warn: "Application permissions는 일부 환경(enrollment)에서는 제공되지 않을 수 있습니다.",
@@ -306,6 +308,7 @@ export const concepts: Concept[] = [
       "Role(Owner·Editor·Viewer·Discoverer)은 프로젝트 단위의 GRANT로, 무엇을 할 수 있는지를 정합니다.",
       "Marking은 all-or-nothing입니다. 하나라도 통과하지 못하면 Role과 관계없이 접근할 수 없습니다.",
       "Marking은 파생 데이터에도 전파됩니다. 접근을 막는 장치이며 권한을 부여하지는 않습니다.",
+      "Marking 외에 Organization과 Classification-based Access Controls(CBAC)도 필수 통제로 함께 적용됩니다.",
     ],
     warn: "Editor Role이 있어도 PII Marking의 멤버가 아니면 해당 데이터에 접근할 수 없습니다.",
     doc: D + "security/projects-and-roles",
@@ -319,7 +322,7 @@ export const concepts: Concept[] = [
     points: [
       "조건은 granular policy로 작성합니다. 사용자 속성(그룹 ID 등)과 property 값을 비교하며, 이름이 아니라 ID를 씁니다.",
       "Dataset 권한과는 분리됩니다. 정책이 있으면 backing Dataset의 Viewer 권한 없이도 Object를 볼 수 있습니다.",
-      "변경은 거의 즉시 반영됩니다. 반면 Restricted view(Dataset용 RLS)는 정책을 바꾼 뒤 파이프라인을 다시 build해야 반영됩니다.",
+      "변경은 거의 즉시 반영됩니다. 반면 Restricted view(Dataset용 RLS)는 정책을 바꾼 뒤 파이프라인을 다시 Build해야 반영됩니다.",
     ],
     warn: "Ontology 안에서 읽기만 걸러 주므로 원본 Dataset은 따로 잠가야 합니다. 이전 datasource-derived 권한 모델을 쓰는 환경에서는 Dataset 권한도 여전히 필요합니다.",
     doc: D + "object-permissioning/object-security-policies",

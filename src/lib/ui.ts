@@ -46,6 +46,7 @@ export const ui = {
     en: "Posts tagged '{tag}'.",
   },
   security: { ko: "의존성 보안 현황", ja: "依存関係のセキュリティ", en: "Dependency security" },
+  updated: { ko: "수정", ja: "更新", en: "Updated" },
 } satisfies Record<string, Record<Locale, string>>;
 
 export function t(key: keyof typeof ui, locale: Locale, values: Record<string, string | number> = {}): string {

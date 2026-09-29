@@ -2,6 +2,7 @@
 title: "Palantir Foundry 개념 지도: 데이터 흐름으로 읽는 23가지 구성 요소"
 description: "Palantir Foundry의 Data Connection부터 Dataset, Ontology, Action, AIP Logic, Workshop까지 주요 개념 23개를 데이터 흐름 순서로 배치하고, 개발자용·일반용 비유로 정리합니다."
 publishedAt: "2026-09-29"
+updatedAt: "2026-09-30"
 lang: "ko"
 translationKey: "foundry-concept-map"
 category: "tech"
@@ -24,7 +25,7 @@ Foundry는 기존에 익숙하던 개발 환경과 용어도, 개념도 다른 �
 </details>
 
 Palantir Foundry는 데이터 수집과 가공, 업무 모델링, 애플리케이션 개발, 권한 관리를 하나의 플랫폼에서 다룹니다.\
-범위가 넓은 만큼 처음 접하면 Dataset, Ontology, Funnel, Action, Function, OSDK처럼 비슷해 보이는 이름이 한꺼번에 등장하고, 각각이 전체 구조의 어디에 놓이는지 파악하기 어렵습니다.
+범위가 넓은 만큼 처음 접하면 Dataset, Ontology, Funnel, Action, Function, OSDK처럼 낯선 이름이 한꺼번에 등장하고, 각각이 전체 구조의 어디에 놓이는지 파악하기 어렵습니다.
 
 이 글은 Foundry의 주요 개념 23개를 **데이터가 흐르는 순서**로 배치한 개념 지도입니다.\
 각 개념은 개발자에게 익숙한 React·MySQL·클라우드 서비스, 또는 일상과 업무의 장면에 빗대어 설명합니다.
@@ -36,16 +37,18 @@ Foundry의 구성 요소는 크게 다섯 개의 층과 이를 감싸는 권한 
 1. **데이터**: Data Connection으로 외부 시스템의 데이터를 가져오고, Python transform이나 Pipeline Builder로 가공해 Dataset에 저장합니다.\
    가공 작업은 Build로 실행되고, Schedule에 따라 반복됩니다.\
    파일은 Media set에 따로 보관합니다.
-2. **온톨로지**: Funnel이 Dataset을 인덱싱해 Ontology를 만듭니다.\
-   Ontology는 Dataset에 업무 의미(Object, Property, Link)를 부여한 계층이며, 앱은 이 계층을 읽고 씁니다.\
+2. **온톨로지**: Funnel이 Dataset의 데이터를 인덱싱해 Ontology의 Object로 만듭니다.\
+   Ontology는 Dataset에 업무 의미(Object, Property, Link)를 부여한 계층이며, 업무용 앱은 이 계층을 읽고 씁니다.\
+   Object type·Link type 같은 구조는 Ontology Manager에서 정의합니다.\
    여러 Object type이 공유하는 공통 형태는 Interface로 정의합니다.
 3. **로직**: Action은 Ontology를 수정하고, Function은 조회와 계산을 담당합니다.\
    직접 만든 컨테이너 코드는 Compute module로, 조건에 따른 자동 실행은 Automate로, LLM 기반 로직은 AIP Logic으로 만듭니다.
-4. **앱**: Workshop(노코드)이나 OSDK 기반 React 앱이 로직 계층을 호출해 사용자에게 화면을 제공합니다.\
+4. **앱**: Workshop(노코드)이나 OSDK 기반 React 앱은 Ontology를 직접 조회하고, 쓰기와 계산은 로직 계층을 호출해 처리합니다.\
    Contour·Quiver·Object Explorer로는 코드 없이 데이터를 분석합니다.
 5. **운영**: Ontology Manager, Global Branching, Marketplace는 특정 층에 속하지 않고 모든 층의 변경과 배포를 관리합니다.
 
-이 전체를 Project·Role·Marking 권한 체계가 감싸고, Object security policy와 OAuth가 각 층의 접근을 세밀하게 제어합니다.
+이 전체를 Project·Role·Marking 권한 체계가 감쌉니다.\
+여기에 더해 Object security policy는 Ontology 안에서 Object·Property 단위의 조회를, OAuth는 외부 앱의 인증을 담당합니다.
 
 ## 개념 지도
 
@@ -70,7 +73,7 @@ Foundry는 권한과 동작이 여러 계층에 나뉘어 있어서, 비슷해 �
 | --- | --- | --- |
 | 누가 어떤 Object를 볼 수 있는가? | [Object security policy](#concept-osp) | 모든 SELECT에 자동으로 붙는 WHERE |
 | 이 Action을 제출할 수 있는가? | [Submission criteria](#concept-action) | UPDATE 전에 실행되는 IF 검사 |
-| 변경은 언제 실제로 저장되는가? | [Action이 실행될 때만](#concept-function) | COMMIT.<br />Edit function은 변경할 SQL을 만드는 데까지만 관여 |
+| 변경은 언제 실제로 저장되는가? | [Action](#concept-action)이 실행될 때만 | COMMIT.<br />[Edit function](#concept-function)은 변경할 SQL을 만드는 데까지만 관여 |
 
 ### OSDK 토큰의 권한은 세 범위의 교집합입니다
 
@@ -104,13 +107,14 @@ OSDK로 만든 앱이 받는 토큰은 사용자 권한, Developer Console에 �
 
 ## 정리
 
-- Foundry의 데이터는 **원본 → Dataset → Ontology → 로직 → 앱** 순서로 흐르며, 앱은 Dataset이 아니라 Ontology를 다룹니다.
+- Foundry의 데이터는 **원본 → Dataset → Ontology** 순서로 쌓입니다.\
+  업무용 앱은 Dataset이 아니라 Ontology를 직접 조회하고, 쓰기와 계산은 로직을 거칩니다.
 - 사용자의 편집은 **Action**을 거쳐 Ontology에 반영됩니다.\
   Function은 편집 내용을 계산할 뿐, Action 없이 직접 저장하지 않습니다.
 - 권한은 **계층마다 독립적**입니다.\
-  Ontology의 Object 정책, 원본 Dataset, Media set, OSDK 앱 제한을 각각 따로 설계해야 합니다.
+  Object security policy, 원본 Dataset, Media set, OSDK 앱 제한을 각각 따로 설계해야 합니다.
 
 ---
 
 각 카드의 설명은 카드 하단에 링크한 Palantir 공식 문서를 근거로 하며, OSDK의 PKCE 처리 방식은 공식 [osdk-ts](https://github.com/palantir/osdk-ts) 저장소의 소스 코드로 확인했습니다.\
-이 글은 2026년 9월 29일 기준으로 작성되었으며, Foundry는 업데이트가 잦으므로 최신 내용은 공식 문서를 확인하시기 바랍니다.
+이 글은 2026년 9월 30일 기준으로 작성되었으며, Foundry는 업데이트가 잦으므로 최신 내용은 공식 문서를 확인하시기 바랍니다.
