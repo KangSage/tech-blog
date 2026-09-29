@@ -223,6 +223,14 @@ const canonical = absoluteUrl(canonicalPath);
     text-align: left;
   }
 
+  /* 마지막 열이 짧은 표: 넓은 화면에서는 마지막 열을 줄바꿈하지 않고 남은 폭을 앞 열이 나눠 쓴다 */
+  @media (min-width: 720px) {
+    .nowrap-last-col th:last-child,
+    .nowrap-last-col td:last-child {
+      white-space: nowrap;
+    }
+  }
+
   .eyebrow {
     margin: 0 0 8px;
     color: var(--muted);
