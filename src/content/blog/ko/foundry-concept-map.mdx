@@ -69,11 +69,11 @@ Foundry는 권한과 동작이 여러 계층에 나뉘어 있어서, 비슷해 �
 
 "사용자가 이 Object를 수정할 수 있는가"라는 질문은 실제로는 세 개의 독립된 질문으로 나뉩니다.
 
-| 질문 | 결정하는 곳 | DB 비유 |
-| --- | --- | --- |
-| 누가 어떤 Object를 볼 수 있는가? | [Object security policy](#concept-osp) | 모든 SELECT에 자동으로 붙는 WHERE |
-| 이 Action을 제출할 수 있는가? | [Submission criteria](#concept-action) | UPDATE 전에 실행되는 IF 검사 |
-| 변경은 언제 실제로 저장되는가? | [Action](#concept-action)이 실행될 때만 | COMMIT.<br />[Edit function](#concept-function)은 변경할 SQL을 만드는 데까지만 관여 |
+| 질문 | 결정하는 곳 | DB 비유 | 일상 비유 |
+| --- | --- | --- | --- |
+| 누가 어떤 Object를 볼 수 있는가? | [Object security policy](#concept-osp) | 모든 SELECT에 자동으로 붙는 WHERE | 같은 명부를 열어도 내 담당 줄만 보임 |
+| 이 Action을 제출할 수 있는가? | [Submission criteria](#concept-action) | UPDATE 전에 실행되는 IF 검사 | 결재 조건을 통과해야 신청서를 낼 수 있음 |
+| 변경은 언제 실제로 저장되는가? | [Action](#concept-action)이 실행될 때만 | COMMIT.<br />[Edit function](#concept-function)은 변경할 SQL을 만드는 데까지만 관여 | 신청서가 처리되어야 반영됨.<br />계산기로 미리 계산해 둔 것만으로는 반영되지 않음 |
 
 ### OSDK 토큰의 권한은 세 범위의 교집합입니다
 

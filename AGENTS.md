@@ -241,7 +241,7 @@ Recurring mistakes here were names drifting between the card, the index chip, an
 - The dev check only measures geometry; still look at the rendered map once, since it cannot judge odd-looking arrows or wording.
 - Then check by hand, since these are not automated:
   - at 1366px, with the sidebar stuck, cycle through every card: the sidebar must not overflow (only the card body may scroll);
-  - selecting each new concept highlights the right related boxes (`data-rel`, and `data-bus` for shared lines);
+  - selecting each new concept highlights only its real partners. Every line/label carries `data-edges="a:b c:d"` pairs (a shared line lists every pair it carries); relations with no drawn line go in `EXTRA_EDGES`. Only add pairs the official docs support; the dev check warns about unknown ids in pairs;
   - at 375px, no horizontal page overflow;
   - new links in the post body use `#concept-<id>` and switch the card without scrolling.
 - New or changed facts need an official Palantir doc link in the card's `doc`/`related`.
