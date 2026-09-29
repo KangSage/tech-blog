@@ -47,7 +47,7 @@ export const concepts: Concept[] = [
     related: [{ label: "핵심 개념", href: D + "data-connection/core-concepts" }],
   },
   {
-    id: "transform", short: "Python transform", layer: "data", title: "Code Repositories · Python transform",
+    id: "transform", short: "Python transform", layer: "data", title: "Python transform",
     lead: "입력 Dataset을 읽어 출력 Dataset을 쓰는 배치 코드입니다. build가 실행될 때 동작합니다.",
     analogy: "API 핸들러가 아니라 cron 배치 잡에 가깝습니다. Code Repositories는 웹 IDE와 Git 저장소를 합친 도구입니다.",
     everyday: "매일 밤 정해진 시간에 재료를 한꺼번에 손질해 두는 주방의 밑준비와 같습니다. 주문이 들어올 때마다 요리하는 것이 아니라, 미리 처리해 둔 결과를 다음 단계가 가져다 씁니다.",
@@ -190,7 +190,7 @@ export const concepts: Concept[] = [
     ],
   },
   {
-    id: "function", short: "Function", layer: "logic", title: "Function (TypeScript · Python)",
+    id: "function", short: "Function", layer: "logic", title: "Function",
     lead: "요청 시점에 실행되는 서버 코드입니다. Ontology 조회, 링크 탐색, 편집 계산을 담당합니다.",
     analogy: "AWS Lambda나 Next.js API route에 가깝습니다. Transform이 배치라면 Function은 요청 즉시 실행됩니다.",
     everyday: "물어볼 때마다 바로 답을 계산해 주는 계산기와 같습니다. 밤새 미리 만들어 두는 transform과 달리, 요청이 들어온 순간 계산합니다.",
@@ -326,7 +326,7 @@ export const concepts: Concept[] = [
     ],
   },
   {
-    id: "oauth", short: "OAuth", layer: "sec", title: "OAuth: 사용자 로그인 vs 서비스 유저",
+    id: "oauth", short: "OAuth", layer: "sec", title: "OAuth",
     lead: "Authorization code 방식은 사용자를 대신해 동작하고, Client credentials 방식은 서비스 유저(앱 전용 계정)로 동작합니다.",
     analogy: "'Google로 로그인'과 서버 간 API 키의 차이와 같습니다.",
     everyday: "'카카오로 로그인'처럼 각자 자기 계정으로 앱에 들어가는 방식과, 회사 공용 계정 하나로 모두가 같이 쓰는 방식의 차이입니다.",
