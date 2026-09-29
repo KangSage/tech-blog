@@ -1,6 +1,6 @@
 ---
-title: "Palantir Foundry 개념 지도: 데이터 흐름으로 읽는 17가지 구성 요소"
-description: "Palantir Foundry의 Dataset, Ontology, Action, Function, OSDK 같은 핵심 개념을 데이터 흐름 순서로 배치하고, 웹 개발자에게 익숙한 React·MySQL 개념에 빗대어 정리합니다."
+title: "Palantir Foundry 개념 지도: 데이터 흐름으로 읽는 23가지 구성 요소"
+description: "Palantir Foundry의 Data Connection부터 Dataset, Ontology, Action, AIP Logic, Workshop까지 주요 개념 23개를 데이터 흐름 순서로 배치하고, 개발자용·일반용 비유로 정리합니다."
 publishedAt: "2026-09-29"
 lang: "ko"
 translationKey: "foundry-concept-map"
@@ -14,20 +14,23 @@ import FoundryConceptMap from "@/components/foundry/FoundryConceptMap.astro";
 Palantir Foundry는 데이터 수집과 가공, 업무 모델링, 애플리케이션 개발, 권한 관리를 하나의 플랫폼에서 다룹니다.\
 범위가 넓은 만큼 처음 접하면 Dataset, Ontology, Funnel, Action, Function, OSDK처럼 비슷해 보이는 이름이 한꺼번에 등장하고, 각각이 전체 구조의 어디에 놓이는지 파악하기 어렵습니다.
 
-이 글은 Foundry의 주요 개념 17개를 **데이터가 흐르는 순서**로 배치한 개념 지도입니다.\
+이 글은 Foundry의 주요 개념 23개를 **데이터가 흐르는 순서**로 배치한 개념 지도입니다.\
 각 개념은 개발자에게 익숙한 React·MySQL·클라우드 서비스, 또는 일상과 업무의 장면에 빗대어 설명합니다.
 
 ## 전체 흐름
 
 Foundry의 구성 요소는 크게 다섯 개의 층과 이를 감싸는 권한 체계로 나눌 수 있습니다.
 
-1. **데이터**: 엑셀 같은 원본 파일을 Python transform이나 Pipeline Builder로 가공해 Dataset에 저장합니다.\
+1. **데이터**: Data Connection으로 외부 시스템의 데이터를 가져오고, Python transform이나 Pipeline Builder로 가공해 Dataset에 저장합니다.\
+   가공 작업은 Build로 실행되고, Schedule에 따라 반복됩니다.\
    파일은 Media set에 따로 보관합니다.
 2. **온톨로지**: Funnel이 Dataset을 인덱싱해 Ontology를 만듭니다.\
-   Ontology는 Dataset에 업무 의미(Object, Property, Link)를 부여한 계층이며, 앱은 이 계층을 읽고 씁니다.
+   Ontology는 Dataset에 업무 의미(Object, Property, Link)를 부여한 계층이며, 앱은 이 계층을 읽고 씁니다.\
+   여러 Object type이 공유하는 공통 형태는 Interface로 정의합니다.
 3. **로직**: Action은 Ontology를 수정하고, Function은 조회와 계산을 담당합니다.\
-   별도 런타임이 필요하면 Compute module을 씁니다.
-4. **앱**: Workshop(로우코드)이나 OSDK 기반 React 앱이 로직 계층을 호출해 사용자에게 화면을 제공합니다.
+   직접 만든 컨테이너 코드는 Compute module로, 조건에 따른 자동 실행은 Automate로, LLM 기반 로직은 AIP Logic으로 만듭니다.
+4. **앱**: Workshop(노코드)이나 OSDK 기반 React 앱이 로직 계층을 호출해 사용자에게 화면을 제공합니다.\
+   Contour·Quiver·Object Explorer로는 코드 없이 데이터를 분석합니다.
 5. **운영**: Ontology Manager, Global Branching, Marketplace는 특정 층에 속하지 않고 모든 층의 변경과 배포를 관리합니다.
 
 이 전체를 Project·Role·Marking 권한 체계가 감싸고, Object security policy와 OAuth가 각 층의 접근을 세밀하게 제어합니다.
@@ -59,17 +62,17 @@ Foundry는 권한과 동작이 여러 계층에 나뉘어 있어서, 비슷해 �
 
 ### OSDK 토큰의 권한은 세 범위의 교집합입니다
 
-OSDK로 만든 앱이 받는 토큰은 사용자 권한, 앱에 설정된 최대 scope, 앱이 요청한 scope 세 가지가 모두 허용하는 범위만 접근할 수 있습니다.
+OSDK로 만든 앱이 받는 토큰은 사용자 권한, Developer Console에 설정한 앱 제한(application restrictions), 앱이 요청한 scope 세 가지가 모두 허용하는 범위만 접근할 수 있습니다.
 
 | 범위 | 주문 | 고객 | 재고 |
 | --- | :-: | :-: | :-: |
 | 사용자 권한 | ✓ | ✓ | ✓ |
-| 앱 최대 scope | ✓ | ✗ | ✓ |
+| 앱 제한 | ✓ | ✗ | ✓ |
 | 요청 scope | ✓ | ✓ | ✗ |
 | **토큰 접근 범위** | **✓** | ✗ | ✗ |
 
-요청 scope는 브라우저에서 실행되는 코드가 정하므로 신뢰할 수 있는 경계가 아닙니다.\
-보안 경계로 믿을 수 있는 것은 Developer Console에 저장된 앱 최대 scope뿐입니다([OSDK](#concept-osdk)).
+앱 제한은 앱이 받을 수 있는 권한의 보장된 상한입니다.\
+요청 scope는 앱 코드가 토큰을 요청할 때 정하는 값으로, 그 상한 안에서 범위를 더 좁히는 역할만 합니다([OSDK](#concept-osdk)).
 
 ### 권한이 서로 연동되지 않는 곳
 
@@ -81,17 +84,15 @@ OSDK로 만든 앱이 받는 토큰은 사용자 권한, 앱에 설정된 최대
 - **[Media set](#concept-media) 권한 ↔ [Object 정책](#concept-osp)**: 서로 별개입니다.\
   Property를 볼 수 없는 사용자도 Media set에서 파일을 직접 가져올 수 있습니다.\
   또한 같은 경로로 덮어써도 이전 파일은 기본적으로 삭제되지 않고 media reference로 계속 접근할 수 있으므로, 민감한 파일을 교체할 때는 보존 정책을 함께 설정해야 합니다.
-- **[OSDK](#concept-osdk) scope**: 앱 전체에 적용되는 상한일 뿐입니다.\
-  사용자별 차등이나 "앱을 통해서만 접근" 같은 제약은 걸 수 없습니다.
 - **[Compute module](#concept-cm) Application permissions**: 호출한 사용자와 관계없이 서비스 유저의 권한으로 고정되어 동작합니다.
 
 ## 정리
 
 - Foundry의 데이터는 **원본 → Dataset → Ontology → 로직 → 앱** 순서로 흐르며, 앱은 Dataset이 아니라 Ontology를 다룹니다.
-- 쓰기는 반드시 **Action**을 거칩니다.\
-  Function은 계산하고 조회할 뿐 직접 저장하지 않습니다.
+- 사용자의 편집은 **Action**을 거쳐 Ontology에 반영됩니다.\
+  Function은 편집 내용을 계산할 뿐, Action 없이 직접 저장하지 않습니다.
 - 권한은 **계층마다 독립적**입니다.\
-  Ontology의 Object 정책, 원본 Dataset, Media set, OSDK scope를 각각 따로 설계해야 합니다.
+  Ontology의 Object 정책, 원본 Dataset, Media set, OSDK 앱 제한을 각각 따로 설계해야 합니다.
 
 ---
 

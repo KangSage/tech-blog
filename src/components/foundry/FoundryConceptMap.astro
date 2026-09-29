@@ -7,11 +7,11 @@ import { concepts, layerLabels, type Layer } from "./concepts";
 const layers = Object.entries(layerLabels) as [Layer, string][];
 // 개념 지도 그림에서 층별 세로 구간 (viewBox 좌표)
 const bands: { layer: Layer; top: number; bottom: number }[] = [
-  { layer: "data", top: 2, bottom: 226 },
-  { layer: "onto", top: 229, bottom: 374 },
-  { layer: "logic", top: 378, bottom: 470 },
-  { layer: "app", top: 474, bottom: 640 },
-  { layer: "ops", top: 645, bottom: 714 },
+  { layer: "data", top: 2, bottom: 248 },
+  { layer: "onto", top: 251, bottom: 400 },
+  { layer: "logic", top: 403, bottom: 494 },
+  { layer: "app", top: 497, bottom: 666 },
+  { layer: "ops", top: 669, bottom: 742 },
 ];
 const groups = layers.map(([layer, label]) => ({ layer, label, items: concepts.filter((c) => c.layer === layer) }));
 // 마침표 등으로 끝나는 문장마다 줄을 바꿔 보여준다
@@ -24,8 +24,9 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
   </ul>
 
   <div class="explore">
+    <p class="map-scroll-hint">그림을 좌우로 밀어서 볼 수 있습니다.</p>
     <figure class="fig" id="concept-map">
-      <svg class="map" viewBox="-64 0 436 716" role="group" aria-label="Foundry 흐름: 원본 파일에서 Python transform·Pipeline Builder가 Dataset을 만들고, Funnel이 Ontology로 인덱싱하며, Action·Function·Compute module을 거쳐 Workshop·React 앱이 사용함. Project·Role·Marking이 전체를 감쌈.">
+      <svg class="map" viewBox="-64 0 584 744" role="group" aria-label="Foundry 흐름: Data Connection이 외부 데이터를 가져오고, Python transform·Pipeline Builder가 Build로 Dataset을 만들며, Funnel이 Ontology로 인덱싱합니다. Action·Function·Compute module·Automate·AIP Logic이 Ontology를 읽고 쓰고, Workshop·React 앱·분석 앱이 이를 사용합니다. Project·Role·Marking이 전체를 감쌉니다.">
         <defs>
           <marker id="fcm-ah" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
             <path class="ahp" d="M0,1 L9,5 L0,9 z"></path>
@@ -40,144 +41,166 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
               <text class="band-label" x="-54" y={b.top + 18}>{layerLabels[b.layer]}</text>
             </g>
           ))}
-          {bands.slice(1).map((b) => <line class="band-sep" x1="-62" x2="358" y1={b.top - 2} y2={b.top - 2}></line>)}
+          {bands.slice(1).map((b) => <line class="band-sep" x1="-62" x2="518" y1={b.top - 2} y2={b.top - 2}></line>)}
         </g>
 
         <!-- 권한: Project·Role·Marking이 데이터~앱 층 전체를 감싸는 테두리 -->
         <g class="node frame-node l-sec" data-id="project" tabindex="0" role="button" aria-label="Project · Role · Marking">
-          <rect class="frame" x="12" y="72" width="344" height="570" rx="12"></rect>
-          <rect class="box" x="18" y="614" width="150" height="20" rx="10"></rect>
-          <text class="tab" x="93" y="628">Project · Role · Marking</text>
+          <rect class="frame" x="12" y="4" width="500" height="660" rx="12"></rect>
+          <rect class="box" x="18" y="638" width="150" height="20" rx="10"></rect>
+          <text class="tab" x="93" y="652">Project · Role · Marking</text>
         </g>
 
-        <!-- 원본 -->
-        <g class="src" data-rel="transform pb"><rect x="116" y="8" width="140" height="32" rx="6"></rect><text class="t" x="186" y="28">엑셀 · 원본 파일</text></g>
-        <line class="ar" data-rel="transform" x1="176" y1="40" x2="108" y2="78" marker-end="url(#fcm-ah)"></line>
-        <line class="ar" data-rel="pb" x1="196" y1="40" x2="264" y2="78" marker-end="url(#fcm-ah)"></line>
-        <text class="lab" data-rel="transform pb" x="186" y="62">입력</text>
-
-        <!-- 가공 -->
+        <!-- 데이터: 가져오기 → 가공(build) → 저장 -->
+        <g class="node l-data" data-id="dc" tabindex="0" role="button" aria-label="Data Connection">
+          <rect class="box" x="170" y="14" width="184" height="40" rx="8"></rect>
+          <text class="t" x="262" y="31">Data Connection</text>
+          <text class="s" x="262" y="47">외부 시스템 → Foundry</text>
+        </g>
+        <line class="ar" data-rel="dc transform" x1="236" y1="54" x2="140" y2="90" marker-end="url(#fcm-ah)"></line>
+        <line class="ar" data-rel="dc pb" x1="288" y1="54" x2="384" y2="90" marker-end="url(#fcm-ah)"></line>
+        <text class="lab" data-rel="dc transform pb" x="262" y="78">동기화(sync)</text>
         <g class="node l-data" data-id="transform" tabindex="0" role="button" aria-label="Code Repositories · Python transform">
-          <rect class="box" x="24" y="80" width="156" height="52" rx="8"></rect>
-          <text class="t" x="102" y="104">Python transform</text>
-          <text class="s" x="102" y="121">Code Repositories</text>
+          <rect class="box" x="24" y="92" width="212" height="52" rx="8"></rect>
+          <text class="t" x="130" y="116">Python transform</text>
+          <text class="s" x="130" y="133">Code Repositories</text>
         </g>
         <g class="node l-data" data-id="pb" tabindex="0" role="button" aria-label="Pipeline Builder">
-          <rect class="box" x="192" y="80" width="156" height="52" rx="8"></rect>
-          <text class="t" x="270" y="104">Pipeline Builder</text>
-          <text class="s" x="270" y="121">클릭 → transform 생성</text>
+          <rect class="box" x="288" y="92" width="212" height="52" rx="8"></rect>
+          <text class="t" x="394" y="116">Pipeline Builder</text>
+          <text class="s" x="394" y="133">클릭 → transform 생성</text>
         </g>
-        <line class="ar" data-rel="transform dataset" x1="102" y1="132" x2="102" y2="168" marker-end="url(#fcm-ah)"></line>
-        <line class="ar" data-rel="pb dataset" x1="270" y1="132" x2="192" y2="168" marker-end="url(#fcm-ah)"></line>
-        <text class="lab as" data-rel="transform dataset" x="108" y="154">build</text>
-        <text class="lab as" data-rel="pb dataset" x="236" y="154">build</text>
-
-        <!-- 저장 -->
+        <line class="ar" data-rel="transform dataset" x1="130" y1="144" x2="130" y2="188" marker-end="url(#fcm-ah)"></line>
+        <line class="ar" data-rel="pb dataset" x1="394" y1="144" x2="282" y2="188" marker-end="url(#fcm-ah)"></line>
+        <g class="node l-data" data-id="builds" data-rel="builds transform pb dataset" tabindex="0" role="button" aria-label="Builds · Schedules">
+          <rect class="box" x="148" y="156" width="140" height="22" rx="11"></rect>
+          <text class="t sm" x="218" y="171">Builds · Schedules</text>
+        </g>
         <g class="node l-data" data-id="dataset" tabindex="0" role="button" aria-label="Dataset">
-          <rect class="box" x="24" y="170" width="204" height="52" rx="8"></rect>
-          <text class="t" x="126" y="194">Dataset</text>
-          <text class="s" x="126" y="211">트랜잭션 · SNAPSHOT / APPEND …</text>
+          <rect class="box" x="24" y="190" width="276" height="52" rx="8"></rect>
+          <text class="t" x="162" y="214">Dataset</text>
+          <text class="s" x="162" y="231">트랜잭션 · SNAPSHOT / APPEND …</text>
         </g>
         <g class="node l-data" data-id="media" tabindex="0" role="button" aria-label="Media set">
-          <rect class="box" x="240" y="170" width="108" height="52" rx="8"></rect>
-          <text class="t" x="294" y="194">Media set</text>
-          <text class="s" x="294" y="211">파일 · 불변 아이템</text>
+          <rect class="box" x="324" y="190" width="176" height="52" rx="8"></rect>
+          <text class="t" x="412" y="214">Media set</text>
+          <text class="s" x="412" y="231">파일 · 불변 아이템</text>
         </g>
 
-        <!-- 인덱싱 -->
-        <line class="ar" data-rel="dataset funnel" x1="126" y1="222" x2="126" y2="234"></line>
+        <!-- 온톨로지: 인덱싱 → Ontology -->
+        <line class="ar" data-rel="dataset funnel" x1="162" y1="242" x2="162" y2="256"></line>
         <g class="node l-onto" data-id="funnel" tabindex="0" role="button" aria-label="Funnel 인덱싱">
-          <rect class="box" x="66" y="234" width="120" height="24" rx="12"></rect>
-          <text class="t" x="126" y="250">Funnel 인덱싱</text>
+          <rect class="box" x="96" y="256" width="132" height="24" rx="12"></rect>
+          <text class="t sm" x="162" y="272">Funnel 인덱싱</text>
         </g>
-        <line class="ar" data-rel="funnel onto" x1="126" y1="258" x2="126" y2="274" marker-end="url(#fcm-ah)"></line>
+        <line class="ar" data-rel="funnel onto" x1="162" y1="280" x2="162" y2="298" marker-end="url(#fcm-ah)"></line>
         <g class="node link l-onto" data-id="funnel" data-rel="funnel onto dataset" tabindex="0" role="button" aria-label="Materialization">
-          <rect class="hit" x="204" y="224" width="96" height="52"></rect>
-          <line class="ar dash" x1="212" y1="276" x2="212" y2="224" marker-end="url(#fcm-ah)"></line>
-          <text class="lab as" x="218" y="253">Materialization</text>
+          <rect class="hit" x="246" y="246" width="110" height="52"></rect>
+          <line class="ar dash" x1="256" y1="300" x2="256" y2="244" marker-end="url(#fcm-ah)"></line>
+          <text class="lab as" x="262" y="276">Materialization</text>
         </g>
         <g class="node link l-data" data-id="media" data-rel="media onto" tabindex="0" role="button" aria-label="media reference">
-          <rect class="hit" x="310" y="224" width="46" height="52"></rect>
-          <line class="ar dash" x1="320" y1="222" x2="320" y2="274" marker-end="url(#fcm-ah)"></line>
-          <text class="lab as" x="325" y="244">media</text>
-          <text class="lab as" x="325" y="257">ref</text>
+          <rect class="hit" x="404" y="246" width="60" height="52"></rect>
+          <line class="ar dash" x1="412" y1="242" x2="412" y2="298" marker-end="url(#fcm-ah)"></line>
+          <text class="lab as" x="418" y="266">media</text>
+          <text class="lab as" x="418" y="279">ref</text>
         </g>
-
-        <!-- 온톨로지 -->
         <g class="node l-onto" data-id="onto" tabindex="0" role="button" aria-label="Ontology">
-          <rect class="box" x="24" y="276" width="324" height="92" rx="10"></rect>
-          <text class="tb" x="186" y="300">Ontology (OSv2)</text>
-          <text class="s" x="186" y="318">Object type · Property · Link type · Object set</text>
-          <text class="lab as" x="36" y="349">앱이 읽고 쓰는 층</text>
+          <rect class="box" x="24" y="300" width="476" height="96" rx="10"></rect>
+          <text class="tb" x="262" y="324">Ontology (OSv2)</text>
+          <text class="s" x="262" y="342">Object type · Property · Link type · Object set</text>
+        </g>
+        <g class="node l-onto" data-id="interfaces" data-rel="interfaces onto" tabindex="0" role="button" aria-label="Interfaces">
+          <rect class="box" x="40" y="356" width="150" height="28" rx="6"></rect>
+          <text class="t sm" x="115" y="374">Interfaces</text>
         </g>
         <g class="node l-sec" data-id="osp" data-rel="osp onto" tabindex="0" role="button" aria-label="Object security policy">
-          <rect class="box" x="190" y="332" width="150" height="26" rx="6"></rect>
-          <text class="t sm" x="265" y="349">Object security policy</text>
+          <rect class="box" x="334" y="356" width="154" height="28" rx="6"></rect>
+          <text class="t sm" x="411" y="374">Object security policy</text>
         </g>
 
         <!-- 로직 → 온톨로지: 아래 층이 위 층을 읽고 쓴다 -->
-        <line class="ar" data-rel="action onto" x1="74" y1="410" x2="74" y2="370" marker-end="url(#fcm-ah)"></line>
-        <line class="ar" data-rel="function onto" x1="186" y1="410" x2="186" y2="370" marker-end="url(#fcm-ah)"></line>
-        <line class="ar dash" data-rel="cm onto" x1="298" y1="410" x2="298" y2="370" marker-end="url(#fcm-ah)"></line>
-        <text class="lab as" data-rel="action onto" x="80" y="395">쓰기(편집)</text>
-        <text class="lab as" data-rel="function onto" x="192" y="395">읽기·계산</text>
-        <text class="lab as" data-rel="cm onto" x="304" y="395">서비스 유저</text>
-
+        <line class="ar" data-rel="action onto" x1="66" y1="434" x2="66" y2="398" marker-end="url(#fcm-ah)"></line>
+        <text class="lab as" data-rel="action onto" x="72" y="419">쓰기(편집)</text>
+        <line class="ar" data-rel="function onto" x1="156" y1="434" x2="156" y2="398" marker-end="url(#fcm-ah)"></line>
+        <text class="lab as" data-rel="function onto" x="162" y="419">읽기·계산</text>
+        <line class="ar dash" data-rel="cm onto" x1="254" y1="434" x2="254" y2="398" marker-end="url(#fcm-ah)"></line>
+        <text class="lab as" data-rel="cm onto" x="260" y="419">서비스 유저</text>
+        <line class="ar" data-rel="automate onto" x1="354" y1="434" x2="354" y2="398" marker-end="url(#fcm-ah)"></line>
+        <text class="lab as" data-rel="automate onto" x="360" y="419">감시·실행</text>
+        <line class="ar" data-rel="aip onto" x1="452" y1="434" x2="452" y2="398" marker-end="url(#fcm-ah)"></line>
+        <text class="lab as" data-rel="aip onto" x="458" y="419">읽기·편집</text>
         <g class="node l-logic" data-id="action" tabindex="0" role="button" aria-label="Action type">
-          <rect class="box" x="24" y="412" width="100" height="52" rx="8"></rect>
-          <text class="t" x="74" y="436">Action type</text>
-          <text class="s" x="74" y="453">+ 제출 조건</text>
+          <rect class="box" x="24" y="436" width="84" height="52" rx="8"></rect>
+          <text class="t" x="66" y="460">Action type</text>
+          <text class="s" x="66" y="477">+ 제출 조건</text>
         </g>
         <g class="node l-logic" data-id="function" tabindex="0" role="button" aria-label="Function">
-          <rect class="box" x="136" y="412" width="100" height="52" rx="8"></rect>
-          <text class="t" x="186" y="436">Function</text>
-          <text class="s" x="186" y="453">TS · Python</text>
+          <rect class="box" x="116" y="436" width="80" height="52" rx="8"></rect>
+          <text class="t" x="156" y="460">Function</text>
+          <text class="s" x="156" y="477">TS · Python</text>
         </g>
         <g class="node l-logic" data-id="cm" tabindex="0" role="button" aria-label="Compute module">
-          <rect class="box" x="248" y="412" width="100" height="52" rx="8"></rect>
-          <text class="t sm" x="298" y="436">Compute module</text>
-          <text class="s" x="298" y="453">Docker 컨테이너</text>
+          <rect class="box" x="204" y="436" width="100" height="52" rx="8"></rect>
+          <text class="t sm" x="254" y="460">Compute module</text>
+          <text class="s" x="254" y="477">Docker 컨테이너</text>
+        </g>
+        <g class="node l-logic" data-id="automate" tabindex="0" role="button" aria-label="Automate">
+          <rect class="box" x="312" y="436" width="84" height="52" rx="8"></rect>
+          <text class="t" x="354" y="460">Automate</text>
+          <text class="s" x="354" y="477">조건 → 자동 실행</text>
+        </g>
+        <g class="node l-logic" data-id="aip" tabindex="0" role="button" aria-label="AIP Logic · AIP Chatbot Studio">
+          <rect class="box" x="404" y="436" width="96" height="52" rx="8"></rect>
+          <text class="t" x="452" y="460">AIP Logic</text>
+          <text class="s" x="452" y="477">LLM · 챗봇</text>
         </g>
 
-        <!-- 앱 → 로직: 앱이 로직을 호출 -->
-        <line class="ar" data-rel="action workshop osdk" x1="74" y1="484" x2="74" y2="466" marker-end="url(#fcm-ah)"></line>
-        <line class="ar" data-rel="function workshop osdk" x1="186" y1="484" x2="186" y2="466" marker-end="url(#fcm-ah)"></line>
-        <line class="ar" data-rel="cm workshop osdk" x1="298" y1="484" x2="298" y2="466" marker-end="url(#fcm-ah)"></line>
-        <line class="ar" data-rel="action function cm workshop osdk" data-bus x1="74" y1="484" x2="298" y2="484"></line>
-        <line class="ar" data-rel="workshop action function cm" data-bus x1="102" y1="516" x2="102" y2="486" marker-end="url(#fcm-ah)"></line>
-        <line class="ar" data-rel="osdk action function cm" data-bus x1="270" y1="516" x2="270" y2="486" marker-end="url(#fcm-ah)"></line>
-        <text class="lab" data-rel="action function cm workshop osdk" data-bus x="186" y="505">앱이 로직을 호출</text>
-
+        <!-- 앱 → 로직: 앱이 로직을 호출 (Automate는 조건으로 실행되므로 호출 대상 아님) -->
+        <line class="ar" data-rel="action workshop osdk" x1="66" y1="506" x2="66" y2="490" marker-end="url(#fcm-ah)"></line>
+        <line class="ar" data-rel="function workshop osdk" x1="156" y1="506" x2="156" y2="490" marker-end="url(#fcm-ah)"></line>
+        <line class="ar" data-rel="cm workshop osdk" x1="254" y1="506" x2="254" y2="490" marker-end="url(#fcm-ah)"></line>
+        <line class="ar" data-rel="aip workshop osdk" x1="452" y1="506" x2="452" y2="490" marker-end="url(#fcm-ah)"></line>
+        <line class="ar" data-rel="action function cm aip workshop osdk" data-bus x1="66" y1="506" x2="452" y2="506"></line>
+        <line class="ar" data-rel="workshop action function cm aip" data-bus x1="100" y1="538" x2="100" y2="508" marker-end="url(#fcm-ah)"></line>
+        <line class="ar" data-rel="osdk action function cm aip" data-bus x1="266" y1="538" x2="266" y2="508" marker-end="url(#fcm-ah)"></line>
+        <text class="lab" data-rel="action function cm aip workshop osdk" data-bus x="183" y="526">앱이 로직을 호출</text>
         <g class="node l-app" data-id="workshop" tabindex="0" role="button" aria-label="Workshop">
-          <rect class="box" x="24" y="518" width="156" height="52" rx="8"></rect>
-          <text class="t" x="102" y="542">Workshop</text>
-          <text class="s" x="102" y="559">로우코드 앱 빌더</text>
+          <rect class="box" x="24" y="540" width="152" height="52" rx="8"></rect>
+          <text class="t" x="100" y="564">Workshop</text>
+          <text class="s" x="100" y="581">노코드 앱 빌더</text>
         </g>
         <g class="node l-app" data-id="osdk" tabindex="0" role="button" aria-label="OSDK와 Developer Console">
-          <rect class="box" x="192" y="518" width="156" height="52" rx="8"></rect>
-          <text class="t" x="270" y="542">React 앱 (OSDK)</text>
-          <text class="s" x="270" y="559">Developer Console</text>
+          <rect class="box" x="190" y="540" width="152" height="52" rx="8"></rect>
+          <text class="t" x="266" y="564">React 앱 (OSDK)</text>
+          <text class="s" x="266" y="581">Developer Console</text>
         </g>
-        <line class="ar" data-rel="osdk oauth" x1="270" y1="570" x2="270" y2="584"></line>
+        <g class="node l-app" data-id="analytics" tabindex="0" role="button" aria-label="Contour · Quiver · Object Explorer">
+          <rect class="box" x="356" y="540" width="144" height="52" rx="8"></rect>
+          <text class="t" x="428" y="564">Contour · Quiver</text>
+          <text class="s" x="428" y="581">Object Explorer</text>
+        </g>
+        <path class="ar" data-rel="analytics onto" d="M500,566 H506 V348 H502" marker-end="url(#fcm-ah)"></path>
+        <line class="ar" data-rel="osdk oauth" x1="266" y1="592" x2="266" y2="606"></line>
         <g class="node l-sec" data-id="oauth" tabindex="0" role="button" aria-label="OAuth">
-          <rect class="box" x="208" y="584" width="124" height="26" rx="13"></rect>
-          <text class="t" x="270" y="601">OAuth · PKCE</text>
+          <rect class="box" x="204" y="606" width="124" height="26" rx="13"></rect>
+          <text class="t sm" x="266" y="623">OAuth · PKCE</text>
         </g>
-        <text class="lab" data-rel="oauth osdk" x="270" y="628">토큰 = 사용자 권한 ∩ scope</text>
+        <text class="lab" data-rel="oauth osdk" x="300" y="652">토큰 = 사용자 권한 ∩ 앱 제한 ∩ 요청 scope</text>
 
         <!-- 운영 -->
-        <text class="lab as" x="24" y="661">모든 층의 변경과 배포를 관리</text>
+        <text class="lab as" x="24" y="688">모든 층의 변경과 배포를 관리</text>
         <g class="node l-ops" data-id="oma" tabindex="0" role="button" aria-label="Ontology Manager">
-          <rect class="box" x="24" y="668" width="100" height="40" rx="8"></rect>
-          <text class="t sm" x="74" y="692">Ontology Manager</text>
+          <rect class="box" x="24" y="696" width="152" height="40" rx="8"></rect>
+          <text class="t sm" x="100" y="720">Ontology Manager</text>
         </g>
         <g class="node l-ops" data-id="branch" tabindex="0" role="button" aria-label="Global Branching">
-          <rect class="box" x="136" y="668" width="100" height="40" rx="8"></rect>
-          <text class="t sm" x="186" y="692">Global Branching</text>
+          <rect class="box" x="190" y="696" width="152" height="40" rx="8"></rect>
+          <text class="t sm" x="266" y="720">Global Branching</text>
         </g>
         <g class="node l-ops" data-id="market" tabindex="0" role="button" aria-label="Marketplace">
-          <rect class="box" x="248" y="668" width="100" height="40" rx="8"></rect>
-          <text class="t sm" x="298" y="692">Marketplace</text>
+          <rect class="box" x="356" y="696" width="144" height="40" rx="8"></rect>
+          <text class="t sm" x="428" y="720">Marketplace</text>
         </g>
       </svg>
       <figcaption>
@@ -450,7 +473,14 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
   .explore { display: grid; gap: 20px; margin-top: 20px; }
 
   .fig { margin: 0; min-width: 0; }
-  .fig svg { display: block; width: 100%; max-width: 520px; height: auto; margin: 0 auto; }
+  .fig { overflow-x: auto; }
+  .fig svg { display: block; width: 100%; max-width: 700px; height: auto; margin: 0 auto; }
+  /* 좁은 화면에서는 글자가 읽히는 크기를 유지하고 그림을 좌우로 밀어 보게 한다 */
+  .map-scroll-hint { display: none; }
+  @media (max-width: 600px) {
+    .fig svg { width: 560px; max-width: none; }
+    .map-scroll-hint { display: block; margin: 0 0 6px; font-size: 12px; color: var(--muted); }
+  }
   .fig figcaption { font-size: 13px; color: var(--muted); margin-top: 12px; line-height: 1.5; }
   .map-legend { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; }
   .map-legend li { display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 8px; align-items: center; }
