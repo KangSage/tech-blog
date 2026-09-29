@@ -233,6 +233,14 @@ Execute `omx setup` to install all components. Execute `omx doctor` to verify in
 - Deploys run on push to `main` (GitHub Pages). PRs merge into `setup/secure-astro-blog-v0`, so `main` must be updated separately until the default branch changes.
 - Post content must only state what the linked official docs (or source code) say. When asked to "check/review", report findings without editing.
 
+### Article writing rules (Korean posts) — must follow for every article
+- Write in 합니다체. Put each sentence on its own line: end prose lines with `\` (hard break), use `<br />` inside table cells; component/card text is split on sentence ends automatically.
+- Commas: do not put a comma after a connective ending (-고, -며, -지만, -면, -므로, -어서/-아서, -거나, -라, -듯, -뒤, -때, -뿐, -와/-과, -도, and -로 when it is not a parallel list). Keep commas only for noun enumerations ("수집과 가공, 업무 모델링, 권한 관리"), parallel pairs ("Contour는 Dataset, Quiver는 Object"), and numbers ("1,000개").
+- State only facts the linked official docs (or source code) support, and cite them. Analogies are fine but must not contradict the docs.
+- Use one name per concept everywhere (card title, index, map, body text). Escape `~` as `\~` in MDX, since GFM turns `~a~` into strikethrough.
+- Tags: pair each English tag with a Korean tag written without spaces (e.g. `ontology`, `온톨로지`).
+- After writing, grep the prose for `[가-힣] ?(고|며|지만|면|므로|서|거나|듯|뒤|때|뿐|와|과|도|달리|처럼|아니라), ` to catch leftover connective commas (the optional space catches forms like "할 뿐," and "과 달리,"), then review each hit by hand.
+
 ### Concept map posts (`src/components/foundry/`) — checklist for adding or renaming a concept
 Recurring mistakes here were names drifting between the card, the index chip, and the map box, and map text/labels overlapping after layout changes.
 - Names live in one place: `short` (and optional `mapLines`) in `concepts.ts`. Never type a concept name into the SVG; add a `mapNodes` entry (position/size/subtitle only) in `FoundryConceptMap.astro`. The build fails if a concept has no map node or `mapLines` does not join to `short`.
