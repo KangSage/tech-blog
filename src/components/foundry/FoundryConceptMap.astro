@@ -164,7 +164,8 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
     </figure>
 
     <section class="panel" aria-label="개념 카드">
-      <div class="chips" aria-label="개념 목록" hidden>
+      <div class="index" hidden>
+      <div class="chips" aria-label="개념 목록">
         {groups.map((g) => (
           <div class={`chip-group l-${g.layer}`} role="group" aria-label={g.label}>
             <span class="glabel">{g.label}</span>
@@ -178,6 +179,8 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
           </div>
         ))}
       </div>
+      <button type="button" class="index-toggle" aria-expanded="false">전체 목록 ▾</button>
+      </div>
 
       <div class="cards" aria-live="polite">
         {concepts.map((c) => (
@@ -187,11 +190,13 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
             </div>
             <h3 class="ct">{c.title}</h3>
             <p class="lead">{sentences(c.lead).map((s, i) => <>{i > 0 && <br />}{s}</>)}</p>
-            <div class="ana detail"><b>웹·DB 비유</b><p>{sentences(c.analogy).map((s, i) => <>{i > 0 && <br />}{s}</>)}</p></div>
-            <ul class="pts detail">
+            <div class="cbody detail">
+            <div class="ana"><b>웹·DB 비유</b><p>{sentences(c.analogy).map((s, i) => <>{i > 0 && <br />}{s}</>)}</p></div>
+            <ul class="pts">
               {c.points.map((p) => <li><span>{sentences(p).map((s, i) => <>{i > 0 && <br />}{s}</>)}</span></li>)}
             </ul>
-            {c.warn && <p class="warn detail"><b>주의</b><span>{sentences(c.warn).map((s, i) => <>{i > 0 && <br />}{s}</>)}</span></p>}
+            {c.warn && <p class="warn"><b>주의</b><span>{sentences(c.warn).map((s, i) => <>{i > 0 && <br />}{s}</>)}</span></p>}
+            </div>
             <div class="docs detail">
               <a class="doc" href={c.doc} target="_blank" rel="noopener noreferrer">공식 문서 ↗</a>
               {c.related.map((r) => <a class="rel" href={r.href} target="_blank" rel="noopener noreferrer">{r.label} ↗</a>)}
@@ -218,6 +223,7 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
     const ids = cards.map((card) => card.dataset.card ?? "");
     const chips = panel.querySelector<HTMLElement>(".chips");
     const more = panel.querySelector<HTMLButtonElement>(".more");
+    const indexToggle = panel.querySelector<HTMLButtonElement>(".index-toggle");
     let current = 0;
 
     // 카드 패널을 글 페이지의 고정 자리로 옮긴다. 자리가 없으면 그림 옆(제자리)에서 동작
@@ -232,7 +238,24 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
     const scroller = aside ?? panel;
     root.dataset.enhanced = "";
     panel.dataset.enhanced = "";
-    panel.querySelectorAll<HTMLElement>(".chips, .nav").forEach((el) => (el.hidden = false));
+    panel.querySelectorAll<HTMLElement>(".index, .nav").forEach((el) => (el.hidden = false));
+
+    function setIndexOpen(open: boolean) {
+      panel!.classList.toggle("index-open", open);
+      if (indexToggle) {
+        indexToggle.setAttribute("aria-expanded", String(open));
+        indexToggle.textContent = open ? "접기 ▴" : "전체 목록 ▾";
+      }
+      updateFade();
+    }
+
+    // 카드 본문이 넘치면 아래쪽을 흐리게 해서 더 있다는 것을 보여준다
+    function updateFade() {
+      const body = cards[current]?.querySelector<HTMLElement>(".cbody");
+      if (body) body.classList.toggle("has-more", body.scrollHeight - body.scrollTop - body.clientHeight > 4);
+    }
+    cards.forEach((card) => card.querySelector(".cbody")?.addEventListener("scroll", updateFade, { passive: true }));
+    window.addEventListener("resize", updateFade);
 
     function setExpanded(open: boolean) {
       panel!.classList.toggle("is-expanded", open);
@@ -247,17 +270,26 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
       const id = ids[index];
       cards.forEach((card, i) => card.classList.toggle("is-active", i === index));
       root!.querySelectorAll(".map [data-id]").forEach((node) => node.classList.toggle("sel", node.getAttribute("data-id") === id));
+      panel!.querySelectorAll<HTMLElement>(".chip-group").forEach((group) => {
+        group.classList.toggle("is-current", !!group.querySelector(`[data-chip="${id}"]`));
+      });
       panel!.querySelectorAll<HTMLElement>("[data-chip]").forEach((chip) => {
         const on = chip.dataset.chip === id;
         chip.setAttribute("aria-pressed", String(on));
-        if (on && chips) {
+        if (!on) return;
+        // 가로로 스크롤되는 목록(좁은 화면의 전체 줄, 넓은 화면의 접힌 층 줄)에서 선택 항목을 가운데로
+        for (const row of [chips, chip.closest<HTMLElement>(".gitems")]) {
+          if (!row || row.scrollWidth <= row.clientWidth) continue;
           const br = chip.getBoundingClientRect();
-          const cr = chips.getBoundingClientRect();
-          chips.scrollLeft += br.left - cr.left - (cr.width - br.width) / 2;
+          const cr = row.getBoundingClientRect();
+          row.scrollLeft += br.left - cr.left - (cr.width - br.width) / 2;
         }
       });
+      const body = cards[index].querySelector<HTMLElement>(".cbody");
+      if (body) body.scrollTop = 0;
       panel!.scrollTop = 0;
       scroller.scrollTop = 0;
+      updateFade();
     }
 
     // 스크롤 위치는 건드리지 않고 카드만 바꾼다 (패널은 항상 화면에 고정되어 있음)
@@ -271,6 +303,7 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
     document.addEventListener("click", (event) => {
       const target = event.target as Element;
       if (more && target.closest(".more") === more) return setExpanded(!panel.classList.contains("is-expanded"));
+      if (indexToggle && target.closest(".index-toggle") === indexToggle) return setIndexOpen(!panel.classList.contains("index-open"));
       const chip = target.closest<HTMLElement>("[data-chip]");
       if (chip) return pick(chip.dataset.chip);
       const step = target.closest<HTMLElement>("[data-step]");
@@ -370,7 +403,10 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
   .chip-group { display: grid; grid-template-columns: 4.6em minmax(0, 1fr); align-items: start; gap: 6px; }
   .gitems { display: flex; flex-wrap: wrap; gap: 4px 5px; }
   .glabel { padding-top: 5px; font-size: 11px; font-weight: 600; color: var(--c); }
-  .chips[hidden], .nav[hidden] { display: none; }
+  .index[hidden], .nav[hidden] { display: none; }
+  .index { min-width: 0; }
+  .index-toggle { display: none; }
+  .cbody { display: grid; gap: 12px; }
   .chip { flex: 0 0 auto; height: 26px; padding: 0 8px; border-radius: 7px; border: 1px solid var(--border); background: var(--surface); font-size: 12px; white-space: nowrap; display: inline-flex; align-items: center; gap: 5px; cursor: pointer; }
   .chip i { width: 6px; height: 6px; border-radius: 50%; background: var(--c); }
   .chip[aria-pressed="true"] { background: var(--s); border-color: var(--c); }
@@ -395,6 +431,20 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
   .nav button, .back { height: 34px; padding: 0 12px; border-radius: 9px; border: 1px solid var(--border); background: var(--surface); cursor: pointer; font-size: 13px; display: inline-flex; align-items: center; text-decoration: none; color: var(--text); }
   .back { margin-right: auto; }
   .more { display: none !important; }
+
+  /* 넓은 화면의 사이드 패널: 화면 높이에 맞추고, 목록은 현재 층만 남기고 접으며, 카드는 가운데 본문만 스크롤 */
+  @media (min-width: 1180px) {
+    [data-docked] { display: flex; flex-direction: column; gap: 10px; max-height: calc(100vh - 32px); }
+    [data-docked] .index { display: flex; align-items: flex-start; gap: 6px; }
+    [data-docked] .chips { flex: 1; min-width: 0; }
+    [data-docked] .index-toggle { display: inline-flex; flex: none; height: 26px; padding: 0 8px; border-radius: 7px; border: 1px solid var(--border); background: var(--surface); font-size: 12px; white-space: nowrap; align-items: center; cursor: pointer; }
+    [data-docked]:not(.index-open) .chip-group:not(.is-current) { display: none; }
+    [data-docked] .cards { flex: 0 1 auto; min-height: 0; display: flex; flex-direction: column; }
+    [data-docked] .card.is-active { display: flex; flex-direction: column; min-height: 0; }
+    [data-docked] .cbody { flex: 0 1 auto; min-height: 96px; overflow-y: auto; overscroll-behavior: contain; }
+    [data-docked] .cbody.has-more { mask-image: linear-gradient(to bottom, #000 calc(100% - 36px), transparent); }
+    [data-docked] .nav { flex: none; }
+  }
 
   /* 좁은 화면에서 상단에 고정된 패널: 제목·요약만 보이고 '자세히'로 펼침 */
   @media (max-width: 1179px) {
