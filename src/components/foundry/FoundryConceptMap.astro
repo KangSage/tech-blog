@@ -417,13 +417,15 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
   .ct { font-size: 1.3rem; line-height: 1.3; margin: 0; text-wrap: balance; }
   .lead { font-size: 16px; font-weight: 500; margin: 0; line-height: 1.55; }
   .ana { background: var(--t); border-radius: 10px; padding: 12px 14px; }
-  .ana b { display: block; font: 500 11px var(--fcm-mono); letter-spacing: 0.06em; color: var(--c); margin-bottom: 3px; }
+  /* 카드 안 라벨(웹·DB 비유, 주의)은 본문과 같은 글꼴로, 한 줄을 따로 차지 */
+  .ana b, .warn b { display: block; font-size: 12px; font-weight: 700; margin-bottom: 2px; }
+  .ana b { color: var(--c); }
   .ana p { margin: 0; }
   .pts { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
   .pts li { display: grid; grid-template-columns: 8px minmax(0, 1fr); gap: 10px; }
   .pts li::before { content: ""; width: 6px; height: 6px; background: var(--c); margin-top: 0.62em; border-radius: 1px; }
   .warn { border: 1px dashed var(--muted); border-radius: 10px; padding: 10px 12px; margin: 0; }
-  .warn b { font: 600 11px var(--fcm-mono); letter-spacing: 0.06em; margin-right: 6px; }
+  .warn b { color: var(--muted); }
   .docs { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; font-size: 13px; }
   .doc { display: inline-flex; align-items: center; padding: 7px 12px; border-radius: 9px; background: var(--text); color: var(--surface); text-decoration: none; font-weight: 600; }
 
