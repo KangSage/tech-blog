@@ -20,14 +20,14 @@ const mapNodes: MapNode[] = [
   { id: "interfaces", x: 40, y: 356, w: 150, h: 28, rx: 6, cls: "t sm", rel: "interfaces onto" },
   { id: "osp", x: 334, y: 356, w: 154, h: 28, rx: 6, cls: "t sm", rel: "osp onto" },
   { id: "action", x: 24, y: 436, w: 80, h: 52, sub: "+ 제출 조건" },
-  { id: "function", x: 112, y: 436, w: 76, h: 52, sub: "TS · Python" },
-  { id: "cm", x: 196, y: 436, w: 96, h: 52, cls: "t sm", sub: "Docker 컨테이너" },
-  { id: "automate", x: 300, y: 436, w: 80, h: 52, sub: "조건 → 실행" },
+  { id: "function", x: 110, y: 436, w: 76, h: 52, sub: "TS · Python" },
+  { id: "cm", x: 192, y: 436, w: 104, h: 52, cls: "t sm", sub: "Docker 컨테이너" },
+  { id: "automate", x: 302, y: 436, w: 80, h: 52, sub: "조건 → 실행" },
   { id: "aip", x: 388, y: 436, w: 92, h: 52, sub: "LLM · 챗봇" },
-  { id: "workshop", x: 24, y: 540, w: 152, h: 52, sub: "노코드 앱 빌더" },
-  { id: "osdk", x: 190, y: 540, w: 152, h: 52, sub: "React 앱 · Developer Console" },
-  { id: "analytics", x: 356, y: 540, w: 144, h: 52 },
-  { id: "oauth", x: 204, y: 606, w: 124, h: 26, rx: 13, cls: "t sm" },
+  { id: "workshop", x: 24, y: 540, w: 148, h: 52, sub: "노코드 앱 빌더" },
+  { id: "osdk", x: 184, y: 540, w: 170, h: 52, sub: "React 앱 · Developer Console" },
+  { id: "analytics", x: 366, y: 540, w: 134, h: 52 },
+  { id: "oauth", x: 207, y: 606, w: 124, h: 26, rx: 13, cls: "t sm" },
   { id: "oma", x: 24, y: 696, w: 152, h: 40, cls: "t sm" },
   { id: "branch", x: 190, y: 696, w: 152, h: 40, cls: "t sm" },
   { id: "market", x: 356, y: 696, w: 144, h: 40, cls: "t sm" },
@@ -90,7 +90,7 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
         <!-- 권한: Project·Role·Marking이 데이터~앱 층 전체를 감싸는 테두리 -->
         <g class="node frame-node l-sec" data-id="project" tabindex="0" role="button" aria-label={byId.project.title}>
           <rect class="frame" x="12" y="4" width="500" height="660" rx="12"></rect>
-          <rect class="box" x="18" y="638" width="150" height="20" rx="10"></rect>
+          <rect class="box" x="18" y="636" width="150" height="24" rx="12"></rect>
           <text class="tab" x="93" y="652">{byId.project.short}</text>
         </g>
 
@@ -119,28 +119,28 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
         <!-- 로직 → 온톨로지: 아래 층이 위 층을 읽고 쓴다. 맨 오른쪽(x=494)은 분석 앱이 Ontology로 가는 통로 -->
         <line class="ar" data-rel="action onto" x1="64" y1="434" x2="64" y2="398" marker-end="url(#fcm-ah)"></line>
         <text class="lab as" data-rel="action onto" x="70" y="419">쓰기(편집)</text>
-        <line class="ar" data-rel="function onto" x1="150" y1="434" x2="150" y2="398" marker-end="url(#fcm-ah)"></line>
-        <text class="lab as" data-rel="function onto" x="156" y="419">읽기·계산</text>
+        <line class="ar" data-rel="function onto" x1="148" y1="434" x2="148" y2="398" marker-end="url(#fcm-ah)"></line>
+        <text class="lab as" data-rel="function onto" x="154" y="419">읽기·계산</text>
         <line class="ar dash" data-rel="cm onto" x1="244" y1="434" x2="244" y2="398" marker-end="url(#fcm-ah)"></line>
         <text class="lab as" data-rel="cm onto" x="250" y="419">서비스 유저</text>
-        <line class="ar" data-rel="automate onto" x1="340" y1="434" x2="340" y2="398" marker-end="url(#fcm-ah)"></line>
-        <text class="lab as" data-rel="automate onto" x="346" y="419">감시·실행</text>
+        <line class="ar" data-rel="automate onto" x1="342" y1="434" x2="342" y2="398" marker-end="url(#fcm-ah)"></line>
+        <text class="lab as" data-rel="automate onto" x="348" y="419">감시·실행</text>
         <line class="ar" data-rel="aip onto" x1="434" y1="434" x2="434" y2="398" marker-end="url(#fcm-ah)"></line>
         <text class="lab as" data-rel="aip onto" x="440" y="419">읽기·편집</text>
 
         <!-- 앱 → 로직: 앱이 로직을 호출 (Automate는 조건으로 실행되므로 호출 대상 아님) -->
         <line class="ar" data-rel="action workshop osdk" x1="64" y1="506" x2="64" y2="490" marker-end="url(#fcm-ah)"></line>
-        <line class="ar" data-rel="function workshop osdk" x1="150" y1="506" x2="150" y2="490" marker-end="url(#fcm-ah)"></line>
+        <line class="ar" data-rel="function workshop osdk" x1="148" y1="506" x2="148" y2="490" marker-end="url(#fcm-ah)"></line>
         <line class="ar" data-rel="cm workshop osdk" x1="244" y1="506" x2="244" y2="490" marker-end="url(#fcm-ah)"></line>
         <line class="ar" data-rel="aip workshop osdk" x1="434" y1="506" x2="434" y2="490" marker-end="url(#fcm-ah)"></line>
         <line class="ar" data-rel="action function cm aip workshop osdk" data-bus x1="64" y1="506" x2="434" y2="506"></line>
-        <line class="ar" data-rel="workshop action function cm aip" data-bus x1="100" y1="538" x2="100" y2="508" marker-end="url(#fcm-ah)"></line>
-        <line class="ar" data-rel="osdk action function cm aip" data-bus x1="266" y1="538" x2="266" y2="508" marker-end="url(#fcm-ah)"></line>
+        <line class="ar" data-rel="workshop action function cm aip" data-bus x1="98" y1="538" x2="98" y2="508" marker-end="url(#fcm-ah)"></line>
+        <line class="ar" data-rel="osdk action function cm aip" data-bus x1="269" y1="538" x2="269" y2="508" marker-end="url(#fcm-ah)"></line>
         <text class="lab" data-rel="action function cm aip workshop osdk" data-bus x="183" y="526">앱이 로직을 호출</text>
         <!-- 분석 앱은 로직을 거치지 않고 Ontology를 직접 조회 -->
         <line class="ar" data-rel="analytics onto" x1="494" y1="538" x2="494" y2="398" marker-end="url(#fcm-ah)"></line>
         <text class="lab ae" data-rel="analytics onto" x="488" y="526">직접 조회</text>
-        <line class="ar" data-rel="osdk oauth" x1="266" y1="592" x2="266" y2="606"></line>
+        <line class="ar" data-rel="osdk oauth" x1="269" y1="592" x2="269" y2="606"></line>
         <text class="lab" data-rel="oauth osdk" x="300" y="652">토큰 = 사용자 권한 ∩ 앱 제한 ∩ 요청 scope</text>
 
         <!-- 운영 -->
@@ -150,12 +150,15 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
           const c = byId[n.id];
           const lines = c.mapLines ?? [c.short];
           const cx = n.x + n.w / 2;
-          const titleTop = n.sub ? n.y + 24 : lines.length > 1 ? n.y + n.h / 2 - 5 : n.y + n.h / 2 + 4;
+          // 글자 기준선은 상자 높이에 맞춘다: 제목+부제는 가운데 위아래로, 제목만 있으면 가운데
+          const mid = n.y + n.h / 2;
+          const titleTop = n.id === "onto" ? n.y + 24 : n.sub ? mid - 3 : lines.length > 1 ? mid - 5 : mid + 4;
+          const subY = n.id === "onto" ? n.y + 42 : mid + 13;
           return (
             <g class={`node l-${c.layer}`} data-id={n.id} data-rel={n.rel} tabindex="0" role="button" aria-label={c.title}>
               <rect class="box" x={n.x} y={n.y} width={n.w} height={n.h} rx={n.rx ?? 8}></rect>
               {lines.map((line, i) => <text class={n.cls ?? "t"} x={cx} y={titleTop + i * 18}>{line}</text>)}
-              {n.sub && <text class="s" x={cx} y={n.y + (n.id === "onto" ? 42 : 41)}>{n.sub}</text>}
+              {n.sub && <text class="s" x={cx} y={subY}>{n.sub}</text>}
             </g>
           );
         })}
@@ -400,9 +403,13 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
       map.querySelectorAll<SVGGraphicsElement>(".node").forEach((node) => {
         const box = node.querySelector<SVGGraphicsElement>(".box")?.getBBox();
         if (!box) return;
+        // 상자 테두리와 글자 사이에 최소 4px 여백이 있어야 한다 (가로·세로 모두)
+        const PAD = 4;
         node.querySelectorAll<SVGTextElement>("text").forEach((text) => {
           const r = text.getBBox();
-          if (r.x < box.x - 0.5 || r.x + r.width > box.x + box.width + 0.5) warnings.push(`상자를 넘치는 글자: ${node.dataset.id} "${text.textContent}"`);
+          const gaps = { 왼쪽: r.x - box.x, 오른쪽: box.x + box.width - (r.x + r.width), 위: r.y - box.y, 아래: box.y + box.height - (r.y + r.height) };
+          const tight = Object.entries(gaps).filter(([, gap]) => gap < PAD).map(([side, gap]) => `${side} ${gap.toFixed(1)}px`);
+          if (tight.length) warnings.push(`상자 테두리에 붙거나 넘치는 글자: ${node.dataset.id} "${text.textContent}" (${tight.join(", ")})`);
         });
       });
       const verticals = Array.from(map.querySelectorAll("line.ar"))
