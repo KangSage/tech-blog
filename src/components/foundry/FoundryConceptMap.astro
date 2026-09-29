@@ -88,7 +88,7 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
         </g>
 
         <!-- 권한: Project·Role·Marking이 데이터~앱 층 전체를 감싸는 테두리 -->
-        <g class="node frame-node l-sec" data-id="project" tabindex="0" role="button" aria-label={byId.project.title}>
+        <g class="node frame-node l-sec" data-id="project" aria-label={byId.project.title}>
           <rect class="frame" x="12" y="4" width="500" height="660" rx="12"></rect>
           <rect class="box" x="18" y="636" width="150" height="24" rx="12"></rect>
           <text class="tab" x="93" y="652">{byId.project.short}</text>
@@ -104,12 +104,12 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
         <!-- 온톨로지: 인덱싱 → Ontology -->
         <line class="ar" data-edges="dataset:funnel" x1="162" y1="242" x2="162" y2="256"></line>
         <line class="ar" data-edges="funnel:onto" x1="162" y1="280" x2="162" y2="298" marker-end="url(#fcm-ah)"></line>
-        <g class="node link l-onto" data-id="funnel" data-edges="funnel:onto funnel:dataset" tabindex="0" role="button" aria-label="Materialization">
+        <g class="node link l-onto" data-id="funnel" data-edges="funnel:onto funnel:dataset" aria-label="Materialization">
           <rect class="hit" x="246" y="246" width="110" height="52"></rect>
           <line class="ar dash" x1="256" y1="300" x2="256" y2="244" marker-end="url(#fcm-ah)"></line>
           <text class="lab as" x="262" y="276">Materialization</text>
         </g>
-        <g class="node link l-data" data-id="media" data-edges="media:onto" tabindex="0" role="button" aria-label="media reference">
+        <g class="node link l-data" data-id="media" data-edges="media:onto" aria-label="media reference">
           <rect class="hit" x="404" y="246" width="60" height="52"></rect>
           <line class="ar dash" x1="412" y1="242" x2="412" y2="298" marker-end="url(#fcm-ah)"></line>
           <text class="lab as" x="418" y="266">media</text>
@@ -156,7 +156,7 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
           const titleTop = n.id === "onto" ? n.y + 24 : n.sub ? mid - 3 : lines.length > 1 ? mid - 5 : mid + 4;
           const subY = n.id === "onto" ? n.y + 42 : mid + 13;
           return (
-            <g class={`node l-${c.layer}`} data-id={n.id} data-edges={n.edges} tabindex="0" role="button" aria-label={c.title}>
+            <g class={`node l-${c.layer}`} data-id={n.id} data-edges={n.edges} aria-label={c.title}>
               <rect class="box" x={n.x} y={n.y} width={n.w} height={n.h} rx={n.rx ?? 8}></rect>
               {lines.map((line, i) => <text class={n.cls ?? "t"} x={cx} y={titleTop + i * 18}>{line}</text>)}
               {n.sub && <text class="s" x={cx} y={subY}>{n.sub}</text>}
@@ -166,10 +166,11 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
       </svg>
       <figcaption>
         <ul class="map-legend">
-          <li><svg viewBox="0 0 30 10" aria-hidden="true"><line class="lg-line" x1="1" y1="5" x2="23" y2="5"></line><path class="lg-head" d="M22,1 L29,5 L22,9 z"></path></svg>실선: 데이터가 흐르는 방향 또는 아래 층이 위 층을 호출·읽기·쓰기 하는 방향</li>
+          <li><svg viewBox="0 0 30 10" aria-hidden="true"><line class="lg-line" x1="1" y1="5" x2="23" y2="5"></line><path class="lg-head" d="M22,1 L29,5 L22,9 z"></path></svg>실선: 데이터가 흐르는 방향 또는 아래 층이 위 층을 호출·읽기·쓰기를 하는 방향</li>
           <li><svg viewBox="0 0 30 10" aria-hidden="true"><line class="lg-line lg-dash" x1="1" y1="5" x2="23" y2="5"></line><path class="lg-head" d="M22,1 L29,5 L22,9 z"></path></svg>점선: 역방향 저장(Materialization), 파일 참조(media ref), 서비스 유저 권한으로 접근</li>
+          <li><svg viewBox="0 0 30 10" aria-hidden="true"><path class="lg-line" d="M1,9 H29 M8,9 V2 M22,9 V2" fill="none"></path></svg>공용선(앱과 로직 사이의 가로선): 앱마다 실제로 호출하는 대상은 다르며 개념을 누르면 실제 연결만 강조됩니다</li>
           <li><svg viewBox="0 0 30 10" aria-hidden="true"><rect class="lg-extra" x="1" y="1" width="28" height="8" rx="3"></rect></svg>점선 테두리 상자: 개념을 골랐을 때 그림에 선은 없지만 함께 동작하는 개념 (예: Automate가 실행하는 Action)</li>
-          <li><svg viewBox="0 0 30 10" aria-hidden="true"><rect class="lg-frame" x="1" y="1" width="28" height="8" rx="3"></rect></svg>호박색 점선 테두리: Project · Role · Marking 권한이 데이터부터 앱까지 전체를 감쌈</li>
+          <li><svg viewBox="0 0 30 10" aria-hidden="true"><rect class="lg-frame" x="1" y="1" width="28" height="8" rx="3"></rect></svg>호박색 점선 테두리: Project · Role · Marking 권한이 데이터부터 앱까지의 리소스를 감쌈 (운영 도구도 같은 권한 체계를 따름)</li>
         </ul>
         <p class="map-hint">개념을 고르면 그 개념과 연결된 상자와 화살표만 진하게 표시됩니다.</p>
       </figcaption>
@@ -258,6 +259,11 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
     // 카드 id는 JS가 없을 때의 앵커용. 켜진 뒤에는 지워서 #concept-… 해시로 브라우저가 스크롤하지 않게 한다
     cards.forEach((card) => card.removeAttribute("id"));
     const scroller = aside ?? panel;
+    // 그림 상자는 스크립트가 켜진 뒤에만 버튼으로 동작하므로 역할과 Tab 이동도 이때 부여한다
+    root.querySelectorAll<SVGElement>(".map .node").forEach((node) => {
+      node.setAttribute("role", "button");
+      node.setAttribute("tabindex", "0");
+    });
     root.dataset.enhanced = "";
     panel.dataset.enhanced = "";
     panel.querySelectorAll<HTMLElement>(".index, .nav").forEach((el) => (el.hidden = false));
@@ -307,13 +313,15 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
     const map = root.querySelector<SVGElement>(".map");
     const edgeEls = Array.from(root.querySelectorAll<SVGElement>(".map [data-edges]"));
     const nodeEls = Array.from(root.querySelectorAll<SVGElement>(".map .node"));
-    const CROSS_CUTTING = new Set(["project", "oma", "branch", "market"]);
-    // 그림에 선은 없지만 공식 문서로 확인된 관계 (Automate의 effect, Data Connection의 sync 대상)
+    const CROSS_CUTTING = new Set(["project", "branch", "market"]);
+    // 그림에 선은 없지만 공식 문서로 확인된 관계 (Automate의 effect, Data Connection의 sync 대상, Ontology Manager가 만드는 Object type·Action type)
     const EXTRA_EDGES: [string, string][] = [
       ["automate", "action"],
       ["automate", "function"],
       ["automate", "aip"],
       ["dc", "dataset"],
+      ["oma", "onto"],
+      ["oma", "action"],
     ];
     const pairsOf = (el: SVGElement) =>
       (el.dataset.edges ?? "").split(" ").filter(Boolean).map((pair) => pair.split(":") as [string, string]);
@@ -608,6 +616,8 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
     [data-docked] .chips { flex: 1; min-width: 0; }
     [data-docked] .index-toggle { display: inline-flex; flex: none; height: 26px; padding: 0 8px; border-radius: 7px; border: 1px solid var(--border); background: var(--surface); font-size: 12px; white-space: nowrap; align-items: center; cursor: pointer; }
     [data-docked]:not(.index-open) .chip-group:not(.is-current) { display: none; }
+    /* 접힌 상태: 층 이름과 현재 개념만 한 줄로. 같은 층의 다른 개념은 이전/다음이나 전체 목록으로 이동 */
+    [data-docked]:not(.index-open) .chip:not([aria-pressed="true"]) { display: none; }
     [data-docked] .cards { flex: 0 1 auto; min-height: 0; display: flex; flex-direction: column; }
     [data-docked] .card.is-active { display: flex; flex-direction: column; min-height: 0; }
     [data-docked] .cbody { flex: 0 1 auto; min-height: 96px; overflow-y: auto; overscroll-behavior: contain; }
