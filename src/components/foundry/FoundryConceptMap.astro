@@ -119,52 +119,55 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
           <text class="t sm" x="411" y="374">Object security policy</text>
         </g>
 
-        <!-- 로직 → 온톨로지: 아래 층이 위 층을 읽고 쓴다 -->
-        <line class="ar" data-rel="action onto" x1="66" y1="434" x2="66" y2="398" marker-end="url(#fcm-ah)"></line>
-        <text class="lab as" data-rel="action onto" x="72" y="419">쓰기(편집)</text>
-        <line class="ar" data-rel="function onto" x1="156" y1="434" x2="156" y2="398" marker-end="url(#fcm-ah)"></line>
-        <text class="lab as" data-rel="function onto" x="162" y="419">읽기·계산</text>
-        <line class="ar dash" data-rel="cm onto" x1="254" y1="434" x2="254" y2="398" marker-end="url(#fcm-ah)"></line>
-        <text class="lab as" data-rel="cm onto" x="260" y="419">서비스 유저</text>
-        <line class="ar" data-rel="automate onto" x1="354" y1="434" x2="354" y2="398" marker-end="url(#fcm-ah)"></line>
-        <text class="lab as" data-rel="automate onto" x="360" y="419">감시·실행</text>
-        <line class="ar" data-rel="aip onto" x1="452" y1="434" x2="452" y2="398" marker-end="url(#fcm-ah)"></line>
-        <text class="lab as" data-rel="aip onto" x="458" y="419">읽기·편집</text>
+        <!-- 로직 → 온톨로지: 아래 층이 위 층을 읽고 쓴다. 맨 오른쪽(x=494)은 분석 앱이 Ontology로 가는 통로 -->
+        <line class="ar" data-rel="action onto" x1="64" y1="434" x2="64" y2="398" marker-end="url(#fcm-ah)"></line>
+        <text class="lab as" data-rel="action onto" x="70" y="419">쓰기(편집)</text>
+        <line class="ar" data-rel="function onto" x1="150" y1="434" x2="150" y2="398" marker-end="url(#fcm-ah)"></line>
+        <text class="lab as" data-rel="function onto" x="156" y="419">읽기·계산</text>
+        <line class="ar dash" data-rel="cm onto" x1="244" y1="434" x2="244" y2="398" marker-end="url(#fcm-ah)"></line>
+        <text class="lab as" data-rel="cm onto" x="250" y="419">서비스 유저</text>
+        <line class="ar" data-rel="automate onto" x1="340" y1="434" x2="340" y2="398" marker-end="url(#fcm-ah)"></line>
+        <text class="lab as" data-rel="automate onto" x="346" y="419">감시·실행</text>
+        <line class="ar" data-rel="aip onto" x1="434" y1="434" x2="434" y2="398" marker-end="url(#fcm-ah)"></line>
+        <text class="lab as" data-rel="aip onto" x="440" y="419">읽기·편집</text>
         <g class="node l-logic" data-id="action" tabindex="0" role="button" aria-label="Action type">
-          <rect class="box" x="24" y="436" width="84" height="52" rx="8"></rect>
-          <text class="t" x="66" y="460">Action type</text>
-          <text class="s" x="66" y="477">+ 제출 조건</text>
+          <rect class="box" x="24" y="436" width="80" height="52" rx="8"></rect>
+          <text class="t" x="64" y="460">Action type</text>
+          <text class="s" x="64" y="477">+ 제출 조건</text>
         </g>
         <g class="node l-logic" data-id="function" tabindex="0" role="button" aria-label="Function">
-          <rect class="box" x="116" y="436" width="80" height="52" rx="8"></rect>
-          <text class="t" x="156" y="460">Function</text>
-          <text class="s" x="156" y="477">TS · Python</text>
+          <rect class="box" x="112" y="436" width="76" height="52" rx="8"></rect>
+          <text class="t" x="150" y="460">Function</text>
+          <text class="s" x="150" y="477">TS · Python</text>
         </g>
         <g class="node l-logic" data-id="cm" tabindex="0" role="button" aria-label="Compute module">
-          <rect class="box" x="204" y="436" width="100" height="52" rx="8"></rect>
-          <text class="t sm" x="254" y="460">Compute module</text>
-          <text class="s" x="254" y="477">Docker 컨테이너</text>
+          <rect class="box" x="196" y="436" width="96" height="52" rx="8"></rect>
+          <text class="t sm" x="244" y="460">Compute module</text>
+          <text class="s" x="244" y="477">Docker 컨테이너</text>
         </g>
         <g class="node l-logic" data-id="automate" tabindex="0" role="button" aria-label="Automate">
-          <rect class="box" x="312" y="436" width="84" height="52" rx="8"></rect>
-          <text class="t" x="354" y="460">Automate</text>
-          <text class="s" x="354" y="477">조건 → 자동 실행</text>
+          <rect class="box" x="300" y="436" width="80" height="52" rx="8"></rect>
+          <text class="t" x="340" y="460">Automate</text>
+          <text class="s" x="340" y="477">조건 → 실행</text>
         </g>
         <g class="node l-logic" data-id="aip" tabindex="0" role="button" aria-label="AIP Logic · AIP Chatbot Studio">
-          <rect class="box" x="404" y="436" width="96" height="52" rx="8"></rect>
-          <text class="t" x="452" y="460">AIP Logic</text>
-          <text class="s" x="452" y="477">LLM · 챗봇</text>
+          <rect class="box" x="388" y="436" width="92" height="52" rx="8"></rect>
+          <text class="t" x="434" y="460">AIP Logic</text>
+          <text class="s" x="434" y="477">LLM · 챗봇</text>
         </g>
 
         <!-- 앱 → 로직: 앱이 로직을 호출 (Automate는 조건으로 실행되므로 호출 대상 아님) -->
-        <line class="ar" data-rel="action workshop osdk" x1="66" y1="506" x2="66" y2="490" marker-end="url(#fcm-ah)"></line>
-        <line class="ar" data-rel="function workshop osdk" x1="156" y1="506" x2="156" y2="490" marker-end="url(#fcm-ah)"></line>
-        <line class="ar" data-rel="cm workshop osdk" x1="254" y1="506" x2="254" y2="490" marker-end="url(#fcm-ah)"></line>
-        <line class="ar" data-rel="aip workshop osdk" x1="452" y1="506" x2="452" y2="490" marker-end="url(#fcm-ah)"></line>
-        <line class="ar" data-rel="action function cm aip workshop osdk" data-bus x1="66" y1="506" x2="452" y2="506"></line>
+        <line class="ar" data-rel="action workshop osdk" x1="64" y1="506" x2="64" y2="490" marker-end="url(#fcm-ah)"></line>
+        <line class="ar" data-rel="function workshop osdk" x1="150" y1="506" x2="150" y2="490" marker-end="url(#fcm-ah)"></line>
+        <line class="ar" data-rel="cm workshop osdk" x1="244" y1="506" x2="244" y2="490" marker-end="url(#fcm-ah)"></line>
+        <line class="ar" data-rel="aip workshop osdk" x1="434" y1="506" x2="434" y2="490" marker-end="url(#fcm-ah)"></line>
+        <line class="ar" data-rel="action function cm aip workshop osdk" data-bus x1="64" y1="506" x2="434" y2="506"></line>
         <line class="ar" data-rel="workshop action function cm aip" data-bus x1="100" y1="538" x2="100" y2="508" marker-end="url(#fcm-ah)"></line>
         <line class="ar" data-rel="osdk action function cm aip" data-bus x1="266" y1="538" x2="266" y2="508" marker-end="url(#fcm-ah)"></line>
         <text class="lab" data-rel="action function cm aip workshop osdk" data-bus x="183" y="526">앱이 로직을 호출</text>
+        <!-- 분석 앱은 로직을 거치지 않고 Ontology를 직접 조회 -->
+        <line class="ar" data-rel="analytics onto" x1="494" y1="538" x2="494" y2="398" marker-end="url(#fcm-ah)"></line>
+        <text class="lab ae" data-rel="analytics onto" x="488" y="526">직접 조회</text>
         <g class="node l-app" data-id="workshop" tabindex="0" role="button" aria-label="Workshop">
           <rect class="box" x="24" y="540" width="152" height="52" rx="8"></rect>
           <text class="t" x="100" y="564">Workshop</text>
@@ -177,10 +180,9 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
         </g>
         <g class="node l-app" data-id="analytics" tabindex="0" role="button" aria-label="Contour · Quiver · Object Explorer">
           <rect class="box" x="356" y="540" width="144" height="52" rx="8"></rect>
-          <text class="t" x="428" y="564">Contour · Quiver</text>
-          <text class="s" x="428" y="581">Object Explorer</text>
+          <text class="t" x="428" y="562">Contour · Quiver</text>
+          <text class="t" x="428" y="580">Object Explorer</text>
         </g>
-        <path class="ar" data-rel="analytics onto" d="M500,566 H506 V348 H502" marker-end="url(#fcm-ah)"></path>
         <line class="ar" data-rel="osdk oauth" x1="266" y1="592" x2="266" y2="606"></line>
         <g class="node l-sec" data-id="oauth" tabindex="0" role="button" aria-label="OAuth">
           <rect class="box" x="204" y="606" width="124" height="26" rx="13"></rect>
@@ -238,7 +240,7 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
             <div class="cmeta">
               <span class="num">{layerLabels[c.layer]}</span>
             </div>
-            <h3 class="ct">{c.title}</h3>
+            <h3 class="ct">{c.title.replaceAll(" · ", "\u00a0· ")}</h3>
             <p class="lead">{sentences(c.lead).map((s, i) => <>{i > 0 && <br />}{s}</>)}</p>
             <div class="cbody detail">
             <div class="ana">
@@ -497,6 +499,7 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
   .map .sm { font-size: 11px; }
   .map .s, .map .lab { font-size: 11px; fill: var(--muted); }
   .map .as { text-anchor: start; }
+  .map .ae { text-anchor: end; }
   .map .ar { stroke: var(--muted); stroke-width: 1.2; fill: none; }
   .map .dash { stroke-dasharray: 4 3; }
   .map .ahp { fill: var(--muted); }
