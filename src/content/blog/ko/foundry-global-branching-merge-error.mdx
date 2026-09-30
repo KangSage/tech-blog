@@ -1,0 +1,260 @@
+---
+title: "Palantir Foundry Global Branching 병합 오류: TaskIsNotInvokable 해결기"
+description: "Palantir Foundry Global Branching에서 승인된 proposal이 ApprovalsClient:TaskIsNotInvokable 오류로 병합되지 않은 사례입니다. 브랜치에서 만든 Dataset이 proposal에 없었던 추정 원인과 해결 방법과 재발 방지 규칙을 정리합니다."
+publishedAt: "2026-09-30"
+lang: "ko"
+translationKey: "foundry-global-branching-merge-error"
+category: "tech"
+tags: ["palantir-foundry", "global-branching", "ontology", "troubleshooting", "팔란티어", "글로벌브랜칭", "온톨로지", "트러블슈팅"]
+draft: true
+---
+
+import BranchMergeFigure from "@/components/foundry/BranchMergeFigure.astro";
+
+<details class="post-note">
+<summary>이 글을 쓰게 된 이유</summary>
+
+동료가 Global Branching으로 작업한 변경을 main에 병합하다가 오류를 만났습니다.\
+오류 메시지만으로는 원인을 짐작하기 어려워 공식 문서와 하나씩 맞춰 보며 원인을 좁혔습니다.\
+같은 오류를 검색해 이 글에 온 분이 시간을 덜 쓰도록 과정을 정리했습니다.
+
+</details>
+
+이번 사례에서는 proposal의 리소스별 검토가 모두 승인되었는데도 proposal이 병합되지 않았습니다.\
+**Merge proposal** 버튼을 누르면 아래 오류가 났습니다.
+
+```
+RemoteException: CUSTOM_SERVER
+errorName: ApprovalsClient:TaskIsNotInvokable
+```
+
+proposal은 AI 도구로 만든 것이었고 확인해 보니 브랜치에서 새로 만든 Dataset이 proposal의 리소스 목록에 없었습니다.\
+main에 같은 Dataset을 UI로 만든 뒤 다시 병합하자 성공했습니다.\
+글에서는 문제의 Object type을 O로 Dataset을 D로 바꿔 적었습니다.
+
+이 글은 오류 메시지를 읽는 법과 원인 추정, 해결 뒤 점검, 재발 방지 규칙을 차례로 정리합니다.\
+공식 문서로 확인되지 않은 부분은 **추정** 또는 **확인 필요**로 표시했습니다.
+
+아래가 모두 맞으면 이 글의 사례와 같은 상황일 가능성이 높습니다.
+
+- 병합 오류의 errorName이 `ApprovalsClient:TaskIsNotInvokable`입니다.
+- 브랜치에서 새로 만든 Dataset이 proposal의 리소스 목록에 없습니다.
+- 브랜치에서 고친 Object type이 그 Dataset을 backing datasource로 씁니다.
+
+## 먼저 알아둘 개념
+
+이 글에는 다섯 가지 개념이 계속 나옵니다.\
+Foundry의 전체 구조가 낯선 분은 [Palantir Foundry 개념 지도](/tech-blog/ko/blog/foundry-concept-map/#concept-branch)의 Global Branching 카드를 먼저 보셔도 좋습니다.
+
+| 개념 | 하는 일 | 비유 |
+| --- | --- | --- |
+| [Global Branching](https://www.palantir.com/docs/foundry/global-branching/core-concepts) | 여러 앱의 변경을 브랜치 하나에 모아 운영 환경에 영향 없이 테스트한 뒤 main에 병합합니다.<br />단 브랜치에서 리소스를 새로 만들거나 지우는 일은 main에도 영향을 줍니다 | Git feature branch.<br />코드뿐 아니라 파이프라인과 Ontology까지 다룹니다 |
+| [proposal](https://www.palantir.com/docs/foundry/ontologies/review-ontology-proposals) | 브랜치의 변경을 main에 병합하기 전에 리소스별로 검토받는 단위입니다.<br />Ontology 변경이 있으면 Ontology proposal이 자동으로 함께 만들어집니다 | Pull Request |
+| [Approvals](https://www.palantir.com/docs/foundry/approvals/overview) | 권한이 있는 사람이 승인하면 요청한 변경을 실제로 적용(invoke)하는 앱입니다.<br />요청 하나에 task 여러 개가 들어 있고 Ontology proposal도 task의 한 종류입니다 | 결재 문서 한 장에 결재 항목 여러 개 |
+| [checkpoint](https://www.palantir.com/docs/foundry/checkpoints/overview) | Foundry에서 어떤 작업을 하기 전에 사유를 입력하게 하는 절차입니다 | 결재를 올릴 때 적는 사유란 |
+| [backing datasource](https://www.palantir.com/docs/foundry/object-link-types/create-object-type) | Object type에 데이터를 공급하는 Dataset 같은 원본입니다.<br />[Ontology 문서](https://www.palantir.com/docs/foundry/ontology/core-concepts)는 Dataset의 행 하나를 Object 하나에 빗대어 설명합니다 | ORM 모델이 매핑된 DB 테이블 |
+
+## 오류 메시지부터 읽기
+
+`CUSTOM_SERVER`는 오류의 분류이고 어떤 오류인지는 errorName이 알려 줍니다.\
+Palantir의 오픈소스 API 규격인 [Conjure 사양](https://github.com/palantir/conjure/blob/master/docs/spec/wire.md)과 [Foundry API 오류 문서](https://www.palantir.com/docs/foundry/api/general/overview/errors)는 오류를 아래 네 필드로 설명합니다.\
+이번 오류 메시지에는 이 가운데 errorCode와 errorName이 담겨 있었습니다.
+
+| 필드 | 뜻 | 이번 값 |
+| --- | --- | --- |
+| errorCode | 오류의 분류입니다.<br />Conjure 사양에서 `CUSTOM_SERVER`는 HTTP 500에 대응합니다 | `CUSTOM_SERVER` |
+| errorName | 오류를 식별하는 이름입니다.<br />`Recipe:RecipeNotFound`처럼 콜론으로 나뉜 형식입니다 | `ApprovalsClient:TaskIsNotInvokable` |
+| errorInstanceId | 오류 한 건을 가리키는 고유 ID입니다.<br />Palantir Support에 문의할 때 함께 전달합니다 | 건마다 다름 |
+| parameters | 오류에 대한 추가 정보입니다 | 건마다 다름 |
+
+오류 전체 내용은 오류 창의 상세 보기나 브라우저 개발자 도구 Network 탭의 응답에서 볼 수 있습니다.\
+이 방법은 문서가 아니라 일반적인 웹 디버깅 방법입니다.
+
+errorName의 앞부분 ApprovalsClient로 보아 Approvals와 관련된 오류로 **추정**합니다.\
+공식 문서를 이어 보면 두 기능은 이렇게 연결됩니다.\
+Global Branching proposal을 만들면 Ontology proposal이 자동으로 함께 만들어지고 Ontology proposal은 Global Branching proposal을 병합할 때 함께 병합됩니다([Review ontology proposals](https://www.palantir.com/docs/foundry/ontologies/review-ontology-proposals)).\
+[Approvals](https://www.palantir.com/docs/foundry/approvals/overview)는 이 Ontology proposal을 task의 한 종류로 다룹니다.
+
+Approvals에서 **invoke**는 승인된 요청의 변경을 실제로 적용하는 단계입니다.\
+task가 하나라도 승인되지 않았으면(Pending approval) 요청은 invoke되지 않습니다.\
+task가 모두 승인되었더라도 checkpoint 같은 조치가 남아 있으면(Action required) 역시 invoke되지 않습니다.
+
+`TaskIsNotInvokable`이라는 오류 이름은 공식 문서에서 찾지 못했습니다.\
+이름과 위 설명을 맞춰 보면 병합 과정에서 Ontology proposal task를 적용하려 했지만 적용할 수 없는 상태였다는 뜻으로 읽힙니다(**추정**).
+
+<BranchMergeFigure n={1} />
+
+## 원인 추정: proposal에 없던 Dataset
+
+아래는 main에 Dataset을 만들자 병합이 성공했다는 결과로 미루어 본 **추정**입니다.
+
+1. 브랜치에서 Dataset D를 새로 만들었고 Object type O가 D를 backing datasource로 쓰도록 고쳤습니다.
+2. proposal의 리소스 목록에는 O의 변경만 있고 D는 없었습니다.\
+   AI 도구가 D를 빠뜨린 것인지 Dataset이 원래 proposal에 들어가지 않는 것인지는 확인하지 못했습니다.
+3. 병합하면서 O의 변경을 main에 적용하려 했지만 main 쪽에는 O가 가리킬 D의 데이터가 준비되어 있지 않았던 것으로 보입니다.
+4. main에 D를 만든 뒤 다시 병합하자 O를 적용할 수 있었고 병합이 끝났습니다.
+
+<BranchMergeFigure n={2} />
+
+D라는 리소스 자체가 main에 없었는지는 분명하지 않습니다.\
+[Core concepts](https://www.palantir.com/docs/foundry/global-branching/core-concepts) 문서는 브랜치에서 리소스를 새로 만들거나 지우면 main에도 영향을 준다고 설명하고 예외로 Ontology 리소스를 듭니다.\
+Dataset은 Ontology 리소스가 아니므로 문서대로라면 D라는 리소스는 main에도 생깁니다.\
+한편 Dataset의 데이터는 트랜잭션(데이터 변경을 기록하는 단위)으로 쌓이고 [Datasets API](https://www.palantir.com/docs/foundry/api/datasets-v2-resources/branches/get-branch-transaction-history)는 트랜잭션 이력을 브랜치별로 조회합니다.\
+그래서 D의 데이터는 브랜치에만 있고 main 쪽 D는 비어 있었을 가능성이 높습니다(**추정**).
+
+비슷한 사례로 [Branching the ontology](https://www.palantir.com/docs/foundry/ontologies/branching-ontology) 문서의 Known limitations는 conflict가 난 Object type에서 main 쪽 backing datasource가 교체되거나 제거되었는데 브랜치 쪽 변경을 유지하면 병합이 실패한다고 설명합니다.\
+이번 사례와 조건은 다르지만 backing datasource의 상태에 따라 병합이 실패할 수 있다는 점을 보여 줍니다.
+
+## 해결과 점검
+
+main에 같은 Dataset을 UI로 만든 뒤 다시 병합하자 성공했습니다.\
+새 Dataset을 만든 뒤 O가 가리키는 대상을 바꿨는지와 브랜치에 남은 D를 어떻게 처리했는지는 확인하지 못했습니다.
+
+병합이 끝났다고 데이터까지 정상이라는 뜻은 아니므로 아래를 더 확인합니다.
+
+- main의 Object type O가 가리키는 Dataset이 방금 만든 그 Dataset인지 RID(리소스 고유 ID)로 확인합니다.\
+  이름이 같아도 RID가 다르면 다른 Dataset입니다.
+- 그 Dataset을 채우는 transform이나 파이프라인이 main에 있는지 확인합니다.\
+  backing Dataset이 비어 있으면 조회할 Object도 없을 가능성이 큽니다.
+- Ontology Manager의 파이프라인 그래프에서 Object Storage v2 노드에 초록색 체크가 있는지 봅니다.\
+  [인덱싱 FAQ](https://www.palantir.com/docs/foundry/object-indexing/faq/)에 따르면 이 체크는 인덱싱이 끝나 Object Storage v2(Object 데이터를 조회용으로 저장하는 곳)에서 조회할 수 있다는 뜻입니다.
+- proposal 페이지에서 리소스별 병합 결과를 확인합니다.\
+  [Branching lifecycle](https://www.palantir.com/docs/foundry/global-branching/branching-lifecycle-usage) 문서에 따르면 일부만 병합에 실패하면 proposal 페이지에 성공한 리소스와 브랜치에 남은 리소스가 표시되며 부분 실패한 병합은 지금은 되돌릴 수 없습니다.
+
+## 같은 오류가 났을 때 확인 순서
+
+1. proposal 페이지에서 어떤 리소스가 병합되지 않았는지 봅니다.
+2. 브랜치의 변경 목록과 proposal의 리소스 목록을 대조해 빠진 리소스가 없는지 봅니다.\
+   이번 사례에서 원인으로 추정한 지점입니다.
+3. 브랜치에서 새로 만든 Dataset이 있다면 main 쪽 트랜잭션 이력이 비어 있지 않은지 봅니다.
+4. [Approvals](https://www.palantir.com/docs/foundry/approvals/overview) 앱에서 Ontology proposal에 해당하는 요청의 상태를 봅니다.\
+   Action required라면 남은 checkpoint를 제출합니다.\
+   요청자가 제출하지 못하면 자격이 있는 리뷰어가 대신 제출할 수 있습니다.
+5. 그래도 풀리지 않으면 errorInstanceId를 붙여 Palantir Support에 문의합니다.
+
+## Global Branching의 지원 범위
+
+Dataset은 Global Branching에서 조금 애매한 위치에 있습니다.\
+[Integrations](https://www.palantir.com/docs/foundry/global-branching/integrations/) 문서의 표는 Global Branching과 연동되는 앱 목록이며 Dataset이라는 항목은 따로 없습니다.\
+2026년 9월 기준 표에는 Pipeline Builder와 Code Repositories, Ontology, Workshop 등 15개 항목이 있습니다.\
+문서는 모든 리소스 종류가 아직 지원되는 것은 아니며 지원 범위를 넓히는 중이라고 설명합니다.
+
+[Overview](https://www.palantir.com/docs/foundry/global-branching/overview) 문서는 Pipeline Builder 파이프라인의 출력 Dataset 로직과 스키마를 브랜치에서 바꾸고 같은 브랜치의 Ontology Manager에서 Object type을 고친 뒤 병합하는 흐름을 예로 듭니다.\
+이 예시처럼 표에 있는 앱이 채우는 Dataset은 그 앱을 통해 브랜치에서 다뤄집니다.\
+반면 채우는 로직 없이 UI나 업로드로 만든 Dataset은 표의 어느 앱에도 속하지 않는 것으로 보입니다(**추정**).\
+이번 사례의 D가 브랜치에서 어떻게 만들어졌는지는 확인하지 못했습니다.
+
+그래서 두 가지 목록을 나눠 읽는 편이 안전합니다.
+
+- **Integrations 표**는 브랜치에서 다룰 수 있는 앱의 목록입니다.\
+  리소스를 다루는 앱이 표에 없다면 지원하지 않는다고 보는 편이 안전합니다(경험칙).
+- **앱별 문서의 제약**은 지원되는 앱 안의 예외입니다.\
+  예를 들어 [Branching action types](https://www.palantir.com/docs/foundry/action-types/branching-action-types/) 문서는 브랜치에서 Action을 실행해 만든 편집은 테스트용이며 main에 병합되지 않는다고 설명합니다.\
+  앱별 문서가 지원 기능을 모두 나열하지는 않으므로 제약에 없다고 해서 지원된다고 단정할 수는 없습니다.
+
+<BranchMergeFigure n={3} />
+
+### 브랜치에서 처음 만드는 리소스
+
+브랜치에서 리소스를 **처음 만드는 일**은 리소스 종류에 따라 다르게 동작합니다.\
+PoC를 하던 중 AI 코딩 도구가 브랜치에서는 리소스를 처음 만들 수 없다며 main에 직접 만든 일이 있었는데 문서와 비교하면 반만 맞는 말입니다.\
+[Core concepts](https://www.palantir.com/docs/foundry/global-branching/core-concepts) 문서는 브랜치에서 리소스를 만들거나 지우면 main에도 영향을 준다고 설명합니다.\
+예외인 Ontology 리소스는 브랜치 안에서 만들고 고치고 지워도 main에 영향이 없습니다.
+
+| 리소스 | 브랜치에서 새로 만들면 | 근거 |
+| --- | --- | --- |
+| Object type·Link type·Action type 같은 Ontology 리소스 | 브랜치 안에만 생기고 main에는 영향이 없습니다 | [Core concepts](https://www.palantir.com/docs/foundry/global-branching/core-concepts) |
+| Dataset·파이프라인·Workshop 모듈 같은 그 밖의 리소스 | 리소스 자체는 main에도 생깁니다.<br />Dataset의 데이터는 브랜치별로 쌓이므로 main 쪽은 비어 있을 수 있습니다(**추정**) | [Core concepts](https://www.palantir.com/docs/foundry/global-branching/core-concepts)<br />[Datasets API](https://www.palantir.com/docs/foundry/api/datasets-v2-resources/branches/get-branch-transaction-history) |
+| Python function | 브랜치에서 코드를 고칠 수 없고 특정 버전을 참조해 시험만 할 수 있습니다 | [Integrations](https://www.palantir.com/docs/foundry/global-branching/integrations/) |
+| Ontology SDK | 아직 브랜치를 지원하지 않습니다 | [Best practices and technical details](https://www.palantir.com/docs/foundry/global-branching/best-practices-and-technical-details) |
+| Compute module·Developer Console 앱 | Integrations 표에 없으므로 지원하지 않는 것으로 봅니다(경험칙) | [Integrations](https://www.palantir.com/docs/foundry/global-branching/integrations/) |
+
+## 재발 방지 규칙
+
+이번 사례에서 얻은 규칙은 한 줄로 정리됩니다.\
+**채우는 로직 없이 새로 만드는 Dataset은 main에 먼저 만들고 파이프라인이 채우는 Dataset은 그 파이프라인과 함께 브랜치에서 고칩니다.**\
+공식 문서가 정한 규칙이 아니라 이번 사례에서 얻은 경험칙입니다.
+
+<BranchMergeFigure n={4} />
+
+- UI나 업로드로 만드는 Dataset은 main에 먼저 만들어 둡니다.\
+  main에 만든 Dataset은 바로 운영 리소스가 되므로 프로젝트 위치와 권한을 먼저 정합니다.\
+  빈 Dataset만 만들어도 되는지 스키마와 데이터까지 준비해야 하는지는 확인하지 못했습니다.
+- 파이프라인이 채우는 Dataset은 스키마 변경까지 포함해 파이프라인과 Object type을 같은 브랜치에서 고친 뒤 병합합니다.\
+  병합할 때 Build all affected resources를 고르면 브랜치의 변경에 영향받는 리소스가 모두 build되어 상류의 변경이 하류까지 반영됩니다([Branching lifecycle](https://www.palantir.com/docs/foundry/global-branching/branching-lifecycle-usage)).
+- 새 파이프라인과 새 출력 Dataset을 한 번에 만드는 경우는 문서로 확인하지 못했습니다.\
+  운영 프로젝트에 적용하기 전에 샌드박스 프로젝트에서 한 번 시험해 보는 편이 안전합니다.
+- AI 도구가 만든 proposal도 병합 전에 브랜치의 변경 목록과 대조합니다.
+
+## 직접 재현해 보기
+
+{/* TODO: 재현 후 과거형으로 바꾸고 결과 칸을 채운다 */}
+동료의 기억만으로는 실패 당시의 상황을 모두 되짚기 어려웠습니다.\
+그래서 샌드박스 프로젝트에서 최소 구성으로 세 가지 경우를 재현했습니다.
+
+| 경우 | 순서 | 확인할 것 | 결과 |
+| --- | --- | --- | --- |
+| A. 실패 재현 | 브랜치에서 Dataset D를 만들고 데이터를 넣습니다.<br />같은 브랜치에서 D를 backing datasource로 쓰는 Object type O를 만듭니다.<br />proposal을 만들고 병합합니다 | 오류 이름<br />proposal에 D가 있는지<br />main과 브랜치의 D 트랜잭션 이력 | TODO |
+| B. 해결 재현 | main에 D를 먼저 만들고 데이터를 넣습니다.<br />브랜치에서 O를 만들고 병합합니다 | 병합 성공 여부<br />O의 인덱싱 완료 여부 | TODO |
+| C. 새 파이프라인 | 브랜치에서 Pipeline Builder로 새 출력 Dataset과 O를 만듭니다.<br />Build all affected resources를 골라 병합합니다 | 병합 성공 여부<br />main의 출력 Dataset이 채워지는지 | TODO |
+
+브랜치에서 Dataset을 만들 수 있는 방법(UI·업로드·transform 출력)도 함께 기록합니다.
+
+## 근거와 한계
+
+이 글의 내용을 근거의 종류별로 나눠 둡니다.
+
+| 내용 | 근거 | 구분 |
+| --- | --- | --- |
+| 병합하려면 승인 정책을 충족하고 checks를 모두 통과해야 합니다 | [Branching lifecycle](https://www.palantir.com/docs/foundry/global-branching/branching-lifecycle-usage) | 공식 문서 |
+| Global Branching proposal을 만들면 Ontology proposal이 자동으로 만들어집니다 | [Review ontology proposals](https://www.palantir.com/docs/foundry/ontologies/review-ontology-proposals) | 공식 문서 |
+| task가 모두 승인되어도 Action required 상태면 요청이 invoke되지 않습니다 | [Approvals](https://www.palantir.com/docs/foundry/approvals/overview) | 공식 문서 |
+| 브랜치에서 리소스를 새로 만들면 main에도 영향을 주며 문서는 예외로 Ontology 리소스를 듭니다 | [Core concepts](https://www.palantir.com/docs/foundry/global-branching/core-concepts) | 공식 문서 |
+| Dataset의 트랜잭션 이력은 브랜치별로 조회합니다 | [Datasets API](https://www.palantir.com/docs/foundry/api/datasets-v2-resources/branches/get-branch-transaction-history) | 공식 문서 |
+| Python function은 브랜치에서 고칠 수 없고 Ontology SDK는 브랜치를 지원하지 않습니다 | [Integrations](https://www.palantir.com/docs/foundry/global-branching/integrations/)<br />[Best practices and technical details](https://www.palantir.com/docs/foundry/global-branching/best-practices-and-technical-details) | 공식 문서 |
+| Integrations 표에 Dataset 항목은 따로 없습니다 | [Integrations](https://www.palantir.com/docs/foundry/global-branching/integrations/) | 공식 문서 |
+| 부분 실패한 병합은 지금은 되돌릴 수 없습니다 | [Branching lifecycle](https://www.palantir.com/docs/foundry/global-branching/branching-lifecycle-usage) | 공식 문서 |
+| `CUSTOM_SERVER`는 HTTP 500에 대응합니다 | [Conjure 사양](https://github.com/palantir/conjure/blob/master/docs/spec/wire.md) | 오픈소스 사양 |
+| proposal에 없던 Dataset이 이번 오류의 원인입니다 | 이번 사례의 결과 | 추정 |
+| 브랜치에서 만든 Dataset의 main 쪽 데이터가 비어 있었습니다 | 이번 사례의 결과 | 추정 |
+| 표에 없는 앱이 다루는 리소스는 브랜치를 지원하지 않습니다 | Integrations 표에 없음 | 경험칙 |
+| `TaskIsNotInvokable`의 정확한 의미 | 문서 없음 | 확인 필요 |
+| 실패 당시 Approvals 요청의 상태 | 확인하지 못함 | 확인 필요 |
+| 변경 없이 다시 병합만 시도해도 실패했는지 | 확인하지 못함 | 확인 필요 |
+| proposal에 Dataset을 직접 넣을 수 있는지 | 문서 없음 | 확인 필요 |
+| 새 파이프라인과 새 출력 Dataset, 새 Object type을 한 브랜치에서 한 번에 병합해도 되는지 | 문서 없음 | 확인 필요 |
+
+## 정리
+
+- `CUSTOM_SERVER`는 오류의 분류이므로 **errorName**부터 봅니다.\
+  ApprovalsClient 오류라면 proposal 페이지와 Approvals 앱에서 적용이 막힌 지점을 찾습니다.
+- 브랜치에서 **새로 만든 Dataset**은 proposal에 없을 수 있고 main 쪽 데이터가 비어 있을 수 있습니다.\
+  채우는 로직이 없는 Dataset은 main에 먼저 만들어 둡니다.
+- 브랜치에서 새로 만들어도 main에 영향이 없는 것은 **Ontology 리소스**뿐입니다.\
+  그 밖의 리소스는 만드는 순간 main에도 생깁니다.
+- AI 도구가 만든 proposal도 **사람이 대조**합니다.\
+  브랜치의 변경 목록과 proposal의 리소스 목록이 같은지 확인한 뒤 병합합니다.
+
+## 참고 문서
+
+- [Global Branching • Overview](https://www.palantir.com/docs/foundry/global-branching/overview)
+- [Global Branching • Core concepts](https://www.palantir.com/docs/foundry/global-branching/core-concepts)
+- [Global Branching • Branching lifecycle](https://www.palantir.com/docs/foundry/global-branching/branching-lifecycle-usage)
+- [Global Branching • Integrations](https://www.palantir.com/docs/foundry/global-branching/integrations/)
+- [Global Branching • Best practices and technical details](https://www.palantir.com/docs/foundry/global-branching/best-practices-and-technical-details)
+- [Branching the ontology](https://www.palantir.com/docs/foundry/ontologies/branching-ontology)
+- [Review ontology proposals](https://www.palantir.com/docs/foundry/ontologies/review-ontology-proposals)
+- [Branching action types](https://www.palantir.com/docs/foundry/action-types/branching-action-types/)
+- [Approvals • Overview](https://www.palantir.com/docs/foundry/approvals/overview)
+- [Checkpoints • Overview](https://www.palantir.com/docs/foundry/checkpoints/overview)
+- [Ontology • Core concepts](https://www.palantir.com/docs/foundry/ontology/core-concepts)
+- [Create an object type](https://www.palantir.com/docs/foundry/object-link-types/create-object-type)
+- [Object indexing • FAQ](https://www.palantir.com/docs/foundry/object-indexing/faq/)
+- [Datasets API • Get Branch Transaction History](https://www.palantir.com/docs/foundry/api/datasets-v2-resources/branches/get-branch-transaction-history)
+- [Foundry API • Errors](https://www.palantir.com/docs/foundry/api/general/overview/errors)
+- [Conjure wire specification](https://github.com/palantir/conjure/blob/master/docs/spec/wire.md)
+
+---
+
+각 절의 설명은 본문에 링크한 Palantir 공식 문서와 Conjure 사양을 근거로 하며 문서로 확인되지 않은 내용은 추정 또는 확인 필요로 표시했습니다.\
+이 글은 2026년 9월 30일 기준으로 작성되었으며 Foundry는 업데이트가 잦으므로 최신 내용은 공식 문서를 확인하시기 바랍니다.

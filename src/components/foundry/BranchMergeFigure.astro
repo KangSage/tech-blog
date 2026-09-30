@@ -1,0 +1,408 @@
+---
+// Global Branching 병합 오류 글의 그림 4개. <BranchMergeFigure n={1} />처럼 번호로 고른다.
+// 약속: 점선 = 문서로 확인하지 못한 추정 단계. 색은 강조(--accent), 오류(빨강), 성공(초록), 나머지 중립.
+// 글자 크기: 폰(본문 폭 328px)에서도 11px 아래로 작아지지 않게 viewBox 폭과 글자 크기를 맞춘다.
+//   세로 그림(1·3): viewBox 폭 400, 굵은 글자 14 · 보조 글자 13.5 → 폰에서 약 11.5 · 11.1px
+//   가로 그림(2·4): viewBox 폭 720, 좁은 화면에서는 660px 고정 폭으로 가로 스크롤 → 약 12.8 · 11.9px
+// 읽어 주기는 <svg role="img">의 aria-label(=제목)만 읽고 figcaption은 건너뛴다.
+
+interface Props {
+  n: 1 | 2 | 3 | 4;
+}
+
+type Kind = "n" | "accent" | "err" | "ok" | "aux";
+interface Box { x: number; y: number; w: number; h: number; bold: string[]; sub: string[]; kind: Kind; dash: boolean; align: "middle" | "start" }
+interface Diamond { cx: number; cy: number; hw: number; hh: number; lines: string[]; dash: boolean }
+interface Arrow { d: string; kind: "n" | "err"; dash?: boolean; head?: boolean }
+interface Label { x: number; y: number; text: string; anchor?: "start" | "middle" | "end"; kind?: "n" | "err" }
+interface Panel { x: number; y: number; w: number; h: number; title: string }
+interface Fig { title: string; sub: string; W: number; H: number; wide: boolean; panels?: Panel[]; boxes: Box[]; diamonds?: Diamond[]; arrows: Arrow[]; labels?: Label[]; crosses?: { x: number; y: number }[] }
+
+const LH = 17;
+const boxH = (lines: number) => 14 + LH * lines;
+function box(x: number, y: number, w: number, bold: string[], sub: string[] = [], kind: Kind = "n", dash = false, align: "middle" | "start" = "middle"): Box {
+  return { x, y, w, h: boxH(bold.length + sub.length), bold, sub, kind, dash, align };
+}
+const bottom = (b: Box) => b.y + b.h;
+const cx = (b: Box) => b.x + b.w / 2;
+const cy = (b: Box) => b.y + b.h / 2;
+
+function figure1(): Fig {
+  // 왼쪽 열: 병합 흐름, 오른쪽 열: 적용이 막히는 경우 → TaskIsNotInvokable
+  const L = { x: 8, w: 178 };
+  const R = { x: 222, w: 172 };
+  const s1 = box(L.x, 8, L.w, ["proposal 생성"], ["Ontology proposal도", "자동 생성"]);
+  const s2 = box(L.x, bottom(s1) + 18, L.w, ["리소스별 검토 승인·", "checks 통과"], ["통과해야 Merge", "proposal 가능"]);
+  const s3 = box(L.x, bottom(s2) + 18, L.w, ["Merge proposal 클릭"]);
+  const s4 = box(L.x, bottom(s3) + 18, L.w, ["Ontology proposal", "task 적용"], ["invoke, 추정"], "n", true);
+  const d: Diamond = { cx: cx(s4), cy: bottom(s4) + 18 + 38, hw: 86, hh: 38, lines: ["적용 가능한", "상태?"], dash: true };
+  const ok = box(L.x, d.cy + d.hh + 36, L.w, ["병합 완료"], ["변경이 main에 반영"], "ok");
+  const err = box(R.x, d.cy - 24, R.w, ["TaskIsNotInvokable"], ["적용할 수 없는 상태에서", "병합 시도(추정)"], "err");
+  const aux = box(R.x, 0, R.w, ["적용이 막히는 경우"], ["Pending approval:", "승인 안 된 task", "Action required:", "checkpoint 등", "이번 사례:", "D의 main 쪽 데이터", "없음(추정)"], "aux", false, "start");
+  aux.y = err.y - 30 - aux.h;
+  return {
+    title: "검토 승인이 끝나도 적용(invoke) 단계에서 막힐 수 있습니다",
+    sub: "점선은 문서로 확인하지 못한 추정 단계입니다",
+    W: 400, H: Math.max(bottom(ok), bottom(err)) + 8, wide: false,
+    boxes: [s1, s2, s3, s4, ok, aux, err],
+    diamonds: [d],
+    arrows: [
+      { d: `M${cx(s1)} ${bottom(s1)} V${s2.y - 2}`, kind: "n" },
+      { d: `M${cx(s2)} ${bottom(s2)} V${s3.y - 2}`, kind: "n" },
+      { d: `M${cx(s3)} ${bottom(s3)} V${s4.y - 2}`, kind: "n" },
+      { d: `M${cx(s4)} ${bottom(s4)} V${d.cy - d.hh - 2}`, kind: "n", dash: true },
+      { d: `M${d.cx} ${d.cy + d.hh} V${ok.y - 2}`, kind: "n" },
+      { d: `M${d.cx + d.hw} ${d.cy} H${R.x - 2}`, kind: "err" },
+      { d: `M${cx(aux)} ${bottom(aux)} V${err.y - 2}`, kind: "n" },
+    ],
+    labels: [
+      { x: d.cx + 8, y: d.cy + d.hh + 22, text: "예", anchor: "start" },
+      { x: (d.cx + d.hw + R.x) / 2 + 2, y: d.cy + 18, text: "아니오", kind: "err" },
+    ],
+  };
+}
+
+function figure2(): Fig {
+  // 세 칸: 1. 브랜치 → 2. proposal → 3. main에 병합, 그 아래로 병합 결과와 해결
+  const P = [
+    { x: 10, w: 210, title: "1. 브랜치" },
+    { x: 255, w: 210, title: "2. proposal" },
+    { x: 500, w: 210, title: "3. main에 병합" },
+  ];
+  const top = 12;
+  const inner = (i: number) => ({ x: P[i].x + 14, w: P[i].w - 28 });
+  const oy = top + 36;
+  const o1 = box(inner(0).x, oy, inner(0).w, ["Object type O"], ["브랜치에서 수정"]);
+  const d1 = box(inner(0).x, bottom(o1) + 44, inner(0).w, ["Dataset D"], ["브랜치에서 새로 만듦", "데이터는 브랜치에만(추정)"]);
+  const o2 = box(inner(1).x, oy, inner(1).w, ["Object type O"], ["목록에 있음"]);
+  const d2 = box(inner(1).x, cy(d1) - boxH(2) / 2, inner(1).w, ["Dataset D"], ["목록에 없음"], "err", true);
+  const o3 = box(inner(2).x, oy, inner(2).w, ["Object type O"], ["main에 적용 시도"]);
+  const d3 = box(inner(2).x, d2.y, inner(2).w, ["Dataset D"], ["main 쪽 데이터 없음(추정)"], "err", true);
+  const panelH = bottom(d1) + 14 - top;
+  const rej = box(P[2].x, top + panelH + 40, P[2].w, ["Approvals가 적용 거절"], ["TaskIsNotInvokable"], "err");
+  const fix = box(P[2].x, bottom(rej) + 40, P[2].w, ["main에 D 생성"], ["다시 병합해 성공"], "ok");
+  const gap = (i: number) => (P[i].x + P[i].w + P[i + 1].x) / 2;
+  const xEnd = P[1].x - 12;
+  return {
+    title: "추정: D가 proposal에 없어 main에서 O를 적용하지 못했습니다",
+    sub: "main에 D를 만들자 병합이 성공한 결과로 미루어 본 흐름입니다",
+    W: 720, H: bottom(fix) + 8, wide: true,
+    panels: P.map((p) => ({ x: p.x, y: top, w: p.w, h: panelH, title: p.title })),
+    boxes: [o1, d1, o2, d2, o3, d3, rej, fix],
+    arrows: [
+      { d: `M${cx(o1)} ${bottom(o1)} V${d1.y - 2}`, kind: "n" },
+      { d: `M${P[0].x + P[0].w} ${cy(o1)} H${P[1].x - 2}`, kind: "n" },
+      { d: `M${P[1].x + P[1].w} ${cy(o2)} H${P[2].x - 2}`, kind: "n" },
+      { d: `M${d1.x + d1.w} ${cy(d1)} H${xEnd}`, kind: "err", dash: true, head: false },
+      { d: `M${cx(o3)} ${bottom(o3)} V${d3.y - 2}`, kind: "err", dash: true },
+      { d: `M${P[2].x + P[2].w / 2} ${top + panelH} V${rej.y - 2}`, kind: "n" },
+      { d: `M${cx(rej)} ${bottom(rej)} V${fix.y - 2}`, kind: "n" },
+    ],
+    crosses: [{ x: xEnd + 2, y: cy(d1) }],
+    labels: [
+      { x: cx(o1) + 8, y: (bottom(o1) + d1.y) / 2 + 4, text: "backing datasource", anchor: "start" },
+      { x: gap(0), y: cy(o1) - 8, text: "포함" },
+      { x: gap(1), y: cy(o2) - 8, text: "병합" },
+      { x: (d1.x + d1.w + xEnd) / 2, y: cy(d1) - 8, text: "없음", kind: "err" },
+      { x: cx(o3) + 8, y: (bottom(o3) + d3.y) / 2 + 4, text: "가리킬 데이터 없음(추정)", anchor: "start", kind: "err" },
+      { x: P[2].x + P[2].w / 2 - 8, y: (top + panelH + rej.y) / 2 + 4, text: "병합 결과", anchor: "end" },
+      { x: cx(rej) - 8, y: (bottom(rej) + fix.y) / 2 + 4, text: "해결", anchor: "end" },
+    ],
+  };
+}
+
+function figure3(): Fig {
+  // 왼쪽 열: 판단 흐름, 오른쪽 열: 각 판단에서 갈라지는 결과
+  const L = { x: 8, w: 192 };
+  const R = { x: 226, w: 168 };
+  const start = box(L.x, 8, L.w, ["브랜치에서 다룰 리소스"]);
+  const q1: Diamond = { cx: cx(start), cy: bottom(start) + 18 + 38, hw: 92, hh: 38, lines: ["다루는 앱이", "표에 있나?"], dash: false };
+  const no1 = box(R.x, q1.cy - boxH(5) / 2, R.w, ["미지원으로 간주", "(경험칙)"], ["main에서 먼저 작업", "예: UI·업로드로", "만든 Dataset"], "accent");
+  const q2: Diamond = { cx: q1.cx, cy: Math.max(q1.cy + q1.hh + 36 + 38, bottom(no1) + 18 + boxH(4) / 2), hw: 92, hh: 38, lines: ["앱 문서의 제약에", "걸리나?"], dash: false };
+  const yes2 = box(R.x, q2.cy - boxH(4) / 2, R.w, ["제약을 감안해 작업"], ["예: 브랜치에서 실행한", "Action의 편집은", "main에 병합 안 됨"]);
+  const end = box(L.x, q2.cy + q2.hh + 36, L.w, ["브랜치에서 작업"], ["병합 전 proposal", "목록 확인"]);
+  return {
+    title: "다루는 앱이 표에 없으면 미지원으로 보고 표에 있으면 앱 문서의 제약까지 확인합니다",
+    sub: "Integrations 표는 연동 앱 목록입니다. 표에 없으면 미지원으로 보는 것은 경험칙입니다",
+    W: 400, H: bottom(end) + 8, wide: false,
+    boxes: [start, no1, yes2, end],
+    diamonds: [q1, q2],
+    arrows: [
+      { d: `M${cx(start)} ${bottom(start)} V${q1.cy - q1.hh - 2}`, kind: "n" },
+      { d: `M${q1.cx + q1.hw} ${q1.cy} H${R.x - 2}`, kind: "n" },
+      { d: `M${q1.cx} ${q1.cy + q1.hh} V${q2.cy - q2.hh - 2}`, kind: "n" },
+      { d: `M${q2.cx + q2.hw} ${q2.cy} H${R.x - 2}`, kind: "n" },
+      { d: `M${q2.cx} ${q2.cy + q2.hh} V${end.y - 2}`, kind: "n" },
+    ],
+    labels: [
+      { x: (q1.cx + q1.hw + R.x) / 2 + 2, y: q1.cy + 18, text: "아니오" },
+      { x: q1.cx + 8, y: q1.cy + q1.hh + 22, text: "예", anchor: "start" },
+      { x: (q2.cx + q2.hw + R.x) / 2 + 2, y: q2.cy + 18, text: "예" },
+      { x: q2.cx + 8, y: q2.cy + q2.hh + 22, text: "아니오", anchor: "start" },
+    ],
+  };
+}
+
+function figure4(): Fig {
+  // 맨 위 질문에서 세 갈래로 나뉘고 맨 아래 공통 띠로 모인다
+  const C = [{ x: 14, w: 220 }, { x: 250, w: 220 }, { x: 486, w: 220 }];
+  const q = box(150, 8, 420, ["Object type이 쓰는 Dataset을 무엇이 채우나?"]);
+  const headY = bottom(q) + 40;
+  const heads = [
+    box(C[0].x, headY, C[0].w, ["채우는 로직 없음"], ["UI·업로드로 새로 만든", "Dataset"]),
+    box(C[1].x, headY, C[1].w, ["기존 파이프라인"], ["스키마 변경도 포함"]),
+    box(C[2].x, headY, C[2].w, ["새 파이프라인"], ["새 출력 Dataset도", "함께 만듦"]),
+  ];
+  const headBottom = Math.max(...heads.map(bottom));
+  heads.forEach((h) => (h.h = headBottom - h.y));
+  const resY = headBottom + 36;
+  const results = [
+    box(C[0].x, resY, C[0].w, ["main에 먼저 만들기"], ["그다음 브랜치에서 작업", "이번 사례의 해결 방식"], "accent"),
+    box(C[1].x, resY, C[1].w, ["같은 브랜치에서 함께 수정"], ["병합할 때 Build all", "affected resources 선택"]),
+    box(C[2].x, resY, C[2].w, ["확인 필요"], ["문서로 확인하지 못함", "직접 재현 C로 확인"], "n", true),
+  ];
+  const band = box(C[0].x, bottom(results[0]) + 30, C[2].x + C[2].w - C[0].x, ["공통: AI 도구가 만든 proposal도 병합 전에 브랜치 변경 목록과 대조"]);
+  const split = bottom(q) + 18;
+  return {
+    title: "Dataset을 무엇이 채우는지에 따라 작업 위치가 달라집니다",
+    sub: "이번 사례에서 얻은 경험칙이며 공식 규칙은 아닙니다",
+    W: 720, H: bottom(band) + 8, wide: true,
+    boxes: [q, ...heads, ...results, band],
+    arrows: [
+      ...heads.map((h) => ({ d: `M${cx(q)} ${bottom(q)} V${split} H${cx(h)} V${h.y - 2}`, kind: "n" as const })),
+      ...heads.map((h, i) => ({ d: `M${cx(h)} ${bottom(h)} V${results[i].y - 2}`, kind: "n" as const, dash: i === 2 })),
+    ],
+  };
+}
+
+const { n } = Astro.props;
+const fig = [figure1, figure2, figure3, figure4][n - 1]();
+const id = `bmf${n}`;
+const lines = (b: Box) => [...b.bold.map((t) => ({ t, bold: true })), ...b.sub.map((t) => ({ t, bold: false }))];
+const textX = (b: Box) => (b.align === "start" ? b.x + 10 : cx(b));
+const diamondPoints = (d: Diamond) => `${d.cx},${d.cy - d.hh} ${d.cx + d.hw},${d.cy} ${d.cx},${d.cy + d.hh} ${d.cx - d.hw},${d.cy}`;
+---
+
+<figure class={`bmf ${fig.wide ? "is-wide" : "is-tall"}`}>
+  {fig.wide && <p class="bmf-hint" data-read-skip>그림을 좌우로 밀어서 볼 수 있습니다.</p>}
+  <div class="bmf-scroll">
+    <svg viewBox={`0 0 ${fig.W} ${fig.H}`} role="img" aria-label={fig.title}>
+      <defs>
+        <marker id={`${id}-ah`} class="ah-n" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,1 L9,5 L0,9 z"></path></marker>
+        <marker id={`${id}-ah-err`} class="ah-err" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,1 L9,5 L0,9 z"></path></marker>
+      </defs>
+      {fig.panels?.map((p) => (
+        <g class="panel">
+          <rect x={p.x} y={p.y} width={p.w} height={p.h} rx="12"></rect>
+          <text class="pt" x={p.x + 14} y={p.y + 22}>{p.title}</text>
+        </g>
+      ))}
+      {fig.arrows.map((a) => (
+        <path class={`ar ar-${a.kind}${a.dash ? " dash" : ""}`} d={a.d} marker-end={a.head === false ? undefined : `url(#${id}-ah${a.kind === "err" ? "-err" : ""})`}></path>
+      ))}
+      {fig.crosses?.map((c) => <path class="cross" d={`M${c.x - 5} ${c.y - 5} L${c.x + 5} ${c.y + 5} M${c.x + 5} ${c.y - 5} L${c.x - 5} ${c.y + 5}`}></path>)}
+      {fig.boxes.map((b) => (
+        <g class={`bx k-${b.kind}${b.dash ? " dash" : ""}`}>
+          <rect x={b.x} y={b.y} width={b.w} height={b.h} rx="9"></rect>
+          {lines(b).map((l, i) => (
+            <text class={l.bold ? "tb" : "ts"} x={textX(b)} y={b.y + 20 + i * LH} text-anchor={b.align}>{l.t}</text>
+          ))}
+        </g>
+      ))}
+      {fig.diamonds?.map((d) => (
+        <g class={`dm${d.dash ? " dash" : ""}`}>
+          <polygon points={diamondPoints(d)}></polygon>
+          {d.lines.map((t, i) => <text class="tb" x={d.cx} y={d.cy - ((d.lines.length - 1) * LH) / 2 + 5 + i * LH} text-anchor="middle">{t}</text>)}
+        </g>
+      ))}
+      {fig.labels?.map((l) => (
+        <text class={`lab${l.kind === "err" ? " lab-err" : ""}`} x={l.x} y={l.y} text-anchor={l.anchor ?? "middle"}>{l.text}</text>
+      ))}
+    </svg>
+  </div>
+  <figcaption>
+    <strong>{fig.title}</strong>
+    <span>{fig.sub}</span>
+  </figcaption>
+</figure>
+
+<style>
+  /* 오류·성공 색은 사이트 테마에 없어 여기서 정한다. 사이트에 다크 모드가 생기면 이 변수만 바꾸면 된다 */
+  .bmf {
+    --bmf-err: #b3261e;
+    --bmf-err-soft: #fdeceb;
+    --bmf-ok: #1e7b3a;
+    --bmf-ok-soft: #e7f4ea;
+    margin: 28px 0;
+  }
+
+  .bmf-scroll {
+    overflow-x: auto;
+  }
+
+  .bmf svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin: 0 auto;
+  }
+
+  .bmf.is-tall svg {
+    max-width: 440px;
+  }
+
+  .bmf.is-wide svg {
+    max-width: 760px;
+  }
+
+  .bmf-hint {
+    display: none;
+  }
+
+  /* 가로로 넓은 그림은 좁은 화면에서 폭을 고정하고 좌우로 밀어 보게 한다 (글자가 11px 아래로 작아지지 않게) */
+  @media (max-width: 700px) {
+    .bmf.is-wide svg {
+      width: 660px;
+      max-width: none;
+    }
+
+    .bmf-hint {
+      display: block;
+      margin: 0 0 6px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+  }
+
+  .bmf figcaption {
+    display: grid;
+    gap: 2px;
+    margin-top: 10px;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.5;
+    text-align: center;
+  }
+
+  .bmf figcaption strong {
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  .bmf text {
+    font-family: inherit;
+  }
+
+  .bmf .tb {
+    fill: var(--text);
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .bmf .ts {
+    fill: var(--muted);
+    font-size: 13.5px;
+  }
+
+  .bmf.is-wide .tb {
+    font-size: 14px;
+  }
+
+  .bmf.is-wide .ts {
+    font-size: 13px;
+  }
+
+  .bmf .lab {
+    fill: var(--muted);
+    font-size: 13px;
+  }
+
+  .bmf.is-tall .lab {
+    font-size: 13.5px;
+  }
+
+  .bmf .lab-err {
+    fill: var(--bmf-err);
+    font-weight: 600;
+  }
+
+  .bmf .pt {
+    fill: var(--text);
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .bmf .panel rect {
+    fill: var(--bg);
+    stroke: var(--border);
+    stroke-width: 1.2;
+  }
+
+  .bmf .bx rect,
+  .bmf .dm polygon {
+    fill: var(--surface);
+    stroke: var(--muted);
+    stroke-width: 1.3;
+  }
+
+  .bmf .dash rect,
+  .bmf .dash polygon,
+  .bmf path.dash {
+    stroke-dasharray: 5 4;
+  }
+
+  .bmf .k-aux rect {
+    fill: var(--bg);
+    stroke: var(--border);
+  }
+
+  .bmf .k-accent rect {
+    fill: var(--accent-soft);
+    stroke: var(--accent);
+    stroke-width: 1.6;
+  }
+
+  .bmf .k-err rect {
+    fill: var(--bmf-err-soft);
+    stroke: var(--bmf-err);
+    stroke-width: 1.6;
+  }
+
+  .bmf .k-err .tb {
+    fill: var(--bmf-err);
+  }
+
+  .bmf .k-ok rect {
+    fill: var(--bmf-ok-soft);
+    stroke: var(--bmf-ok);
+    stroke-width: 1.6;
+  }
+
+  .bmf .k-ok .tb {
+    fill: var(--bmf-ok);
+  }
+
+  .bmf .ar {
+    fill: none;
+    stroke: var(--muted);
+    stroke-width: 1.4;
+  }
+
+  .bmf .ar-err,
+  .bmf .cross {
+    stroke: var(--bmf-err);
+  }
+
+  .bmf .cross {
+    fill: none;
+    stroke-width: 2;
+  }
+
+  .bmf .ah-n path {
+    fill: var(--muted);
+  }
+
+  .bmf .ah-err path {
+    fill: var(--bmf-err);
+  }
+</style>
