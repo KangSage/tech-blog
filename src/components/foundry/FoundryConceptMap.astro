@@ -379,6 +379,7 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
       });
       const body = cards[index].querySelector<HTMLElement>(".cbody");
       if (body) body.scrollTop = 0;
+      cards[index].scrollTop = 0;
       panel!.scrollTop = 0;
       scroller.scrollTop = 0;
       updateFade();
@@ -622,8 +623,10 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
     [data-docked] .card.is-active { display: flex; flex-direction: column; min-height: 0; }
     [data-docked] .cbody { flex: 0 1 auto; min-height: 96px; overflow-y: auto; overscroll-behavior: contain; }
     [data-docked] .cbody.has-more { mask-image: linear-gradient(to bottom, #000 calc(100% - 36px), transparent); }
-    /* 전체 목록을 펼치면 본문이 최소 높이까지 줄어도 요약·링크가 길면 넘치므로 카드 전체를 스크롤 */
+    /* 전체 목록을 펼치면 본문이 최소 높이까지 줄어도 요약·링크가 길면 넘치므로 카드 전체를 스크롤.
+       본문은 줄이지 않고 펼쳐 두어 스크롤 영역이 두 겹이 되지 않게 한다 */
     [data-docked].index-open .card.is-active { overflow-y: auto; overscroll-behavior: contain; }
+    [data-docked].index-open .cbody { flex: none; min-height: 0; overflow: visible; }
     [data-docked] .nav { flex: none; }
   }
 
