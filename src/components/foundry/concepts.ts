@@ -25,7 +25,8 @@ export interface Concept {
   everyday: string;
   points: string[];
   warn?: string;
-  doc: string;
+  /** 공식 문서. 카드가 여러 기능을 함께 다루면(title이 "A · B") 기능마다 { label, href }로 나눠 같은 단계의 버튼으로 보여준다 */
+  doc: string | { label: string; href: string }[];
   related: { label: string; href: string }[];
 }
 
@@ -93,8 +94,11 @@ export const concepts: Concept[] = [
       "Build 한 번은 출력을 한 번 계산할 뿐이므로 데이터가 계속 흐르게 하려면 Schedule로 반복 실행합니다.",
       "Schedule의 trigger가 충족되면 Build가 실행되고 이전 실행이 끝나지 않았으면 끝난 뒤에 실행됩니다.",
     ],
-    doc: D + "data-integration/builds",
-    related: [{ label: "Schedules", href: D + "data-integration/schedules" }],
+    doc: [
+      { label: "Builds", href: D + "data-integration/builds" },
+      { label: "Schedules", href: D + "data-integration/schedules" },
+    ],
+    related: [],
   },
   {
     id: "dataset", short: "Dataset", layer: "data", title: "Dataset",
@@ -145,11 +149,11 @@ export const concepts: Concept[] = [
       "Action 편집은 원본 backing Dataset이 아니라 Funnel이 내부에서 관리하는 Dataset에 저장됩니다. 이 Dataset은 원본에 새 트랜잭션이 생길 때 또는 편집이 있었다면 6시간마다 Build됩니다.",
       "Materialization은 사용자가 따로 만드는 출력 Dataset으로 원본과 편집을 합친 각 Object의 최신 상태를 담습니다. OSv2에서는 선택 사항이며 하류 파이프라인이나 대량 다운로드에 씁니다.",
     ],
-    doc: D + "object-indexing/overview",
-    related: [
-      { label: "편집이 적용되는 방식", href: D + "object-edits/how-edits-applied" },
-      { label: "Materializations", href: D + "object-edits/materializations" },
+    doc: [
+      { label: "Funnel", href: D + "object-indexing/overview" },
+      { label: "Materialization", href: D + "object-edits/materializations" },
     ],
+    related: [{ label: "편집이 적용되는 방식", href: D + "object-edits/how-edits-applied" }],
   },
   {
     id: "onto", short: "Ontology", layer: "onto", title: "Ontology",
@@ -261,8 +265,11 @@ export const concepts: Concept[] = [
       "AIP Chatbot Studio의 예전 이름은 AIP Agent Studio입니다. 챗봇은 앱에 통합해 읽기·쓰기 워크플로를 처리합니다.",
     ],
     warn: "플랫폼 보안은 LLM이 작업에 필요한 데이터에만 접근하도록 제한하지만 모델의 출력이나 모델이 만든 Ontology 편집까지 통제하지는 않습니다.",
-    doc: D + "logic/overview",
-    related: [{ label: "AIP Chatbot Studio", href: D + "chatbot-studio/overview" }],
+    doc: [
+      { label: "AIP Logic", href: D + "logic/overview" },
+      { label: "AIP Chatbot Studio", href: D + "chatbot-studio/overview" },
+    ],
+    related: [],
   },
   {
     id: "workshop", short: "Workshop", layer: "app", title: "Workshop",
@@ -293,7 +300,10 @@ export const concepts: Concept[] = [
       "웹 호스팅은 정적 에셋만 지원하고 서버 코드는 실행할 수 없습니다. 커스텀 404 페이지가 없으면 SPA로 간주합니다. 파일은 최대 1,000개, 전체 20MB까지 올릴 수 있습니다.",
     ],
     warn: "앱 제한은 앱이 받을 수 있는 권한의 보장된 상한입니다. 요청 scope는 작업(operation) 범위만 좁힙니다. 리소스 접근은 앱의 resource restrictions와 사용자 권한만으로 정해집니다.",
-    doc: D + "developer-console/overview",
+    doc: [
+      { label: "OSDK", href: D + "ontology-sdk/overview" },
+      { label: "Developer Console", href: D + "developer-console/overview" },
+    ],
     related: [
       { label: "앱 제한", href: D + "developer-console/application-restrictions" },
       { label: "웹 호스팅", href: D + "developer-console/deploy-custom-application-on-foundry" },
@@ -310,11 +320,12 @@ export const concepts: Concept[] = [
       "Quiver: Object와 시계열 데이터를 분석하고 연결된 Object type을 따라가며 탐색합니다. 대시보드를 Workshop 같은 앱에 넣을 수 있습니다.",
       "Object Explorer: 키워드나 속성 필터로 Object를 찾고 찾은 Object set에 Action을 일괄 실행하거나 Quiver로 넘길 수 있습니다. 비기술 사용자를 위한 도구입니다.",
     ],
-    doc: D + "contour/overview",
-    related: [
+    doc: [
+      { label: "Contour", href: D + "contour/overview" },
       { label: "Quiver", href: D + "quiver/overview" },
       { label: "Object Explorer", href: D + "object-explorer/overview" },
     ],
+    related: [],
   },
   {
     id: "project", short: "Project · Role · Marking", layer: "sec", title: "Project · Role · Marking",
@@ -328,8 +339,11 @@ export const concepts: Concept[] = [
       "Marking 외에 Organization과 Classification-based Access Controls(CBAC)도 필수 통제로 함께 적용됩니다.",
     ],
     warn: "Editor Role이 있어도 PII Marking의 멤버가 아니면 해당 데이터에 접근할 수 없습니다.",
-    doc: D + "security/projects-and-roles",
-    related: [{ label: "Markings", href: D + "security/markings" }],
+    doc: [
+      { label: "Project · Role", href: D + "security/projects-and-roles" },
+      { label: "Marking", href: D + "security/markings" },
+    ],
+    related: [],
   },
   {
     id: "osp", short: "Object security policy", layer: "sec", title: "Object security policy",
@@ -418,7 +432,10 @@ export const concepts: Concept[] = [
       "Store는 product 모음입니다. 로컬 Store는 저장된 프로젝트나 폴더의 권한을 상속하고 원격 Store 권한은 Control Panel에서 설정합니다.",
       "개발·테스트·운영 환경별로 설치할 수 있습니다. release channel을 지정하면 그 채널의 새 버전이 업그레이드 후보로 표시될 뿐이며 자동으로 설치하려면 Automatic upgrades(베타)를 켜야 합니다. 자동 업그레이드는 기본으로 꺼져 있습니다.",
     ],
-    doc: D + "devops/core-concepts",
+    doc: [
+      { label: "Marketplace", href: D + "marketplace/overview" },
+      { label: "Foundry DevOps", href: D + "devops/core-concepts" },
+    ],
     related: [
       { label: "설치하기", href: D + "marketplace/install-product" },
       { label: "설치 설정", href: D + "marketplace/installations" },

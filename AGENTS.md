@@ -244,7 +244,7 @@ Execute `omx setup` to install all components. Execute `omx doctor` to verify in
 ### Concept map posts (`src/components/foundry/`) — checklist for adding or renaming a concept
 Recurring mistakes here were names drifting between the card, the index chip, and the map box, and map text/labels overlapping after layout changes.
 - Names live in one place: `short` (and optional `mapLines`) in `concepts.ts`. Never type a concept name into the SVG; add a `mapNodes` entry (position/size/subtitle only) in `FoundryConceptMap.astro`. The build fails if a concept has no map node or `mapLines` does not join to `short`.
-- Card `title` is the concept name, or "A · B" only when the card really covers two separate features. Keep it consistent with `short`.
+- Card `title` is the concept name, or "A · B" only when the card really covers two separate features. Keep it consistent with `short`. When it does, `doc` is a list with one `{ label, href }` per feature so each gets its own "공식 문서" button at the same level (the build checks that the labels join to the title); `related` is only for supporting pages.
 - Run `mise exec -- pnpm dev`, open the post, and check the browser console: `[concept-map] 배치 점검 통과` must appear. It warns when box text is closer than 4px to any box edge (horizontal or vertical) or when labels overlap boxes/vertical lines. Box text positions are derived from box height, so change `h` rather than hand-placing text.
 - The dev check only measures geometry; still look at the rendered map once, since it cannot judge odd-looking arrows or wording.
 - Then check by hand, since these are not automated:
