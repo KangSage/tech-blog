@@ -13,7 +13,7 @@ const mapNodes: MapNode[] = [
   { id: "transform", x: 24, y: 92, w: 212, h: 52, sub: "Code Repositories" },
   { id: "pb", x: 288, y: 92, w: 212, h: 52, sub: "클릭 → transform 생성" },
   { id: "builds", x: 148, y: 156, w: 140, h: 22, rx: 11, cls: "t sm", edges: "builds:transform builds:pb builds:dataset" },
-  { id: "dataset", x: 24, y: 190, w: 276, h: 52, sub: "트랜잭션 · SNAPSHOT / APPEND …" },
+  { id: "dataset", x: 24, y: 190, w: 276, h: 52, sub: "트랜잭션 · SNAPSHOT / APPEND 등" },
   { id: "media", x: 324, y: 190, w: 176, h: 52, sub: "파일 · 버전 이력" },
   { id: "funnel", x: 96, y: 256, w: 132, h: 24, rx: 12, cls: "t sm" },
   { id: "onto", x: 24, y: 300, w: 476, h: 96, rx: 10, cls: "tb", sub: "OSv2 · Object type · Property · Link type · Object set" },
@@ -44,6 +44,10 @@ const byId = Object.fromEntries(concepts.map((c) => [c.id, c]));
     ...concepts
       .filter((c) => c.mapLines && c.mapLines.join(" · ").replace(/\s|·/g, "") !== c.short.replace(/\s|·/g, ""))
       .map((c) => `mapLines를 이으면 short와 달라지는 개념: ${c.id}`),
+    // 카드가 여러 기능을 다루면 기능마다 공식 문서 버튼을 둔다: 버튼 이름을 이으면 title과 같아야 한다
+    ...concepts
+      .filter((c) => (typeof c.doc === "string" ? c.title.includes(" · ") : c.doc.map((d) => d.label).join(" · ") !== c.title))
+      .map((c) => `공식 문서 버튼이 title의 기능과 맞지 않는 개념: ${c.id}`),
   ];
   if (problems.length) throw new Error(`[FoundryConceptMap] ${problems.join("; ")}`);
 }
@@ -130,17 +134,17 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
 
         <!-- 앱 → 로직·Ontology: 세 앱이 하나의 가로선에 모이고, 그 선에서 로직 상자로는 호출, 오른쪽 통로로는 Ontology 직접 조회.
              (Automate는 조건으로 실행되므로 호출 대상 아님. Object Explorer도 Action을 일괄 실행할 수 있어 분석 앱도 로직에 연결) -->
-        <line class="ar" data-edges="workshop:action osdk:action analytics:action" x1="64" y1="506" x2="64" y2="490" marker-end="url(#fcm-ah)"></line>
-        <line class="ar" data-edges="workshop:function osdk:function" x1="148" y1="506" x2="148" y2="490" marker-end="url(#fcm-ah)"></line>
-        <line class="ar" data-edges="workshop:cm" x1="244" y1="506" x2="244" y2="490" marker-end="url(#fcm-ah)"></line>
-        <line class="ar" data-edges="workshop:aip osdk:aip" x1="434" y1="506" x2="434" y2="490" marker-end="url(#fcm-ah)"></line>
-        <line class="ar" data-edges="workshop:onto osdk:onto analytics:onto" x1="494" y1="506" x2="494" y2="398" marker-end="url(#fcm-ah)"></line>
-        <text class="lab as" data-edges="workshop:onto osdk:onto analytics:onto" x="440" y="501">직접 조회</text>
-        <line class="ar" data-edges="workshop:action workshop:function workshop:cm workshop:aip osdk:action osdk:function osdk:aip analytics:action workshop:onto osdk:onto analytics:onto" x1="64" y1="506" x2="494" y2="506"></line>
-        <line class="ar" data-edges="workshop:action workshop:function workshop:cm workshop:aip workshop:onto" x1="98" y1="538" x2="98" y2="508" marker-end="url(#fcm-ah)"></line>
-        <line class="ar" data-edges="osdk:action osdk:function osdk:aip osdk:onto" x1="269" y1="538" x2="269" y2="508" marker-end="url(#fcm-ah)"></line>
-        <line class="ar" data-edges="analytics:action analytics:onto" x1="470" y1="538" x2="470" y2="508" marker-end="url(#fcm-ah)"></line>
-        <text class="lab" data-edges="workshop:action workshop:function workshop:cm workshop:aip osdk:action osdk:function osdk:aip analytics:action" x="183" y="526">앱이 로직을 호출</text>
+        <line class="ar" data-edges="workshop:action osdk:action analytics:action" x1="64" y1="516" x2="64" y2="490" marker-end="url(#fcm-ah)"></line>
+        <line class="ar" data-edges="workshop:function osdk:function" x1="148" y1="516" x2="148" y2="490" marker-end="url(#fcm-ah)"></line>
+        <line class="ar" data-edges="workshop:cm" x1="244" y1="516" x2="244" y2="490" marker-end="url(#fcm-ah)"></line>
+        <line class="ar" data-edges="workshop:aip osdk:aip" x1="434" y1="516" x2="434" y2="490" marker-end="url(#fcm-ah)"></line>
+        <line class="ar" data-edges="workshop:onto osdk:onto analytics:onto" x1="494" y1="516" x2="494" y2="398" marker-end="url(#fcm-ah)"></line>
+        <text class="lab as" data-edges="workshop:onto osdk:onto analytics:onto" x="440" y="510">직접 조회</text>
+        <line class="ar" data-edges="workshop:action workshop:function workshop:cm workshop:aip osdk:action osdk:function osdk:aip analytics:action workshop:onto osdk:onto analytics:onto" x1="64" y1="516" x2="494" y2="516"></line>
+        <line class="ar" data-edges="workshop:action workshop:function workshop:cm workshop:aip workshop:onto" x1="98" y1="538" x2="98" y2="518" marker-end="url(#fcm-ah)"></line>
+        <line class="ar" data-edges="osdk:action osdk:function osdk:aip osdk:onto" x1="269" y1="538" x2="269" y2="518" marker-end="url(#fcm-ah)"></line>
+        <line class="ar" data-edges="analytics:action analytics:onto" x1="470" y1="538" x2="470" y2="518" marker-end="url(#fcm-ah)"></line>
+        <text class="lab" data-edges="workshop:action workshop:function workshop:cm workshop:aip osdk:action osdk:function osdk:aip analytics:action" x="183" y="532">앱이 로직을 호출</text>
         <line class="ar" data-edges="osdk:oauth" x1="269" y1="592" x2="269" y2="606"></line>
         <text class="lab" data-edges="osdk:oauth" x="300" y="652">토큰 리소스 = 사용자 권한 ∩ 앱 제한 (scope는 작업만)</text>
 
@@ -221,8 +225,12 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
             {c.warn && <p class="warn"><b>주의</b><span>{sentences(c.warn).map((s, i) => <>{i > 0 && <br />}{s}</>)}</span></p>}
             </div>
             <div class="docs detail">
-              <a class="doc" href={c.doc} target="_blank" rel="noopener noreferrer">공식 문서 ↗</a>
-              {c.related.map((r) => <a class="rel" href={r.href} target="_blank" rel="noopener noreferrer">{r.label} ↗</a>)}
+              {typeof c.doc === "string"
+                ? <a class="doc" href={c.doc} target="_blank" rel="noopener noreferrer">공식 문서 ↗</a>
+                : c.doc.map((d) => <a class="doc" href={d.href} target="_blank" rel="noopener noreferrer">{d.label} 문서 ↗</a>)}
+              {c.related.length > 0 && (
+                <p class="rels"><span class="rels-label">관련 문서</span>{c.related.map((r) => <a class="rel" href={r.href} target="_blank" rel="noopener noreferrer">{r.label} ↗</a>)}</p>
+              )}
             </div>
           </article>
         ))}
@@ -459,12 +467,19 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
       const verticals = Array.from(map.querySelectorAll("line.ar"))
         .map((l) => ["x1", "y1", "x2", "y2"].map((k) => Number(l.getAttribute(k))))
         .filter(([x1, , x2]) => x1 === x2);
+      // 가로선: 앱과 로직 사이의 공용선, 층 구분 점선
+      const horizontals = Array.from(map.querySelectorAll("line.ar, line.band-sep"))
+        .map((l) => ["x1", "y1", "x2", "y2"].map((k) => Number(l.getAttribute(k))))
+        .filter(([, y1, , y2]) => y1 === y2);
       map.querySelectorAll<SVGTextElement>("text.lab").forEach((text) => {
         if (text.closest(".node")) return;
         const r = text.getBBox();
         boxes.forEach((b) => { if (hit(r, b.r)) warnings.push(`상자와 겹치는 라벨: "${text.textContent}" × ${b.id}`); });
         verticals.forEach(([x, y1, , y2]) => {
           if (x > r.x && x < r.x + r.width && Math.min(y1, y2) < r.y + r.height && Math.max(y1, y2) > r.y) warnings.push(`세로선과 겹치는 라벨: "${text.textContent}" (x=${x})`);
+        });
+        horizontals.forEach(([x1, y, x2]) => {
+          if (y > r.y && y < r.y + r.height && Math.min(x1, x2) < r.x + r.width && Math.max(x1, x2) > r.x) warnings.push(`가로선과 겹치는 라벨: "${text.textContent}" (y=${y})`);
         });
       });
       // 연결 쌍에 카드에 없는 개념 이름이 들어 있으면 오타일 가능성이 높다
@@ -611,7 +626,10 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
   .pts li::before { content: ""; width: 6px; height: 6px; background: var(--c); margin-top: 0.62em; border-radius: 1px; }
   .warn { border: 1px dashed var(--muted); border-radius: 10px; padding: 10px 12px; margin: 0; }
   .warn b { color: var(--muted); }
-  .docs { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; font-size: 13px; }
+  .docs { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 13px; }
+  /* 관련 문서는 공식 문서 버튼과 같은 단계로 보이지 않게 아래 줄로 내린다 */
+  .rels { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: center; margin: 0; }
+  .rels-label { color: var(--muted); font-size: 12px; }
   .doc { display: inline-flex; align-items: center; padding: 7px 12px; border-radius: 9px; background: var(--text); color: var(--surface); text-decoration: none; font-weight: 600; }
 
   .nav { display: flex; gap: 6px; justify-content: flex-end; }
