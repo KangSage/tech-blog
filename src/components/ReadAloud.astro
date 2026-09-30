@@ -2,7 +2,8 @@
 // 글 본문 읽어 주기: 브라우저 음성 합성(Web Speech API)만 쓰고 서버·외부 서비스는 쓰지 않는다.
 // 본문(.post-body)의 시맨틱 태그를 기준으로 읽을 단위를 정한다: 제목, 문단·목록 항목, 표의 행("열 이름: 값"), 그림(aria-label).
 // 사이드바의 개념 카드와 버튼·내비게이션은 읽지 않는다. 읽는 문장은 CSS Custom Highlight로 표시해 DOM을 바꾸지 않는다.
-// 시작 버튼은 글 날짜 옆에 두고, 재생 중 조작 바는 본문 끝으로 옮겨 sticky로 화면 하단에 띄운다(본문 칼럼 폭 안에만 뜬다).
+// 본문 끝에 두는 sticky 도크라서 본문을 보는 동안 화면 하단(본문 칼럼 폭 안)에 떠 있고, 글이 끝나면 마지막 문단 뒤에 자리 잡는다.
+// 평소에는 오른쪽 아래 작은 시작 버튼, 재생 중에는 조작 바로 펼친다.
 import type { Locale } from "@/lib/i18n";
 import { t } from "@/lib/ui";
 
@@ -19,15 +20,15 @@ const labels = {
 };
 ---
 
-<div class="read-aloud" data-read-aloud data-lang={lang} data-labels={JSON.stringify(labels)} hidden>
-  <button type="button" class="ra-btn ra-start">
-    <svg viewBox="0 0 10 10" aria-hidden="true"><path d="M2 1 L9 5 L2 9 z"></path></svg>
-    {t("readAloud", lang)}
-  </button>
-  <span class="ra-notice" role="status" aria-live="polite"></span>
-</div>
-
-<div class="ra-bar" data-read-aloud-bar data-read-skip hidden>
+<div class="ra-dock" data-read-aloud data-read-skip data-lang={lang} data-labels={JSON.stringify(labels)} hidden>
+  <div class="ra-idle">
+    <span class="ra-notice" role="status" aria-live="polite"></span>
+    <button type="button" class="ra-start">
+      <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M6 4l10 6-10 6z"></path></svg>
+      {t("readAloud", lang)}
+    </button>
+  </div>
+  <div class="ra-bar" hidden>
   <p class="ra-status" role="status" aria-live="polite"></p>
   <div class="ra-controls">
     <button type="button" class="ra-icon ra-prev" aria-label={t("readPrev", lang)} title={t("readPrev", lang)}>
@@ -45,6 +46,7 @@ const labels = {
       <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5h10v10H5z"></path></svg>
     </button>
   </div>
+  </div>
 </div>
 
 <script>
@@ -59,12 +61,11 @@ const labels = {
     const lang = root.dataset.lang ?? document.documentElement.lang;
     const labels = JSON.parse(root.dataset.labels ?? "{}") as Record<string, string>;
     const start = root.querySelector<HTMLButtonElement>(".ra-start")!;
-    const bar = document.querySelector<HTMLElement>("[data-read-aloud-bar]")!;
+    const idle = root.querySelector<HTMLElement>(".ra-idle")!;
+    const bar = root.querySelector<HTMLElement>(".ra-bar")!;
     const toggle = bar.querySelector<HTMLButtonElement>(".ra-toggle")!;
     const status = bar.querySelector<HTMLElement>(".ra-status")!;
     const notice = root.querySelector<HTMLElement>(".ra-notice")!;
-    // 조작 바를 본문 끝으로 옮긴다. sticky라서 본문을 읽는 동안에는 화면 하단에 붙고, 본문이 끝나면 그 뒤에 자리 잡아 마지막 문단을 가리지 않는다
-    body.append(bar);
     const highlights = "highlights" in CSS ? CSS.highlights : null;
     root.hidden = false;
 
@@ -269,7 +270,7 @@ const labels = {
       utterance = null;
       mark(null);
       bar.hidden = true;
-      start.hidden = false;
+      idle.hidden = false;
       status.textContent = "";
     }
 
@@ -281,7 +282,8 @@ const labels = {
       if (!voice) { notice.textContent = labels.noVoice; return; }
       ({ items, sections } = collect());
       if (!items.length) return;
-      start.hidden = true;
+      notice.textContent = "";
+      idle.hidden = true;
       bar.hidden = false;
       setPlaying(true);
       speak(0);
@@ -331,63 +333,78 @@ const labels = {
 </script>
 
 <style>
-  .read-aloud {
-    display: inline-flex;
-    min-width: 0;
-    max-width: 100%;
-    flex-wrap: wrap;
+  /* 본문 끝의 sticky 도크: 본문을 보는 동안 화면 하단에 붙는다. 도크 자체는 클릭을 통과시켜 뒤의 글을 가리는 면적을 버튼만큼으로 줄인다 */
+  .ra-dock {
+    position: sticky;
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    z-index: 5;
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 32px;
+    pointer-events: none;
+  }
+
+  .ra-dock[hidden],
+  .ra-idle[hidden] {
+    display: none;
+  }
+
+  .ra-idle,
+  .ra-bar {
+    pointer-events: auto;
+  }
+
+  .ra-idle {
+    display: flex;
     align-items: center;
-    gap: 6px 10px;
+    gap: 10px;
   }
 
   .ra-notice {
+    padding: 6px 10px;
+    border-radius: 10px;
+    background: var(--surface);
     color: var(--muted);
     font-size: 0.85rem;
+    box-shadow: 0 4px 12px -8px rgb(0 0 0 / 0.35);
   }
 
   .ra-notice:empty {
     display: none;
   }
 
-  .ra-btn {
+  .ra-start {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    height: 28px;
-    padding: 0 10px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    background: var(--surface);
-    color: var(--text);
+    gap: 8px;
+    height: 44px;
+    padding: 0 18px 0 14px;
+    border: 0;
+    border-radius: 22px;
+    background: var(--accent);
+    color: var(--surface);
     font: inherit;
-    font-size: 0.85rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    box-shadow: 0 8px 20px -10px rgb(0 0 0 / 0.45);
     cursor: pointer;
   }
 
-  .ra-btn:hover {
-    border-color: var(--accent);
-    color: var(--accent);
+  .ra-start:hover {
+    opacity: 0.92;
   }
 
-  /* 날짜 글줄(약 25px)보다 버튼이 높아 본문이 밀리지 않도록, 시작 버튼은 위아래를 줄 높이 안으로 당긴다 */
-  .ra-start {
-    margin-block: -2px;
-  }
-
-  .ra-btn svg {
-    width: 9px;
-    height: 9px;
+  .ra-start svg {
+    width: 16px;
+    height: 16px;
     fill: currentColor;
   }
 
-  /* 재생 중 조작 바: 본문 끝에 있지만 sticky라 본문을 읽는 동안 화면 하단에 붙는다 */
+  /* 재생 중 조작 바: 도크 폭(본문 칼럼)을 채운다 */
   .ra-bar {
-    position: sticky;
-    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
-    z-index: 5;
+    flex: 1;
     display: grid;
     gap: 6px;
-    margin-top: 32px;
     padding: 8px 10px 10px;
     border: 1px solid var(--border);
     border-radius: 14px;

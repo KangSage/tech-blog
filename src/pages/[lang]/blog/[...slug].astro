@@ -58,13 +58,10 @@ const jsonLd = {
         <a href={href(categoryPath(lang, post.data.category))}>{categoryLabels[post.data.category][lang]}</a>
       </p>
       <h1>{post.data.title}</h1>
-      <div class="meta-row">
-        <p class="meta">
-          <time datetime={post.data.publishedAt.toISOString()}>{formatDate(post.data.publishedAt)}</time>
-          {post.data.updatedAt && <> · {t("updated", lang)} <time datetime={post.data.updatedAt.toISOString()}>{formatDate(post.data.updatedAt)}</time></>}
-        </p>
-        <ReadAloud lang={lang} />
-      </div>
+      <p class="meta">
+        <time datetime={post.data.publishedAt.toISOString()}>{formatDate(post.data.publishedAt)}</time>
+        {post.data.updatedAt && <> · {t("updated", lang)} <time datetime={post.data.updatedAt.toISOString()}>{formatDate(post.data.updatedAt)}</time></>}
+      </p>
       {post.data.tags.length > 0 && (
         <ul class="tag-list">
           {post.data.tags.map((tag) => (
@@ -78,6 +75,7 @@ const jsonLd = {
       <aside class="post-aside" id="post-aside" hidden></aside>
       <div class="post-body">
         <Content />
+        <ReadAloud lang={lang} />
       </div>
     </div>
   </article>
@@ -91,19 +89,6 @@ const jsonLd = {
 
   .post-head h1 {
     max-width: none;
-  }
-
-  /* 날짜 줄 옆에 읽어 주기 버튼. 줄이 좁으면 버튼이 다음 줄로 내려간다 */
-  .meta-row {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 6px 14px;
-    margin: 0.95rem 0;
-  }
-
-  .meta-row .meta {
-    margin: 0;
   }
 
   .post-body {
