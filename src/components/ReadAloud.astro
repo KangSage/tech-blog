@@ -293,6 +293,21 @@ const labels = {
     });
     document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !controls.hidden) stop(); });
     window.addEventListener("pagehide", () => speech.cancel());
+
+    // 폰에서 다른 앱으로 나가면 운영체제가 음성을 멈추지만 onend는 오지 않아, 돌아왔을 때 버튼만 '재생 중'으로 남는다.
+    // 화면이 다시 보이면 실제 음성 상태를 확인해 멈춰 있으면 지금 문장에서 '계속 읽기'로 바꾼다.
+    // 데스크톱처럼 백그라운드에서도 계속 읽고 있었다면 그대로 둔다
+    function syncWithEngine() {
+      if (!playing || document.visibilityState !== "visible") return;
+      setTimeout(() => {
+        if (!playing || (speech.speaking && !speech.paused)) return;
+        run++;
+        speech.cancel();
+        setPlaying(false);
+      }, 400);
+    }
+    document.addEventListener("visibilitychange", syncWithEngine);
+    window.addEventListener("pageshow", syncWithEngine);
   }
 </script>
 
