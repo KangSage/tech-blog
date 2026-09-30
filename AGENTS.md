@@ -248,7 +248,7 @@ Recurring mistakes here were names drifting between the card, the index chip, an
 - Run `mise exec -- pnpm dev`, open the post, and check the browser console: `[concept-map] 배치 점검 통과` must appear. It warns when box text is closer than 4px to any box edge (horizontal or vertical) or when labels overlap boxes/vertical lines. Box text positions are derived from box height, so change `h` rather than hand-placing text.
 - The dev check only measures geometry; still look at the rendered map once, since it cannot judge odd-looking arrows or wording.
 - Then check by hand, since these are not automated:
-  - at 1366px, with the sidebar stuck, cycle through every card: the sidebar must not overflow (only the card body may scroll);
+  - at 1366px, with the sidebar stuck, cycle through every card with the index both collapsed and expanded ("전체 목록"), and in both analogy tabs: the sidebar must not overflow (collapsed: only the card body scrolls; expanded: the whole card scrolls). Click only concept chips while measuring, since the index toggle and analogy tabs change the state mid-loop;
   - selecting each new concept highlights only its real partners. Every line/label carries `data-edges="a:b c:d"` pairs (a shared line lists every pair it carries); relations with no drawn line go in `EXTRA_EDGES` and are shown with a dashed box outline (explained in the map legend), not as solid highlights. Only add pairs the official docs support; the dev check warns about unknown ids in pairs;
   - at 375px, no horizontal page overflow;
   - new links in the post body use `#concept-<id>` and switch the card without scrolling.
