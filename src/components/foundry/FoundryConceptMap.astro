@@ -146,7 +146,8 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
         <line class="ar" data-edges="analytics:action analytics:onto" x1="470" y1="538" x2="470" y2="518" marker-end="url(#fcm-ah)"></line>
         <text class="lab" data-edges="workshop:action workshop:function workshop:cm workshop:aip osdk:action osdk:function osdk:aip analytics:action" x="183" y="532">앱이 로직을 호출</text>
         <line class="ar" data-edges="osdk:oauth" x1="269" y1="592" x2="269" y2="606"></line>
-        <text class="lab" data-edges="osdk:oauth" x="300" y="652">토큰 리소스 = 사용자 권한 ∩ 앱 제한 (scope는 작업만)</text>
+        <!-- 왼쪽 끝을 Project · Role · Marking 태그 바로 뒤에 고정한다. 가운데 정렬이면 글꼴이 넓은 환경에서 태그를 덮는다 -->
+        <text class="lab as" data-edges="osdk:oauth" x="180" y="652">토큰 리소스 = 사용자 권한 ∩ 앱 제한 (scope는 작업만)</text>
 
         <!-- 운영 -->
         <text class="lab as" x="24" y="688">모든 층의 변경과 배포를 관리</text>
@@ -474,7 +475,9 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
       map.querySelectorAll<SVGTextElement>("text.lab").forEach((text) => {
         if (text.closest(".node")) return;
         const r = text.getBBox();
-        boxes.forEach((b) => { if (hit(r, b.r)) warnings.push(`상자와 겹치는 라벨: "${text.textContent}" × ${b.id}`); });
+        // 글꼴에 따라 글자 폭이 달라지므로 겹치지 않아도 4px 안으로 붙으면 경고한다
+        const near = new DOMRect(r.x - 4, r.y, r.width + 8, r.height);
+        boxes.forEach((b) => { if (hit(near, b.r)) warnings.push(`상자와 겹치거나 4px 안으로 붙은 라벨: "${text.textContent}" × ${b.id}`); });
         verticals.forEach(([x, y1, , y2]) => {
           if (x > r.x && x < r.x + r.width && Math.min(y1, y2) < r.y + r.height && Math.max(y1, y2) > r.y) warnings.push(`세로선과 겹치는 라벨: "${text.textContent}" (x=${x})`);
         });
