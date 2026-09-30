@@ -1,0 +1,351 @@
+---
+// 글 본문 읽어 주기: 브라우저 음성 합성(Web Speech API)만 쓰고 서버·외부 서비스는 쓰지 않는다.
+// 본문(.post-body)의 시맨틱 태그를 기준으로 읽을 단위를 정한다: 제목, 문단·목록 항목, 표의 행("열 이름: 값"), 그림(aria-label).
+// 사이드바의 개념 카드와 버튼·내비게이션은 읽지 않는다. 읽는 문장은 CSS Custom Highlight로 표시해 DOM을 바꾸지 않는다.
+import type { Locale } from "@/lib/i18n";
+import { t } from "@/lib/ui";
+
+interface Props {
+  lang: Locale;
+}
+
+const { lang } = Astro.props;
+const labels = {
+  pause: t("readPause", lang),
+  resume: t("readResume", lang),
+  noVoice: t("readNoVoice", lang),
+  figure: t("readFigure", lang),
+};
+---
+
+<div class="read-aloud" data-read-aloud data-lang={lang} data-labels={JSON.stringify(labels)} hidden>
+  <button type="button" class="ra-btn ra-start">
+    <svg viewBox="0 0 10 10" aria-hidden="true"><path d="M2 1 L9 5 L2 9 z"></path></svg>
+    {t("readAloud", lang)}
+  </button>
+  <span class="ra-controls" hidden>
+    <button type="button" class="ra-btn ra-toggle">{labels.pause}</button>
+    <button type="button" class="ra-btn ra-prev">{t("readPrev", lang)}</button>
+    <button type="button" class="ra-btn ra-next">{t("readNext", lang)}</button>
+    <button type="button" class="ra-btn ra-stop">{t("readStop", lang)}</button>
+  </span>
+  <span class="ra-status" role="status" aria-live="polite"></span>
+</div>
+
+<script>
+  type Item = { text: string; range: Range | null; el: Element; section: number };
+
+  const root = document.querySelector<HTMLElement>("[data-read-aloud]");
+  const body = document.querySelector<HTMLElement>(".post-body");
+  const synth = "speechSynthesis" in window ? window.speechSynthesis : null;
+
+  if (root && body && synth) {
+    const speech: SpeechSynthesis = synth;
+    const lang = root.dataset.lang ?? document.documentElement.lang;
+    const labels = JSON.parse(root.dataset.labels ?? "{}") as Record<string, string>;
+    const start = root.querySelector<HTMLButtonElement>(".ra-start")!;
+    const controls = root.querySelector<HTMLElement>(".ra-controls")!;
+    const toggle = root.querySelector<HTMLButtonElement>(".ra-toggle")!;
+    const status = root.querySelector<HTMLElement>(".ra-status")!;
+    const highlights = "highlights" in CSS ? CSS.highlights : null;
+    root.hidden = false;
+
+    // 기호는 소리로 읽으면 어색하므로 말로 바꾸거나 뺀다
+    const spoken: Record<string, [RegExp, string][]> = {
+      ko: [[/✓/g, "예"], [/✗/g, "아니요"], [/∩/g, " 교집합 "]],
+      ja: [[/✓/g, "はい"], [/✗/g, "いいえ"], [/∩/g, " 積集合 "]],
+      en: [[/✓/g, "yes"], [/✗/g, "no"], [/∩/g, " intersect "]],
+    };
+    const speakable = (text: string) =>
+      (spoken[lang] ?? [])
+        .reduce((s, [re, word]) => s.replace(re, word), text)
+        .replace(/↗/g, "")
+        .replace(/\s*(→|·|\/)\s*/g, ", ")
+        .replace(/\s+/g, " ")
+        .trim();
+
+    // data-read-skip: 글 속 컴포넌트가 읽지 않을 UI(범례·조작 안내 등)에 붙인다
+    const SKIP = "script, style, svg, button, nav, aside, figcaption, [hidden], [aria-hidden='true'], [data-read-skip]";
+
+    // 요소 안의 글자를 줄(<br>)과 문장으로 나누고, 문장마다 강조용 Range를 만든다
+    function sentences(el: Element): { text: string; range: Range }[] {
+      const lines: { node: Text; start: number }[][] = [[]];
+      let text = "";
+      const lineText: string[] = [""];
+      const walk = (node: Node) => {
+        if (node.nodeType === Node.TEXT_NODE) {
+          const value = node.textContent ?? "";
+          lines[lines.length - 1].push({ node: node as Text, start: lineText[lineText.length - 1].length });
+          lineText[lineText.length - 1] += value;
+          text += value;
+          return;
+        }
+        if (!(node instanceof Element) || node.matches(SKIP)) return;
+        if (node.tagName === "BR") { lines.push([]); lineText.push(""); return; }
+        node.childNodes.forEach(walk);
+      };
+      el.childNodes.forEach(walk);
+      const out: { text: string; range: Range }[] = [];
+      lines.forEach((nodes, li) => {
+        const line = lineText[li];
+        const pos = (offset: number): [Text, number] | null => {
+          for (let i = nodes.length - 1; i >= 0; i--) {
+            if (offset >= nodes[i].start) return [nodes[i].node, Math.min(offset - nodes[i].start, nodes[i].node.length)];
+          }
+          return null;
+        };
+        const re = /\S[\s\S]*?(?:[.!?。](?=\s|$)|$)/g;
+        for (const m of line.matchAll(re)) {
+          const raw = m[0].trim();
+          if (!raw) continue;
+          const a = pos(m.index!);
+          const b = pos(m.index! + m[0].trimEnd().length);
+          if (!a || !b) continue;
+          const range = document.createRange();
+          range.setStart(a[0], a[1]);
+          range.setEnd(b[0], b[1]);
+          out.push({ text: raw, range });
+        }
+      });
+      return out;
+    }
+
+    // 본문을 시맨틱 태그 순서대로 훑어 읽을 목록을 만든다. 절(section)은 h2 기준
+    function collect(): { items: Item[]; sections: string[] } {
+      const items: Item[] = [];
+      const sections = [document.querySelector("h1")?.textContent?.trim() ?? ""];
+      const push = (el: Element, parts: { text: string; range: Range | null }[]) =>
+        parts.forEach((p) => { const text = speakable(p.text); if (text) items.push({ text, range: p.range, el, section: sections.length - 1 }); });
+      const visit = (el: Element) => {
+        if (el.matches(SKIP)) return;
+        // 화면에 그려지지 않는 요소(좁은 화면 전용 안내 등)는 읽지 않는다. 접힌 details는 아래에서 따로 처리
+        if (el instanceof HTMLElement && el.getClientRects().length === 0) return;
+        const tag = el.tagName;
+        if (tag === "DETAILS" && !(el as HTMLDetailsElement).open) {
+          const summary = el.querySelector("summary");
+          if (summary) push(summary, sentences(summary));
+          return;
+        }
+        if (/^H[2-4]$/.test(tag)) {
+          if (tag === "H2") sections.push(el.textContent?.trim() ?? "");
+          push(el, sentences(el));
+          return;
+        }
+        if (tag === "TABLE") {
+          const heads = Array.from(el.querySelectorAll("thead th")).map((th) => th.textContent?.trim() ?? "");
+          el.querySelectorAll("tbody tr").forEach((tr) => {
+            const cells = Array.from(tr.children).map((td, i) => {
+              const value = sentences(td).map((s) => s.text).join(" ");
+              return heads[i] ? `${heads[i]}: ${value}` : value;
+            });
+            // 셀 끝에 이미 문장부호가 있으면 마침표를 덧붙이지 않는다
+            const range = document.createRange();
+            range.selectNodeContents(tr);
+            push(tr, [{ text: cells.map((c, i) => (i < cells.length - 1 && !/[.!?。]$/.test(c) ? `${c}.` : c)).join(" "), range }]);
+          });
+          return;
+        }
+        if (tag === "FIGURE") {
+          const label = el.querySelector("[aria-label][role]")?.getAttribute("aria-label") ?? el.querySelector("img")?.getAttribute("alt");
+          if (label) push(el, [{ text: `${labels.figure}. ${label}`, range: null }]);
+          return;
+        }
+        const leaf = tag === "P" || tag === "SUMMARY" || tag === "DT" || tag === "DD" || (tag === "LI" && !el.querySelector("p, ul, ol, table"));
+        if (leaf) { push(el, sentences(el)); return; }
+        Array.from(el.children).forEach(visit);
+      };
+      Array.from(body!.children).forEach(visit);
+      return { items, sections };
+    }
+
+    let items: Item[] = [];
+    let sections: string[] = [];
+    let index = 0;
+    let run = 0;
+    let playing = false;
+    let voice: SpeechSynthesisVoice | undefined;
+    // Chrome은 발화 객체가 가비지 컬렉션되면 onend를 부르지 않으므로 읽는 동안 참조를 붙잡아 둔다
+    let utterance: SpeechSynthesisUtterance | null = null;
+
+    // 기기 내장 음성을 먼저 고른다. Chrome의 네트워크 음성은 긴 문장(표의 행 등)을 15초 무렵에 끊는 문제가 있다
+    const pickVoice = () => {
+      const voices = speech.getVoices().filter((v) => v.lang.toLowerCase().startsWith(lang));
+      return voices.find((v) => v.localService) ?? voices[0];
+    };
+    const waitVoices = () => new Promise<void>((resolve) => {
+      if (speech.getVoices().length) return resolve();
+      const done = () => { speech.removeEventListener("voiceschanged", done); resolve(); };
+      speech.addEventListener("voiceschanged", done);
+      setTimeout(done, 1500);
+    });
+
+    // 좁은 화면에서는 개념 카드 패널이 위에 붙어 있으므로 그 아래를 보이는 영역으로 본다
+    function reveal(item: Item) {
+      const rect = (item.range ?? item.el).getBoundingClientRect();
+      const aside = document.getElementById("post-aside");
+      const asideRect = aside && !aside.hidden && getComputedStyle(aside).position === "sticky" ? aside.getBoundingClientRect() : null;
+      // 좁은 화면(패널이 전체 폭)에서는 스크롤한 뒤 패널이 위에 붙으므로 아직 붙기 전이어도 패널 높이만큼 비워 둔다
+      const top = asideRect && asideRect.width > window.innerWidth / 2 ? asideRect.height : 0;
+      if (rect.top >= top + 8 && rect.bottom <= window.innerHeight - 8) return;
+      // 탭이 백그라운드면 애니메이션이 멈춰 부드러운 스크롤이 진행되지 않으므로 바로 이동한다
+      const smooth = document.visibilityState === "visible" && !matchMedia("(prefers-reduced-motion: reduce)").matches;
+      // 보이는 영역보다 긴 항목(좁은 화면의 표 행 등)은 첫 줄이 보이게 위쪽에 맞추고, 나머지는 위에서 1/3 지점에 둔다
+      const room = window.innerHeight - top;
+      const target = rect.height > room * 0.6 ? top + 8 : top + room / 3;
+      window.scrollBy({ top: rect.top - target, behavior: smooth ? "smooth" : "auto" });
+    }
+
+    function mark(item: Item | null) {
+      if (!highlights) return;
+      if (item?.range) highlights.set("read-aloud", new Highlight(item.range));
+      else highlights.delete("read-aloud");
+    }
+
+    function show() {
+      const item = items[index];
+      if (!item) return;
+      status.textContent = `${item.section + 1}/${sections.length} · ${sections[item.section]}`;
+    }
+
+    function speak(i: number) {
+      const token = ++run;
+      speech.cancel();
+      index = i;
+      const item = items[i];
+      if (!item) return stop();
+      mark(item);
+      show(); // 상태 글자가 줄 높이를 바꿀 수 있으므로 스크롤 위치를 재기 전에 먼저 바꾼다
+      reveal(item);
+      const u = (utterance = new SpeechSynthesisUtterance(item.text));
+      u.lang = voice?.lang ?? lang;
+      if (voice) u.voice = voice;
+      u.onend = () => { if (token === run && playing) speak(i + 1); };
+      u.onerror = (e) => { if (token === run && playing && e.error !== "interrupted" && e.error !== "canceled") speak(i + 1); };
+      speech.speak(u);
+    }
+
+    function setPlaying(on: boolean) {
+      playing = on;
+      toggle.textContent = on ? labels.pause : labels.resume;
+    }
+
+    function stop() {
+      run++;
+      playing = false;
+      speech.cancel();
+      utterance = null;
+      mark(null);
+      controls.hidden = true;
+      start.hidden = false;
+      status.textContent = "";
+    }
+
+    const sectionStart = (s: number) => Math.max(0, items.findIndex((it) => it.section >= s));
+
+    start.addEventListener("click", async () => {
+      await waitVoices();
+      voice = pickVoice();
+      if (!voice) { status.textContent = labels.noVoice; return; }
+      ({ items, sections } = collect());
+      if (!items.length) return;
+      start.hidden = true;
+      controls.hidden = false;
+      setPlaying(true);
+      speak(0);
+    });
+    toggle.addEventListener("click", () => {
+      if (playing) { setPlaying(false); run++; speech.cancel(); }
+      else { setPlaying(true); speak(index); }
+    });
+    root.querySelector(".ra-prev")!.addEventListener("click", () => {
+      const current = items[index]?.section ?? 0;
+      const first = sectionStart(current);
+      setPlaying(true);
+      speak(index > first ? first : sectionStart(Math.max(0, current - 1)));
+    });
+    root.querySelector(".ra-next")!.addEventListener("click", () => {
+      const next = items.findIndex((it) => it.section > (items[index]?.section ?? 0));
+      if (next < 0) return stop();
+      setPlaying(true);
+      speak(next);
+    });
+    root.querySelector(".ra-stop")!.addEventListener("click", stop);
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !controls.hidden) stop(); });
+    window.addEventListener("pagehide", () => speech.cancel());
+  }
+</script>
+
+<style>
+  .read-aloud {
+    display: inline-flex;
+    min-width: 0;
+    max-width: 100%;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 10px;
+  }
+
+  .ra-controls {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .ra-controls[hidden] {
+    display: none;
+  }
+
+  .ra-status:empty {
+    display: none;
+  }
+
+  .ra-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 28px;
+    padding: 0 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text);
+    font: inherit;
+    font-size: 0.85rem;
+    cursor: pointer;
+  }
+
+  .ra-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* 날짜 글줄(약 25px)보다 버튼이 높아 본문이 밀리지 않도록, 시작 버튼은 위아래를 줄 높이 안으로 당긴다 */
+  .ra-start {
+    margin-block: -2px;
+  }
+
+  .ra-btn svg {
+    width: 9px;
+    height: 9px;
+    fill: currentColor;
+  }
+
+  /* 상태는 항상 자기 줄에 한 줄로 둔다. 절 이름 길이에 따라 줄 수가 바뀌면 읽는 동안 본문이 위아래로 밀린다 */
+  .ra-status {
+    flex-basis: 100%;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+    color: var(--muted);
+    font-size: 0.85rem;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+</style>
+
+<style is:global>
+  ::highlight(read-aloud) {
+    background-color: var(--accent-soft);
+    color: var(--text);
+  }
+</style>

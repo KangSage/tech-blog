@@ -66,12 +66,12 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
 ---
 
 <div class="fcm" data-fcm>
-  <ul class="legend" aria-label="색 구분">
+  <ul class="legend" aria-label="색 구분" data-read-skip>
     {layers.map(([layer, label]) => <li class={`l-${layer}`}><i></i>{label}</li>)}
   </ul>
 
   <div class="explore">
-    <p class="map-scroll-hint">그림을 좌우로 밀어서 볼 수 있습니다.</p>
+    <p class="map-scroll-hint" data-read-skip>그림을 좌우로 밀어서 볼 수 있습니다.</p>
     <figure class="fig" id="concept-map">
       <svg class="map" viewBox="-64 0 584 744" role="group" aria-label="Foundry 흐름: Data Connection이 외부 데이터를 가져오고, Python transform·Pipeline Builder가 Build로 Dataset을 만들며, Funnel이 Ontology로 인덱싱합니다. Action·Function·Compute module·Automate·AIP Logic이 Ontology를 읽고 쓰고, Workshop·React 앱·분석 앱이 이를 사용합니다. Project·Role·Marking이 전체를 감쌉니다.">
         <defs>
