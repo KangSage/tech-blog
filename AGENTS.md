@@ -230,7 +230,7 @@ Execute `omx setup` to install all components. Execute `omx doctor` to verify in
 
 ### Blog workflow
 - Verify with `mise exec -- pnpm build` (runs `astro check` + build). The repo is public: commit locally and ask before pushing, merging, or deploying.
-- Deploys run on push to `main` (GitHub Pages). PRs merge into `setup/secure-astro-blog-v0`, so `main` must be updated separately until the default branch changes.
+- Deploys run on push to `main` (GitHub Pages). `main` is the default branch: branch from `origin/main` and open PRs against it, so merging a PR deploys.
 - Post content must only state what the linked official docs (or source code) say. When asked to "check/review", report findings without editing.
 
 ### Article writing rules (Korean posts) — must follow for every article
