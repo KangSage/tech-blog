@@ -622,6 +622,8 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
     [data-docked] .card.is-active { display: flex; flex-direction: column; min-height: 0; }
     [data-docked] .cbody { flex: 0 1 auto; min-height: 96px; overflow-y: auto; overscroll-behavior: contain; }
     [data-docked] .cbody.has-more { mask-image: linear-gradient(to bottom, #000 calc(100% - 36px), transparent); }
+    /* 전체 목록을 펼치면 본문이 최소 높이까지 줄어도 요약·링크가 길면 넘치므로 카드 전체를 스크롤 */
+    [data-docked].index-open .card.is-active { overflow-y: auto; overscroll-behavior: contain; }
     [data-docked] .nav { flex: none; }
   }
 

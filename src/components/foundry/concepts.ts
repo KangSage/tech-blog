@@ -36,7 +36,7 @@ export const concepts: Concept[] = [
   {
     id: "dc", short: "Data Connection", layer: "data", title: "Data Connection",
     lead: "외부 시스템의 데이터를 Foundry로 가져오는(sync) 입구입니다. 반대로 webhook이나 data export로 외부 시스템에 다시 쓰는 연결도 만듭니다.",
-    analogy: "외부 DB·SaaS에서 데이터를 가져오는 ETL의 추출(Extract) 단계에 해당합니다. Source는 접속 주소와 인증 정보를 담은 연결 설정이고 Sync는 그 연결로 실제 데이터를 가져오는 작업입니다(지금은 batch sync 등).",
+    analogy: "외부 DB·SaaS에서 데이터를 가져오는 ETL의 추출(Extract) 단계에 해당합니다. Source는 접속 주소와 인증 정보를 담은 연결 설정이고 Sync는 그 연결로 실제 데이터를 가져오는 작업(지금은 batch sync 등)입니다.",
     everyday: "여러 거래처에서 오는 자료를 한곳에서 받아 두는 회사의 문서 수발실과 같습니다. 거래처별 연락처와 출입 방법(Source)을 등록해 두고 정해진 때마다 자료를 받아 옵니다(Sync).",
     points: [
       "Source: 외부 시스템 하나에 대한 연결입니다. 대상 위치(보통 URL)와 인증 정보를 담습니다.",
@@ -286,7 +286,7 @@ export const concepts: Concept[] = [
     analogy: "Prisma Client처럼 스키마(Ontology)에서 생성되는 타입 있는 클라이언트입니다. Developer Console은 GitHub의 OAuth App 설정처럼 앱을 등록하고 접근 범위를 관리하는 곳입니다.",
     everyday: "Foundry 데이터를 회사가 직접 만든 앱에서 쓸 수 있게 해 주는 전용 연결 도구입니다. Developer Console은 그 앱을 등록하고 어떤 데이터까지 쓸 수 있는지 정하는 관리 창구입니다.",
     points: [
-      "토큰의 리소스 접근 범위 = 사용자 권한 ∩ 앱 제한(application restrictions)",
+      "토큰의 리소스 접근 범위 = 사용자 권한 ∩ 앱의 resource restrictions",
       "앱 제한에는 접근할 리소스를 정하는 resource restrictions와 할 수 있는 작업을 정하는 operation restrictions 두 종류가 있습니다.",
       "앱이 토큰을 요청할 때 고를 수 있는 것은 api:use-ontologies-read 같은 작업(operation) scope뿐입니다. scope를 빈 값([])으로 요청하면 앱의 operation restrictions 전체가 적용됩니다. scope 없이 토큰을 요청하면 앱 제한이 허용하는 사용자 권한 전부가 적용됩니다.",
       "앱은 기본적으로 제한(restricted) 상태로 만들어집니다. 제한 없는(unrestricted) 앱은 사용자 권한만으로 접근이 결정되므로 신뢰할 수 있는 코드에만 써야 합니다.",
@@ -341,7 +341,7 @@ export const concepts: Concept[] = [
       "Dataset 권한과는 분리됩니다. 정책이 있으면 backing Dataset의 Viewer 권한 없이도 Object를 볼 수 있습니다.",
       "변경은 거의 즉시 반영됩니다. 반면 Restricted view(Dataset용 RLS)는 정책을 바꾼 뒤 파이프라인을 다시 Build해야 반영됩니다.",
     ],
-    warn: "Ontology 안에서 읽기만 걸러 주므로 원본 Dataset은 따로 잠가야 합니다. 이전 datasource-derived 권한 모델을 쓰는 환경에서는 Dataset 권한도 여전히 필요합니다.",
+    warn: "Ontology 안에서만 적용되므로 원본 Dataset은 따로 잠가야 합니다. 이전 datasource-derived 권한 모델을 쓰는 환경에서는 Dataset 권한도 여전히 필요합니다.",
     doc: D + "object-permissioning/object-security-policies",
     related: [
       { label: "Restricted view", href: D + "security/restricted-views" },
