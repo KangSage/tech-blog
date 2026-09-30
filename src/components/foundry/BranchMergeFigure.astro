@@ -14,7 +14,7 @@ type Kind = "n" | "accent" | "err" | "ok" | "aux";
 interface Box { x: number; y: number; w: number; h: number; bold: string[]; sub: string[]; kind: Kind; dash: boolean; align: "middle" | "start" }
 interface Diamond { cx: number; cy: number; hw: number; hh: number; lines: string[]; dash: boolean }
 interface Arrow { d: string; kind: "n" | "err"; dash?: boolean; head?: boolean }
-interface Label { x: number; y: number; text: string; anchor?: "start" | "middle" | "end"; kind?: "n" | "err" }
+interface Label { x: number; y: number; text: string | string[]; anchor?: "start" | "middle" | "end"; kind?: "n" | "err" }
 interface Panel { x: number; y: number; w: number; h: number; title: string }
 interface Fig { title: string; sub: string; W: number; H: number; wide: boolean; panels?: Panel[]; boxes: Box[]; diamonds?: Diamond[]; arrows: Arrow[]; labels?: Label[]; crosses?: { x: number; y: number }[] }
 
@@ -35,7 +35,7 @@ function figure1(): Fig {
   const s2 = box(L.x, bottom(s1) + 18, L.w, ["리소스별 검토 승인·", "checks 통과"], ["통과해야 Merge", "proposal 가능"]);
   const s3 = box(L.x, bottom(s2) + 18, L.w, ["Merge proposal 클릭"]);
   const s4 = box(L.x, bottom(s3) + 18, L.w, ["Ontology proposal", "task 적용"], ["invoke, 추정"], "n", true);
-  const d: Diamond = { cx: cx(s4), cy: bottom(s4) + 18 + 38, hw: 86, hh: 38, lines: ["적용 가능한", "상태?"], dash: true };
+  const d: Diamond = { cx: cx(s4), cy: bottom(s4) + 18 + 38, hw: 76, hh: 38, lines: ["적용 가능한", "상태?"], dash: true };
   const ok = box(L.x, d.cy + d.hh + 36, L.w, ["병합 완료"], ["변경이 main에 반영"], "ok");
   const err = box(R.x, d.cy - 24, R.w, ["TaskIsNotInvokable"], ["적용할 수 없는 상태에서", "병합 시도(추정)"], "err");
   const aux = box(R.x, 0, R.w, ["적용이 막히는 경우"], ["Pending approval:", "승인 안 된 task", "Action required:", "checkpoint 등", "이번 사례:", "D의 main 쪽 데이터", "없음(추정)"], "aux", false, "start");
@@ -57,7 +57,7 @@ function figure1(): Fig {
     ],
     labels: [
       { x: d.cx + 8, y: d.cy + d.hh + 22, text: "예", anchor: "start" },
-      { x: (d.cx + d.hw + R.x) / 2 + 2, y: d.cy + 18, text: "아니오", kind: "err" },
+      { x: (d.cx + d.hw + R.x) / 2, y: d.cy - 7, text: "아니오", kind: "err" },
     ],
   };
 }
@@ -79,14 +79,15 @@ function figure2(): Fig {
   const o3 = box(inner(2).x, oy, inner(2).w, ["Object type O"], ["main에 적용 시도"]);
   const d3 = box(inner(2).x, d2.y, inner(2).w, ["Dataset D"], ["main 쪽 데이터 없음(추정)"], "err", true);
   const panelH = bottom(d1) + 14 - top;
+  // 아래 줄: 병합 결과(3칸 아래) → 해결(왼쪽으로)
   const rej = box(P[2].x, top + panelH + 40, P[2].w, ["Approvals가 적용 거절"], ["TaskIsNotInvokable"], "err");
-  const fix = box(P[2].x, bottom(rej) + 40, P[2].w, ["main에 D 생성"], ["다시 병합해 성공"], "ok");
+  const fix = box(P[1].x, rej.y, P[1].w, ["main에 D 생성"], ["다시 병합해 성공"], "ok");
   const gap = (i: number) => (P[i].x + P[i].w + P[i + 1].x) / 2;
   const xEnd = P[1].x - 12;
   return {
     title: "추정: D가 proposal에 없어 main에서 O를 적용하지 못했습니다",
     sub: "main에 D를 만들자 병합이 성공한 결과로 미루어 본 흐름입니다",
-    W: 720, H: bottom(fix) + 8, wide: true,
+    W: 720, H: bottom(rej) + 8, wide: true,
     panels: P.map((p) => ({ x: p.x, y: top, w: p.w, h: panelH, title: p.title })),
     boxes: [o1, d1, o2, d2, o3, d3, rej, fix],
     arrows: [
@@ -96,17 +97,17 @@ function figure2(): Fig {
       { d: `M${d1.x + d1.w} ${cy(d1)} H${xEnd}`, kind: "err", dash: true, head: false },
       { d: `M${cx(o3)} ${bottom(o3)} V${d3.y - 2}`, kind: "err", dash: true },
       { d: `M${P[2].x + P[2].w / 2} ${top + panelH} V${rej.y - 2}`, kind: "n" },
-      { d: `M${cx(rej)} ${bottom(rej)} V${fix.y - 2}`, kind: "n" },
+      { d: `M${rej.x} ${cy(rej)} H${fix.x + fix.w + 2}`, kind: "n" },
     ],
     crosses: [{ x: xEnd + 2, y: cy(d1) }],
     labels: [
-      { x: cx(o1) + 8, y: (bottom(o1) + d1.y) / 2 + 4, text: "backing datasource", anchor: "start" },
+      { x: cx(o1) + 8, y: (bottom(o1) + d1.y) / 2 - 3, text: ["backing", "datasource"], anchor: "start" },
       { x: gap(0), y: cy(o1) - 8, text: "포함" },
       { x: gap(1), y: cy(o2) - 8, text: "병합" },
-      { x: (d1.x + d1.w + xEnd) / 2, y: cy(d1) - 8, text: "없음", kind: "err" },
-      { x: cx(o3) + 8, y: (bottom(o3) + d3.y) / 2 + 4, text: "가리킬 데이터 없음(추정)", anchor: "start", kind: "err" },
+      { x: gap(0), y: cy(d1) - 11, text: "없음", kind: "err" },
+      { x: cx(o3) - 8, y: (bottom(o3) + d3.y) / 2 - 3, text: ["가리킬 데이터", "없음(추정)"], anchor: "end", kind: "err" },
       { x: P[2].x + P[2].w / 2 - 8, y: (top + panelH + rej.y) / 2 + 4, text: "병합 결과", anchor: "end" },
-      { x: cx(rej) - 8, y: (bottom(rej) + fix.y) / 2 + 4, text: "해결", anchor: "end" },
+      { x: (rej.x + fix.x + fix.w) / 2, y: cy(rej) - 8, text: "해결" },
     ],
   };
 }
@@ -114,11 +115,11 @@ function figure2(): Fig {
 function figure3(): Fig {
   // 왼쪽 열: 판단 흐름, 오른쪽 열: 각 판단에서 갈라지는 결과
   const L = { x: 8, w: 192 };
-  const R = { x: 226, w: 168 };
+  const R = { x: 232, w: 162 };
   const start = box(L.x, 8, L.w, ["브랜치에서 다룰 리소스"]);
-  const q1: Diamond = { cx: cx(start), cy: bottom(start) + 18 + 38, hw: 92, hh: 38, lines: ["다루는 앱이", "표에 있나?"], dash: false };
+  const q1: Diamond = { cx: cx(start), cy: bottom(start) + 18 + 38, hw: 78, hh: 38, lines: ["다루는 앱이", "표에 있나?"], dash: false };
   const no1 = box(R.x, q1.cy - boxH(5) / 2, R.w, ["미지원으로 간주", "(경험칙)"], ["main에서 먼저 작업", "예: UI·업로드로", "만든 Dataset"], "accent");
-  const q2: Diamond = { cx: q1.cx, cy: Math.max(q1.cy + q1.hh + 36 + 38, bottom(no1) + 18 + boxH(4) / 2), hw: 92, hh: 38, lines: ["앱 문서의 제약에", "걸리나?"], dash: false };
+  const q2: Diamond = { cx: q1.cx, cy: Math.max(q1.cy + q1.hh + 36 + 38, bottom(no1) + 18 + boxH(4) / 2), hw: 78, hh: 38, lines: ["앱 문서의 제약에", "걸리나?"], dash: false };
   const yes2 = box(R.x, q2.cy - boxH(4) / 2, R.w, ["제약을 감안해 작업"], ["예: 브랜치에서 실행한", "Action의 편집은", "main에 병합 안 됨"]);
   const end = box(L.x, q2.cy + q2.hh + 36, L.w, ["브랜치에서 작업"], ["병합 전 proposal", "목록 확인"]);
   return {
@@ -135,9 +136,9 @@ function figure3(): Fig {
       { d: `M${q2.cx} ${q2.cy + q2.hh} V${end.y - 2}`, kind: "n" },
     ],
     labels: [
-      { x: (q1.cx + q1.hw + R.x) / 2 + 2, y: q1.cy + 18, text: "아니오" },
+      { x: (q1.cx + q1.hw + R.x) / 2, y: q1.cy - 7, text: "아니오" },
       { x: q1.cx + 8, y: q1.cy + q1.hh + 22, text: "예", anchor: "start" },
-      { x: (q2.cx + q2.hw + R.x) / 2 + 2, y: q2.cy + 18, text: "예" },
+      { x: (q2.cx + q2.hw + R.x) / 2, y: q2.cy - 7, text: "예" },
       { x: q2.cx + 8, y: q2.cy + q2.hh + 22, text: "아니오", anchor: "start" },
     ],
   };
@@ -216,7 +217,9 @@ const diamondPoints = (d: Diamond) => `${d.cx},${d.cy - d.hh} ${d.cx + d.hw},${d
         </g>
       ))}
       {fig.labels?.map((l) => (
-        <text class={`lab${l.kind === "err" ? " lab-err" : ""}`} x={l.x} y={l.y} text-anchor={l.anchor ?? "middle"}>{l.text}</text>
+        [l.text].flat().map((t, i) => (
+          <text class={`lab${l.kind === "err" ? " lab-err" : ""}`} x={l.x} y={l.y + i * 16} text-anchor={l.anchor ?? "middle"}>{t}</text>
+        ))
       ))}
     </svg>
   </div>
@@ -282,6 +285,11 @@ const diamondPoints = (d: Diamond) => `${d.cx},${d.cy - d.hh} ${d.cx + d.hw},${d
     font-size: 13px;
     line-height: 1.5;
     text-align: center;
+  }
+
+  .bmf figcaption strong,
+  .bmf figcaption span {
+    text-wrap: balance;
   }
 
   .bmf figcaption strong {
