@@ -40,7 +40,7 @@ export const concepts: Concept[] = [
     everyday: "여러 거래처에서 오는 자료를 한곳에서 받아 두는 회사의 문서 수발실과 같습니다. 거래처별 연락처와 출입 방법(Source)을 등록해 두고 정해진 때마다 자료를 받아 옵니다(Sync).",
     points: [
       "Source: 외부 시스템 하나에 대한 연결입니다. 대상 위치(보통 URL)와 인증 정보를 담습니다.",
-      "Sync: Source의 데이터를 Dataset, stream, Iceberg 테이블, Media set 등으로 가져옵니다.",
+      "Sync는 데이터를 Foundry로 가져오는 작업을 통칭하던 예전 용어입니다. 지금은 batch, Iceberg, streaming, CDC, media sync로 나뉩니다.",
       "데이터는 외부에서 미리 가공하지 않고 원본 그대로(as-is) 가져오는 것을 원칙으로 합니다.",
       "실패 시 자동 재시도와 데이터 상태 모니터링을 기본으로 제공합니다.",
     ],
@@ -54,13 +54,14 @@ export const concepts: Concept[] = [
     analogy: "API 핸들러가 아니라 cron 배치 잡에 가깝습니다. Code Repositories는 웹 IDE와 Git 저장소를 합친 도구입니다.",
     everyday: "매일 밤 정해진 시간에 재료를 한꺼번에 손질해 두는 주방의 밑준비와 같습니다. 주문이 들어올 때마다 요리하는 것이 아니라 미리 처리해 둔 결과를 다음 단계가 가져다 씁니다.",
     points: [
+      "아래 엔진별 크기는 공식 문서가 대략적 기준(rule of thumb)으로 제시한 값이며 모든 쿼리에 들어맞지는 않습니다.",
       "pandas: 1GB·100만 행 미만 (데이터 크기는 압축 전 기준)",
       "Polars·DuckDB: 1~50GB, 2억 행까지",
       "PySpark: 50GB·2억 행 초과. 시작 오버헤드가 큽니다.",
     ],
     warn: "운영용 transform은 Polars를 기본으로 쓰도록 권장합니다. Spark는 대개 50GB를 넘고 filter pushdown 같은 최적화를 쓸 수 없을 때만 권장합니다.",
     doc: D + "transforms-python/compute-engines",
-    related: [{ label: "transform 기본", href: D + "transforms-python/transforms-pipelines" }],
+    related: [{ label: "transform 기본", href: D + "transforms-python/transforms" }],
   },
   {
     id: "pb", short: "Pipeline Builder", layer: "data", title: "Pipeline Builder",
@@ -74,7 +75,7 @@ export const concepts: Concept[] = [
       "생성된 코드는 기존 Java transforms 저장소로만 내보낼 수 있습니다(PySpark 불가, 기본 배치 파이프라인만). 대상 브랜치의 기존 코드는 삭제되고 되돌릴 수 없는 단방향 작업입니다.",
       "UDF·LLM 호출·미디어 연산 등은 내보낸 코드에서 TODO로 남으며 결과가 원래 파이프라인과 다를 수 있습니다.",
     ],
-    warn: "스트리밍 파이프라인은 Palantir 담당자에게 요청해야 쓸 수 있습니다.",
+    warn: "스트리밍 파이프라인은 모든 환경에서 제공되지는 않습니다. 필요하면 Palantir 담당자에게 문의합니다.",
     doc: D + "pipeline-builder/overview",
     related: [
       { label: "Expression과 Transform", href: D + "pipeline-builder/transforms-overview" },
@@ -106,7 +107,7 @@ export const concepts: Concept[] = [
       "UPDATE: 파일을 추가하거나 덮어씁니다. 덮어쓰면 하류의 증분 처리가 깨집니다.",
       "DELETE: 현재 view에서 파일 참조만 뺍니다. 실제 파일은 지우지 않으며 주로 보존(retention) 작업에 씁니다.",
     ],
-    warn: "Data Lineage → History → Rollback to transaction으로 롤백할 수 있지만 되돌아가는 것은 데이터뿐이며 로직은 그대로입니다. 보존 정책(retention)으로 삭제된 트랜잭션으로는 롤백할 수 없습니다. 보존 정책은 삭제 표시 후 보통 7일 뒤 실제로 지우며 그 이후에는 복구할 수 없습니다.",
+    warn: "Data Lineage → History → Rollback to transaction으로 롤백할 수 있지만 되돌아가는 것은 데이터뿐이며 로직은 그대로입니다. 보존 정책(retention)으로 삭제된 트랜잭션으로는 롤백할 수 없습니다. 보존 정책은 삭제 표시 후 보통 7일 뒤 실제로 지우며 그 이후에는 복구할 수 없습니다. 실제로 지우기 전에는 삭제 표시를 되돌릴 수 있습니다. 잘못 표시한 정책을 먼저 고치고 7일 안에 Palantir 담당자에게 연락합니다.",
     doc: D + "data-integration/datasets",
     related: [
       { label: "롤백", href: D + "data-lineage/dataset-rollback" },
@@ -128,6 +129,7 @@ export const concepts: Concept[] = [
     doc: D + "media-sets-advanced-formats/media-overview",
     related: [
       { label: "Ontology에서 쓰기", href: D + "media-sets-advanced-formats/media-in-ontology" },
+      { label: "Capabilities 탭", href: D + "object-link-types/base-types" },
       { label: "덮어쓰기와 버전 이력", href: D + "media-sets-advanced-formats/importing-media" },
       { label: "보존 정책", href: D + "media-sets-advanced-formats/media-set-settings" },
       { label: "권한 분리", href: D + "object-permissioning/managing-object-security" },
@@ -151,16 +153,21 @@ export const concepts: Concept[] = [
   },
   {
     id: "onto", short: "Ontology", layer: "onto", title: "Ontology",
-    lead: "Dataset 위에 업무 의미를 부여하는 계층입니다. 업무용 앱(Workshop·OSDK)은 Dataset이 아니라 Ontology를 읽고 씁니다.",
+    lead: "Dataset 위에 업무 의미를 부여하는 계층입니다. 업무용 앱(Workshop·OSDK)은 주로 Ontology를 읽고 씁니다. Platform SDK로 Dataset API를 호출할 수도 있습니다.",
     analogy: "ORM 모델 계층에 해당합니다. Object type = 테이블, Object = 행, Property = 컬럼, Link type = 조인/FK, Object set = WHERE 결과입니다.",
     everyday: "엑셀 표를 '고객', '주문'처럼 실제 업무에서 쓰는 말로 정리한 명부와 같습니다. 한 줄은 고객 한 명, 칸은 이름·연락처 같은 항목이고 Link는 '이 고객의 주문 목록' 같은 연결입니다.",
     points: [
-      "Object의 값은 backing datasource(원본 Dataset)에서 옵니다.",
+      "Object의 값은 backing datasource(원본 Dataset)의 데이터와 Action 편집을 합친 것입니다. Action으로만 채우는 Object type처럼 datasource가 없는 경우도 있습니다.",
       "Link type은 1:1, 1:N, N:1, N:M 관계를 표현합니다. N:M 관계는 조인 테이블 Dataset으로 연결합니다.",
       "Object set의 예: 상태가 '지연'인 항공편 전체",
     ],
     doc: D + "ontology/core-concepts",
-    related: [{ label: "Link type 만들기", href: D + "object-link-types/create-link-type" }],
+    related: [
+      { label: "Link type 만들기", href: D + "object-link-types/create-link-type" },
+      { label: "Materializations", href: D + "object-edits/materializations" },
+      { label: "Object type 만들기", href: D + "object-link-types/create-object-type" },
+      { label: "Platform SDK", href: D + "developer-console/application-restrictions" },
+    ],
   },
   {
     id: "interfaces", short: "Interfaces", layer: "onto", title: "Interfaces",
@@ -168,7 +175,7 @@ export const concepts: Concept[] = [
     analogy: "TypeScript의 interface와 같습니다. Facility interface를 Airport와 Manufacturing Plant가 구현하면 Facility를 받는 코드는 두 타입을 모두 처리합니다.",
     everyday: "'시설'이라는 공통 양식과 같습니다. 공항·공장·정비고는 각자 칸이 다르지만 '시설 이름·위치'라는 공통 칸이 있어서 시설 목록 하나로 함께 관리할 수 있습니다.",
     points: [
-      "Interface는 interface property, link type 제약, action type 제약, 메타데이터로 구성됩니다.",
+      "Interface는 interface property, link type 제약, action type 제약(베타), 메타데이터로 구성됩니다.",
       "하나의 interface를 여러 Object type이 구현할 수 있습니다. 새 Object type이 구현하면 기존 워크플로가 수정 없이 바로 호환됩니다.",
       "interface를 확장(extend)해 속성을 물려받는 하위 interface를 만들 수 있습니다.",
     ],
@@ -185,8 +192,10 @@ export const concepts: Concept[] = [
       "Parameters: 요청 body에 해당합니다.",
       "Rules: 무엇을 바꿀지 정합니다(생성·수정·삭제·링크).",
       "Submission criteria: 제출 가능 여부를 정합니다. 사용자 그룹·파라미터·Object 상태를 조합해 조건을 만듭니다.",
+      "제출하려면 편집 대상 Object type·Link type과 그 datasource를 볼 수 있어야 하고 편집 권한도 있어야 합니다. Action으로만 편집하는 타입은 대상 Object의 Read 권한, 그 밖의 타입은 writeback Dataset의 Edit 권한, Restricted view 기반 타입은 edit policy 통과가 필요합니다.",
+      "action log를 쓰는 Action은 action log Object type에 대한 권한도 있어야 제출할 수 있습니다.",
     ],
-    warn: "Object가 보이는지는 Object security policy가, 제출할 수 있는지는 Submission criteria가 결정합니다.",
+    warn: "Submission criteria만 통과한다고 제출할 수 있는 것은 아닙니다. Object security policy 같은 행·열 통제는 읽기만 거르며 Action의 쓰기에는 적용되지 않습니다.",
     doc: D + "action-types/overview",
     related: [
       { label: "Submission criteria", href: D + "action-types/submission-criteria" },
@@ -199,9 +208,10 @@ export const concepts: Concept[] = [
     analogy: "AWS Lambda나 Next.js API route에 가깝습니다. Transform이 배치라면 Function은 요청 즉시 실행됩니다.",
     everyday: "물어볼 때마다 바로 답을 계산해 주는 계산기와 같습니다. 밤새 미리 만들어 두는 transform과 달리 요청이 들어온 순간 계산합니다.",
     points: [
-      "Query: API로 호출하는 읽기용 함수입니다. 편집이 필요하면 Action을 씁니다.",
+      "Query: 부수 효과가 없는 읽기 전용 함수입니다. API gateway로 노출하는 것은 선택 사항이며 편집이 필요하면 Action을 씁니다.",
       "Edit function: 편집 내용을 계산만 합니다. Function-backed action으로 실행해야 저장됩니다.",
       "TypeScript v2나 Python이 권장됩니다.",
+      "관리자가 extended function execution을 허용하면 function 안에서 Action을 호출할 수 있습니다. 이때도 저장은 Action을 거칩니다.",
     ],
     warn: "Edit function을 helper에서 실행해도 결과는 저장되지 않습니다. Function으로 Object를 수정하는 방법은 그 Function을 쓰는 Action을 실행하는 것뿐입니다.",
     doc: D + "functions/overview",
@@ -209,6 +219,7 @@ export const concepts: Concept[] = [
       { label: "Ontology edits", href: D + "functions/edits-overview" },
       { label: "Query 함수", href: D + "functions/query-functions" },
       { label: "언어별 지원", href: D + "functions/language-feature-support" },
+      { label: "Function 권한", href: D + "functions/permissions" },
     ],
   },
   {
@@ -262,8 +273,11 @@ export const concepts: Concept[] = [
       "기본 위젯으로 부족하면 Custom widget으로 직접 작성한 프론트엔드 코드를 넣을 수 있습니다.",
       "기본 도구를 넘어서는 완전한 맞춤 화면이 필요하면 OSDK React 앱을 만듭니다.",
     ],
-    doc: D + "app-building/overview",
-    related: [],
+    doc: D + "workshop/overview",
+    related: [
+      { label: "앱 빌딩 개요", href: D + "app-building/overview" },
+      { label: "Custom widget", href: D + "custom-widgets/overview" },
+    ],
   },
   {
     id: "osdk", short: "OSDK", layer: "app", title: "OSDK · Developer Console",
@@ -271,11 +285,13 @@ export const concepts: Concept[] = [
     analogy: "Prisma Client처럼 스키마(Ontology)에서 생성되는 타입 있는 클라이언트입니다. Developer Console은 GitHub의 OAuth App 설정처럼 앱을 등록하고 접근 범위를 관리하는 곳입니다.",
     everyday: "Foundry 데이터를 회사가 직접 만든 앱에서 쓸 수 있게 해 주는 전용 연결 도구입니다. Developer Console은 그 앱을 등록하고 어떤 데이터까지 쓸 수 있는지 정하는 관리 창구입니다.",
     points: [
-      "토큰의 접근 범위 = 사용자 권한 ∩ 앱 제한(application restrictions) ∩ 요청 scope",
+      "토큰의 리소스 접근 범위 = 사용자 권한 ∩ 앱 제한(application restrictions)",
+      "앱 제한에는 접근할 리소스를 정하는 resource restrictions와 할 수 있는 작업을 정하는 operation restrictions 두 종류가 있습니다.",
+      "앱이 토큰을 요청할 때 고를 수 있는 것은 api:use-ontologies-read 같은 작업(operation) scope뿐입니다. 요청한 scope를 비워 두면 앱의 operation restrictions 전체가 적용됩니다.",
       "앱은 기본적으로 제한(restricted) 상태로 만들어집니다. 제한 없는(unrestricted) 앱은 사용자 권한만으로 접근이 결정되므로 신뢰할 수 있는 코드에만 써야 합니다.",
-      "웹 호스팅은 정적 SPA만 지원하고 서버 코드는 실행할 수 없습니다. 파일은 최대 1,000개, 전체 20MB까지 올릴 수 있습니다.",
+      "웹 호스팅은 정적 에셋만 지원하고 서버 코드는 실행할 수 없습니다. 커스텀 404 페이지가 없으면 SPA로 간주합니다. 파일은 최대 1,000개, 전체 20MB까지 올릴 수 있습니다.",
     ],
-    warn: "앱 제한은 앱이 받을 수 있는 권한의 보장된 상한입니다. 요청 scope는 앱 코드가 토큰을 요청할 때 정하는 값으로 그 상한 안에서 범위를 더 좁히는 역할만 합니다.",
+    warn: "앱 제한은 앱이 받을 수 있는 권한의 보장된 상한입니다. 요청 scope는 작업(operation) 범위만 좁힙니다. 리소스 접근은 앱의 resource restrictions와 사용자 권한만으로 정해집니다.",
     doc: D + "developer-console/overview",
     related: [
       { label: "앱 제한", href: D + "developer-console/application-restrictions" },
@@ -301,7 +317,7 @@ export const concepts: Concept[] = [
   },
   {
     id: "project", short: "Project · Role · Marking", layer: "sec", title: "Project · Role · Marking",
-    lead: "Project는 리소스를 묶는 작업 단위이자 권한 경계입니다. 리소스에 접근하려면 Role이 있어야 하고 적용된 Marking도 모두 통과해야 합니다.",
+    lead: "Project는 리소스를 묶는 작업 단위이자 역할 부여(discretionary) 권한의 경계입니다. 리소스에 접근하려면 Role이 있어야 하고 필수 통제(Organization, Marking, CBAC)를 모두 통과해야 합니다.",
     analogy: "Role은 MySQL의 GRANT처럼 무엇을 할 수 있는지 정합니다. Marking은 모든 요청 앞에 붙는 필수 검사 미들웨어와 같아서 하나라도 통과하지 못하면 GRANT와 관계없이 차단됩니다.",
     everyday: "Role은 사무실 출입증의 등급(보기만 가능, 편집 가능 등)과 같습니다. Marking은 '기밀' 표시가 붙은 서류실의 추가 잠금이라 출입증 등급이 높아도 기밀 허가가 없으면 들어갈 수 없습니다.",
     points: [
@@ -328,6 +344,7 @@ export const concepts: Concept[] = [
     doc: D + "object-permissioning/object-security-policies",
     related: [
       { label: "Restricted view", href: D + "security/restricted-views" },
+      { label: "정책 방식 비교", href: D + "object-permissioning/managing-object-security" },
       { label: "Granular policy", href: D + "platform-security-management/manage-granular-policies" },
     ],
   },
@@ -355,13 +372,14 @@ export const concepts: Concept[] = [
     everyday: "명부에 어떤 칸을 둘지 정하고 신청서 양식을 설계하는 관리자 화면입니다.",
     points: [
       "Object type을 만들 때 메타데이터, backing datasource, 속성 매핑, 키(primary key·title key)를 지정합니다.",
-      "Action으로만 데이터를 채울 Object type은 datasource 없이 만들 수 있습니다.",
-      "보호된 리소스는 브랜치에서 수정하고 proposal을 거쳐 병합해야 합니다.",
+      "Action으로만 데이터를 채울 Object type은 datasource 없이 만들 수 있습니다. 이 경우 Object type을 프로젝트에 저장하고 누가 Object를 볼 수 있는지 정하는 Object security policy를 설정해야 합니다.",
+      "보호된 리소스는 브랜치에서 수정하고 proposal을 거쳐 병합해야 합니다. 보호는 리소스 owner가 켭니다.",
     ],
     warn: "SuperRepo(Ontology-as-code)는 베타 단계이며 공식 문서에 따르면 환경(enrollment)에 따라 제공되지 않을 수 있습니다.",
     doc: D + "ontology-manager/overview",
     related: [
       { label: "Object type 만들기", href: D + "object-link-types/create-object-type" },
+      { label: "리소스 보호", href: D + "global-branching/resource-protection-and-approval-policies" },
       { label: "SuperRepo", href: D + "superrepo/overview" },
     ],
   },
@@ -371,15 +389,19 @@ export const concepts: Concept[] = [
     analogy: "Git feature branch와 PR에 해당합니다. 다만 코드뿐 아니라 파이프라인·Ontology·화면까지 함께 다룹니다.",
     everyday: "원본을 바로 고치지 않고 사본에서 먼저 고쳐 본 뒤 검토를 받아 원본에 반영하는 방식입니다. 구글 문서의 '제안 모드'와 비슷합니다.",
     points: [
-      "지원 대상: Code Repositories, Pipeline Builder, Ontology(Action·Materialization 포함), Workshop, AIP Logic, Automate, Object Views, Restricted Views, TypeScript function 등. TS v2 function은 로컬 OSDK를 쓸 때만 브랜치에서 수정할 수 있고 Python function은 수정할 수 없습니다.",
+      "지원 대상: Code Repositories, Pipeline Builder, Ontology(Action·Materialization 포함), Workshop, AIP Logic, Automate, Object Views, Restricted Views, TypeScript function 등. TS v2 function은 로컬 OSDK를 쓸 때만 브랜치에서 수정할 수 있습니다. Python function은 브랜치에서 수정할 수 없고 특정 버전을 참조해 테스트할 수만 있습니다(Main 스키마만 사용).",
       "Proposal이 PR 역할을 합니다. 리소스별 승인 → merge check → Merge 순서로 진행되며 일부만 실패한 병합은 되돌릴 수 없습니다.",
-      "Ontology Manager 리소스에는 branch protection이 기본으로 켜져 있습니다.",
+      "브랜치에서 리소스를 만들거나 지우면 Main에도 반영됩니다. Ontology 리소스는 예외로 브랜치에서 만들고 지워도 Main에 영향을 주지 않습니다.",
+      "Branch protection은 리소스 owner가 직접 켭니다. Ontology 리소스는 먼저 project permissions로 migration해야 보호할 수 있습니다.",
       "기본값으로 35일 동안 쓰지 않은 브랜치는 비활성화되고 그 7일 뒤 브랜치 데이터가 삭제됩니다.",
     ],
-    warn: "브랜치에서 Action으로 만든 편집은 테스트용이며 Main에 병합되지 않습니다. 또한 Ontology SDK(OSDK)는 현재 브랜치를 지원하지 않고 Developer Console도 지원 대상에 없습니다.",
-    doc: D + "foundry-branching/branching-lifecycle-usage",
+    warn: "브랜치에서 Action으로 만든 편집은 테스트용이며 Main에 병합되지 않습니다. 일반 OSDK 앱은 브랜치를 지원하지 않고 Developer Console도 지원 대상에 없습니다. 예외는 TS v2 function의 로컬 OSDK와 pro-code agent의 OSDK 호출입니다. pro-code agent는 브랜치 컨텍스트를 물려받지만 스키마는 Main의 것을 씁니다.",
+    doc: D + "global-branching/core-concepts",
     related: [
-      { label: "지원 범위", href: D + "foundry-branching/supported-functionality" },
+      { label: "지원 범위", href: D + "global-branching/integrations" },
+      { label: "리소스 보호", href: D + "global-branching/resource-protection-and-approval-policies" },
+      { label: "로컬 OSDK", href: D + "functions/local-sdks" },
+      { label: "Agent 브랜치", href: D + "agents/branching" },
       { label: "GA 공지", href: D + "announcements/2026-05" },
       { label: "브랜치에서 Action 실행", href: D + "action-types/branching-action-types" },
       { label: "Ontology 브랜치", href: D + "ontologies/branching-ontology" },
@@ -393,11 +415,13 @@ export const concepts: Concept[] = [
     points: [
       "Product는 Input(연결할 의존 리소스)과 Output(설치로 생성되는 리소스)으로 구성됩니다.",
       "Store는 product 모음입니다. 로컬 Store는 저장된 프로젝트나 폴더의 권한을 상속하고 원격 Store 권한은 Control Panel에서 설정합니다.",
-      "개발·테스트·운영 환경별로 설치할 수 있고 release channel을 따라 새 버전을 자동으로 받을 수 있습니다.",
+      "개발·테스트·운영 환경별로 설치할 수 있습니다. release channel을 지정하면 그 채널의 새 버전이 업그레이드 후보로 표시될 뿐이며 자동으로 설치하려면 Automatic upgrades(베타)를 켜야 합니다.",
     ],
     doc: D + "devops/core-concepts",
     related: [
       { label: "설치하기", href: D + "marketplace/install-product" },
+      { label: "설치 설정", href: D + "marketplace/installations" },
+      { label: "업그레이드", href: D + "marketplace/upgrades" },
       { label: "Store 권한", href: D + "foundry-devops/manage-store-permissions" },
       { label: "릴리스 관리", href: D + "devops-release-management/use-devops-for-release-management" },
     ],
