@@ -53,6 +53,7 @@ export const ui = {
   readPrev: { ko: "이전 절", ja: "前の節", en: "Previous section" },
   readNext: { ko: "다음 절", ja: "次の節", en: "Next section" },
   readStop: { ko: "정지", ja: "停止", en: "Stop" },
+  readRate: { ko: "읽기 속도", ja: "読み上げ速度", en: "Reading speed" },
   readNoVoice: {
     ko: "이 기기에는 한국어 음성이 없어 읽어 줄 수 없습니다.",
     ja: "この端末には日本語の音声がないため読み上げできません。",

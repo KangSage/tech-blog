@@ -28,6 +28,7 @@ const labels = {
     <button type="button" class="ra-btn ra-prev">{t("readPrev", lang)}</button>
     <button type="button" class="ra-btn ra-next">{t("readNext", lang)}</button>
     <button type="button" class="ra-btn ra-stop">{t("readStop", lang)}</button>
+    <button type="button" class="ra-btn ra-rate" aria-label={t("readRate", lang)} title={t("readRate", lang)}>1×</button>
   </span>
   <span class="ra-status" role="status" aria-live="polite"></span>
 </div>
@@ -167,6 +168,18 @@ const labels = {
     // Chrome은 발화 객체가 가비지 컬렉션되면 onend를 부르지 않으므로 읽는 동안 참조를 붙잡아 둔다
     let utterance: SpeechSynthesisUtterance | null = null;
 
+    // 읽기 속도: 버튼을 누를 때마다 다음 값으로 바뀐다. 고른 값은 이 브라우저에만 기억한다
+    const RATES = [0.75, 1, 1.25, 1.5, 2];
+    const RATE_KEY = "read-aloud-rate";
+    const rateButton = root.querySelector<HTMLButtonElement>(".ra-rate")!;
+    let rate = 1;
+    try { const saved = Number(localStorage.getItem(RATE_KEY)); if (RATES.includes(saved)) rate = saved; } catch {}
+    const showRate = () => {
+      rateButton.textContent = `${rate}×`;
+      rateButton.setAttribute("aria-label", `${rateButton.title} ${rate}×`);
+    };
+    showRate();
+
     // 기기 내장 음성을 먼저 고른다. Chrome의 네트워크 음성은 긴 문장(표의 행 등)을 15초 무렵에 끊는 문제가 있다
     const pickVoice = () => {
       const voices = speech.getVoices().filter((v) => v.lang.toLowerCase().startsWith(lang));
@@ -218,6 +231,7 @@ const labels = {
       reveal(item);
       const u = (utterance = new SpeechSynthesisUtterance(item.text));
       u.lang = voice?.lang ?? lang;
+      u.rate = rate;
       if (voice) u.voice = voice;
       u.onend = () => { if (token === run && playing) speak(i + 1); };
       u.onerror = (e) => { if (token === run && playing && e.error !== "interrupted" && e.error !== "canceled") speak(i + 1); };
@@ -270,8 +284,30 @@ const labels = {
       speak(next);
     });
     root.querySelector(".ra-stop")!.addEventListener("click", stop);
+    rateButton.addEventListener("click", () => {
+      rate = RATES[(RATES.indexOf(rate) + 1) % RATES.length];
+      showRate();
+      try { localStorage.setItem(RATE_KEY, String(rate)); } catch {}
+      // 읽는 중이면 지금 문장을 새 속도로 다시 읽는다. 일시정지 중이면 다음에 읽을 때 적용된다
+      if (playing) speak(index);
+    });
     document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !controls.hidden) stop(); });
     window.addEventListener("pagehide", () => speech.cancel());
+
+    // 폰에서 다른 앱으로 나가면 운영체제가 음성을 멈추지만 onend는 오지 않아, 돌아왔을 때 버튼만 '재생 중'으로 남는다.
+    // 화면이 다시 보이면 실제 음성 상태를 확인해 멈춰 있으면 지금 문장에서 '계속 읽기'로 바꾼다.
+    // 데스크톱처럼 백그라운드에서도 계속 읽고 있었다면 그대로 둔다
+    function syncWithEngine() {
+      if (!playing || document.visibilityState !== "visible") return;
+      setTimeout(() => {
+        if (!playing || (speech.speaking && !speech.paused)) return;
+        run++;
+        speech.cancel();
+        setPlaying(false);
+      }, 400);
+    }
+    document.addEventListener("visibilitychange", syncWithEngine);
+    window.addEventListener("pageshow", syncWithEngine);
   }
 </script>
 
@@ -322,6 +358,15 @@ const labels = {
   /* 날짜 글줄(약 25px)보다 버튼이 높아 본문이 밀리지 않도록, 시작 버튼은 위아래를 줄 높이 안으로 당긴다 */
   .ra-start {
     margin-block: -2px;
+  }
+
+  /* 속도 표시(0.75×~2×)가 바뀌어도 버튼 폭이 흔들리지 않게 고정한다 */
+  .ra-rate {
+    box-sizing: border-box;
+    justify-content: center;
+    width: 4.8em;
+    padding: 0;
+    font-variant-numeric: tabular-nums;
   }
 
   .ra-btn svg {
