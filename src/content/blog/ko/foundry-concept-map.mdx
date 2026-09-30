@@ -71,7 +71,7 @@ Foundry는 권한과 동작이 여러 계층에 나뉘어 있어서 비슷해 �
 
 | 질문 | 결정하는 곳 | DB 비유 | 일상 비유 |
 | --- | --- | --- | --- |
-| 누가 어떤 Object를 볼 수 있는가? | Object type Viewer 권한, [Object security policy](#concept-osp), 필수 통제(Marking, Organization, CBAC)를 모두 통과해야 함.<br />레거시 datasource-derived 모델에서는 Dataset 권한이 결정.<br />Restricted view 기반 Object type은 Restricted view가 결정 | 모든 SELECT에 자동으로 붙는 WHERE | 같은 명부를 열어도 내 담당 줄만 보임 |
+| 누가 어떤 Object를 볼 수 있는가? | Object type Viewer 권한, [Object security policy](#concept-osp), 필수 통제(Marking, Organization, CBAC)를 모두 통과해야 함.<br />레거시 datasource-derived 모델에서는 backing datasource의 Viewer 권한도 필요.<br />Restricted view 기반 Object type은 Restricted view가 결정 | 모든 SELECT에 자동으로 붙는 WHERE | 같은 명부를 열어도 내 담당 줄만 보임 |
 | 이 Action을 제출할 수 있는가? | [Submission criteria](#concept-action)와 함께 편집 대상 Object type·Link type과 그 datasource를 볼 권한, 편집 권한이 모두 필요.<br />action log가 있으면 그 Object type 권한도 필요 | UPDATE 전에 실행되는 IF 검사 | 결재 조건을 통과해야 신청서를 낼 수 있음 |
 | 변경은 언제 실제로 저장되는가? | [Action](#concept-action)이 실행될 때만 | COMMIT.<br />[Edit function](#concept-function)은 변경할 SQL을 만드는 데까지만 관여 | 신청서가 처리되어야 반영됨.<br />계산기로 미리 계산해 둔 것만으로는 반영되지 않음 |
 
@@ -89,7 +89,8 @@ OSDK로 만든 앱이 받는 토큰은 사용자 권한과 Developer Console에 
 앱 제한은 앱이 받을 수 있는 권한의 보장된 상한입니다.\
 요청 scope는 작업(operation) 범위만 좁힙니다([OSDK](#concept-osdk)).\
 앱이 토큰을 요청할 때 고를 수 있는 것은 `api:use-ontologies-read` 같은 operation scope뿐이며 위 표의 리소스는 scope로 좁힐 수 없습니다.\
-요청한 scope를 비워 두면 앱의 operation restrictions 전체가 적용됩니다.
+scope를 빈 값(`[]`)으로 요청하면 앱의 operation restrictions 전체가 적용됩니다.\
+scope 없이 토큰을 요청하면 앱 제한이 허용하는 사용자 권한 전부가 적용됩니다.
 
 ### 권한이 서로 연동되지 않는 곳
 
@@ -103,7 +104,7 @@ OSDK로 만든 앱이 받는 토큰은 사용자 권한과 Developer Console에 
 | [Object security policy](#concept-osp)로 Object를 가림 | 원본 [Dataset](#concept-dataset) | Dataset 권한을 따로 설정 |
 | [Object security policy](#concept-osp)로 media reference property를 가림 | [Media set](#concept-media)에서 파일을 직접 가져오기 | Media set 권한을 따로 설정 |
 | [Media set](#concept-media)의 파일을 같은 경로에 덮어써 교체 | 이전 파일 (기존 media reference로 접근 가능) | 덮어쓴 item의 보존 정책 설정 |
-| [Object security policy](#concept-osp)로 읽기를 제한 | [Action](#concept-action)의 쓰기 (정책은 읽기만 거름) | Submission criteria와 편집 권한으로 쓰기를 따로 제한 |
+| [Object security policy](#concept-osp)로 Object 읽기를 제한 | [Action](#concept-action)·[Function](#concept-function)이 그 Object를 읽어 만든 결과 (다른 Object type에 쓴 값, 함수 출력, 내보내기) | [필수 통제](https://www.palantir.com/docs/foundry/security/access-control-propagation)를 함께 설정<br />(Marking·CBAC·Organization)<br />필수 통제는 파생 데이터로 전파됨 |
 | 사용자별 권한으로 데이터를 제한 | Application permissions를 쓰는 [Compute module](#concept-cm) (호출한 사용자가 아니라 서비스 유저 권한으로 동작) | 서비스 유저에게 필요한 권한만 부여 |
 
 </div>

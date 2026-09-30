@@ -36,11 +36,11 @@ export const concepts: Concept[] = [
   {
     id: "dc", short: "Data Connection", layer: "data", title: "Data Connection",
     lead: "외부 시스템의 데이터를 Foundry로 가져오는(sync) 입구입니다. 반대로 webhook이나 data export로 외부 시스템에 다시 쓰는 연결도 만듭니다.",
-    analogy: "외부 DB·SaaS에서 데이터를 가져오는 ETL의 추출(Extract) 단계에 해당합니다. Source는 접속 주소와 인증 정보를 담은 연결 설정이고 Sync는 그 연결로 실제 데이터를 가져오는 작업입니다.",
+    analogy: "외부 DB·SaaS에서 데이터를 가져오는 ETL의 추출(Extract) 단계에 해당합니다. Source는 접속 주소와 인증 정보를 담은 연결 설정이고 Sync는 그 연결로 실제 데이터를 가져오는 작업입니다(지금은 batch sync 등).",
     everyday: "여러 거래처에서 오는 자료를 한곳에서 받아 두는 회사의 문서 수발실과 같습니다. 거래처별 연락처와 출입 방법(Source)을 등록해 두고 정해진 때마다 자료를 받아 옵니다(Sync).",
     points: [
       "Source: 외부 시스템 하나에 대한 연결입니다. 대상 위치(보통 URL)와 인증 정보를 담습니다.",
-      "Sync는 데이터를 Foundry로 가져오는 작업을 통칭하던 예전 용어입니다. 지금은 batch, Iceberg, streaming, CDC, media sync로 나뉩니다.",
+      "Sync는 데이터를 Foundry로 가져오는 작업을 통칭하던 예전 용어입니다. 지금은 batch, Iceberg, streaming, CDC, media sync 등 기능별 이름으로 나뉩니다.",
       "데이터는 외부에서 미리 가공하지 않고 원본 그대로(as-is) 가져오는 것을 원칙으로 합니다.",
       "실패 시 자동 재시도와 데이터 상태 모니터링을 기본으로 제공합니다.",
     ],
@@ -166,7 +166,7 @@ export const concepts: Concept[] = [
       { label: "Link type 만들기", href: D + "object-link-types/create-link-type" },
       { label: "Materializations", href: D + "object-edits/materializations" },
       { label: "Object type 만들기", href: D + "object-link-types/create-object-type" },
-      { label: "Platform SDK", href: D + "developer-console/application-restrictions" },
+      { label: "Platform SDK와 OSDK", href: D + "api/v2/general/overview/sdks" },
     ],
   },
   {
@@ -195,11 +195,12 @@ export const concepts: Concept[] = [
       "제출하려면 편집 대상 Object type·Link type과 그 datasource를 볼 수 있어야 하고 편집 권한도 있어야 합니다. Action으로만 편집하는 타입은 대상 Object의 Read 권한, 그 밖의 타입은 writeback Dataset의 Edit 권한, Restricted view 기반 타입은 edit policy 통과가 필요합니다.",
       "action log를 쓰는 Action은 action log Object type에 대한 권한도 있어야 제출할 수 있습니다.",
     ],
-    warn: "Submission criteria만 통과한다고 제출할 수 있는 것은 아닙니다. Object security policy 같은 행·열 통제는 읽기만 거르며 Action의 쓰기에는 적용되지 않습니다.",
+    warn: "Submission criteria만 통과한다고 제출할 수 있는 것은 아닙니다. Object security policy 같은 행·열 통제는 Action이 읽는 데이터를 거릅니다. 이 통제는 Action이 쓴 결과로 전파되지 않고 쓰기 대상에는 그 대상의 통제가 적용됩니다.",
     doc: D + "action-types/overview",
     related: [
       { label: "Submission criteria", href: D + "action-types/submission-criteria" },
       { label: "Action 권한", href: D + "action-types/permissions" },
+      { label: "권한 전파", href: D + "security/access-control-propagation" },
     ],
   },
   {
@@ -261,7 +262,7 @@ export const concepts: Concept[] = [
     ],
     warn: "플랫폼 보안은 LLM이 작업에 필요한 데이터에만 접근하도록 제한하지만 모델의 출력이나 모델이 만든 Ontology 편집까지 통제하지는 않습니다.",
     doc: D + "logic/overview",
-    related: [{ label: "AIP Chatbot Studio", href: D + "agent-studio/overview" }],
+    related: [{ label: "AIP Chatbot Studio", href: D + "chatbot-studio/overview" }],
   },
   {
     id: "workshop", short: "Workshop", layer: "app", title: "Workshop",
@@ -287,7 +288,7 @@ export const concepts: Concept[] = [
     points: [
       "토큰의 리소스 접근 범위 = 사용자 권한 ∩ 앱 제한(application restrictions)",
       "앱 제한에는 접근할 리소스를 정하는 resource restrictions와 할 수 있는 작업을 정하는 operation restrictions 두 종류가 있습니다.",
-      "앱이 토큰을 요청할 때 고를 수 있는 것은 api:use-ontologies-read 같은 작업(operation) scope뿐입니다. 요청한 scope를 비워 두면 앱의 operation restrictions 전체가 적용됩니다.",
+      "앱이 토큰을 요청할 때 고를 수 있는 것은 api:use-ontologies-read 같은 작업(operation) scope뿐입니다. scope를 빈 값([])으로 요청하면 앱의 operation restrictions 전체가 적용됩니다. scope 없이 토큰을 요청하면 앱 제한이 허용하는 사용자 권한 전부가 적용됩니다.",
       "앱은 기본적으로 제한(restricted) 상태로 만들어집니다. 제한 없는(unrestricted) 앱은 사용자 권한만으로 접근이 결정되므로 신뢰할 수 있는 코드에만 써야 합니다.",
       "웹 호스팅은 정적 에셋만 지원하고 서버 코드는 실행할 수 없습니다. 커스텀 404 페이지가 없으면 SPA로 간주합니다. 파일은 최대 1,000개, 전체 20MB까지 올릴 수 있습니다.",
     ],
@@ -373,7 +374,7 @@ export const concepts: Concept[] = [
     points: [
       "Object type을 만들 때 메타데이터, backing datasource, 속성 매핑, 키(primary key·title key)를 지정합니다.",
       "Action으로만 데이터를 채울 Object type은 datasource 없이 만들 수 있습니다. 이 경우 Object type을 프로젝트에 저장하고 누가 Object를 볼 수 있는지 정하는 Object security policy를 설정해야 합니다.",
-      "보호된 리소스는 브랜치에서 수정하고 proposal을 거쳐 병합해야 합니다. 보호는 리소스 owner가 켭니다.",
+      "보호된 리소스는 브랜치에서 수정하고 proposal을 거쳐 병합해야 합니다. 보호는 리소스 owner가 켜거나 끕니다.",
     ],
     warn: "SuperRepo(Ontology-as-code)는 베타 단계이며 공식 문서에 따르면 환경(enrollment)에 따라 제공되지 않을 수 있습니다.",
     doc: D + "ontology-manager/overview",
@@ -392,10 +393,10 @@ export const concepts: Concept[] = [
       "지원 대상: Code Repositories, Pipeline Builder, Ontology(Action·Materialization 포함), Workshop, AIP Logic, Automate, Object Views, Restricted Views, TypeScript function 등. TS v2 function은 로컬 OSDK를 쓸 때만 브랜치에서 수정할 수 있습니다. Python function은 브랜치에서 수정할 수 없고 특정 버전을 참조해 테스트할 수만 있습니다(Main 스키마만 사용).",
       "Proposal이 PR 역할을 합니다. 리소스별 승인 → merge check → Merge 순서로 진행되며 일부만 실패한 병합은 되돌릴 수 없습니다.",
       "브랜치에서 리소스를 만들거나 지우면 Main에도 반영됩니다. Ontology 리소스는 예외로 브랜치에서 만들고 지워도 Main에 영향을 주지 않습니다.",
-      "Branch protection은 리소스 owner가 직접 켭니다. Ontology 리소스는 먼저 project permissions로 migration해야 보호할 수 있습니다.",
+      "Branch protection은 리소스 owner가 켜거나 끕니다. 프로젝트의 Branch protection 탭에서 새 파일을 자동으로 보호하도록 설정할 수도 있습니다. Ontology 리소스는 먼저 project permissions로 migration해야 보호할 수 있습니다.",
       "기본값으로 35일 동안 쓰지 않은 브랜치는 비활성화되고 그 7일 뒤 브랜치 데이터가 삭제됩니다.",
     ],
-    warn: "브랜치에서 Action으로 만든 편집은 테스트용이며 Main에 병합되지 않습니다. 일반 OSDK 앱은 브랜치를 지원하지 않고 Developer Console도 지원 대상에 없습니다. 예외는 TS v2 function의 로컬 OSDK와 pro-code agent의 OSDK 호출입니다. pro-code agent는 브랜치 컨텍스트를 물려받지만 스키마는 Main의 것을 씁니다.",
+    warn: "브랜치에서 Action으로 만든 편집은 테스트용이며 Main에 병합되지 않습니다. 일반 OSDK 앱은 브랜치를 지원하지 않고 Developer Console도 지원 대상에 없습니다. 예외는 TS v2 function의 로컬 OSDK와 pro-code agent(베타)의 OSDK 호출입니다. pro-code agent는 브랜치 컨텍스트를 물려받지만 스키마는 Main의 것을 씁니다.",
     doc: D + "global-branching/core-concepts",
     related: [
       { label: "지원 범위", href: D + "global-branching/integrations" },
@@ -415,7 +416,7 @@ export const concepts: Concept[] = [
     points: [
       "Product는 Input(연결할 의존 리소스)과 Output(설치로 생성되는 리소스)으로 구성됩니다.",
       "Store는 product 모음입니다. 로컬 Store는 저장된 프로젝트나 폴더의 권한을 상속하고 원격 Store 권한은 Control Panel에서 설정합니다.",
-      "개발·테스트·운영 환경별로 설치할 수 있습니다. release channel을 지정하면 그 채널의 새 버전이 업그레이드 후보로 표시될 뿐이며 자동으로 설치하려면 Automatic upgrades(베타)를 켜야 합니다.",
+      "개발·테스트·운영 환경별로 설치할 수 있습니다. release channel을 지정하면 그 채널의 새 버전이 업그레이드 후보로 표시될 뿐이며 자동으로 설치하려면 Automatic upgrades(베타)를 켜야 합니다. 자동 업그레이드는 기본으로 꺼져 있습니다.",
     ],
     doc: D + "devops/core-concepts",
     related: [
