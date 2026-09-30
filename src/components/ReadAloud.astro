@@ -119,14 +119,11 @@ const labels = {
         parts.forEach((p) => { const text = speakable(p.text); if (text) items.push({ text, range: p.range, el, section: sections.length - 1 }); });
       const visit = (el: Element) => {
         if (el.matches(SKIP)) return;
-        // 화면에 그려지지 않는 요소(좁은 화면 전용 안내 등)는 읽지 않는다. 접힌 details는 아래에서 따로 처리
+        // 화면에 그려지지 않는 요소(좁은 화면 전용 안내 등)는 읽지 않는다
         if (el instanceof HTMLElement && el.getClientRects().length === 0) return;
         const tag = el.tagName;
-        if (tag === "DETAILS" && !(el as HTMLDetailsElement).open) {
-          const summary = el.querySelector("summary");
-          if (summary) push(summary, sentences(summary));
-          return;
-        }
+        // 접힌 details(예: "이 글을 쓰게 된 이유")는 독자가 펼치지 않은 부가 내용이므로 제목까지 건너뛴다. 펼쳐 두면 모두 읽는다
+        if (tag === "DETAILS" && !(el as HTMLDetailsElement).open) return;
         if (/^H[2-4]$/.test(tag)) {
           if (tag === "H2") sections.push(el.textContent?.trim() ?? "");
           push(el, sentences(el));
