@@ -282,8 +282,17 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
     try { savedView = localStorage.getItem(VIEW_KEY) ?? "dev"; } catch {}
     setView(savedView);
 
+    // 목록을 펼치면 카드가, 접으면 본문이 스크롤되므로 여닫을 때 읽던 본문 위치를 반대쪽으로 넘긴다
     function setIndexOpen(open: boolean) {
+      const card = cards[current];
+      const body = card?.querySelector<HTMLElement>(".cbody");
+      const bodyOffset = () => body!.getBoundingClientRect().top - card!.getBoundingClientRect().top + card!.scrollTop;
+      const pos = body ? (panel!.classList.contains("index-open") ? card!.scrollTop - bodyOffset() : body.scrollTop) : 0;
       panel!.classList.toggle("index-open", open);
+      if (body) {
+        if (open) card!.scrollTop = pos > 0 ? pos + bodyOffset() : 0;
+        else { card!.scrollTop = 0; body.scrollTop = Math.max(0, pos); }
+      }
       if (indexToggle) {
         indexToggle.setAttribute("aria-expanded", String(open));
         indexToggle.textContent = open ? "접기 ▴" : "전체 목록 ▾";
