@@ -231,6 +231,7 @@ Execute `omx setup` to install all components. Execute `omx doctor` to verify in
 ### Blog workflow
 - Verify with `mise exec -- pnpm build` (runs `astro check` + build). The repo is public: commit locally and ask before pushing, merging, or deploying.
 - Deploys run on push to `main` (GitHub Pages). `main` is the default branch: branch from `origin/main` and open PRs against it, so merging a PR deploys.
+- Posts have a "읽어 주기" button (`src/components/ReadAloud.astro`, browser Web Speech API, no server). It reads `.post-body` by semantic tags: headings, paragraphs and list items, table rows as "header: value", figures by their `aria-label`. Components inside a post must mark UI-only text (legends, gesture hints) with `data-read-skip`, and keep real content in semantic tags so it is read in order.
 - Post content must only state what the linked official docs (or source code) say. When asked to "check/review", report findings without editing.
 
 ### Article writing rules (Korean posts) — must follow for every article

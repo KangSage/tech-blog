@@ -47,6 +47,18 @@ export const ui = {
   },
   security: { ko: "의존성 보안 현황", ja: "依存関係のセキュリティ", en: "Dependency security" },
   updated: { ko: "수정", ja: "更新", en: "Updated" },
+  readAloud: { ko: "읽어 주기", ja: "読み上げ", en: "Read aloud" },
+  readPause: { ko: "일시정지", ja: "一時停止", en: "Pause" },
+  readResume: { ko: "계속 읽기", ja: "再開", en: "Resume" },
+  readPrev: { ko: "이전 절", ja: "前の節", en: "Previous section" },
+  readNext: { ko: "다음 절", ja: "次の節", en: "Next section" },
+  readStop: { ko: "정지", ja: "停止", en: "Stop" },
+  readNoVoice: {
+    ko: "이 기기에는 한국어 음성이 없어 읽어 줄 수 없습니다.",
+    ja: "この端末には日本語の音声がないため読み上げできません。",
+    en: "This device has no English voice to read with.",
+  },
+  readFigure: { ko: "그림", ja: "図", en: "Figure" },
 } satisfies Record<string, Record<Locale, string>>;
 
 export function t(key: keyof typeof ui, locale: Locale, values: Record<string, string | number> = {}): string {
