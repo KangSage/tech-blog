@@ -73,6 +73,7 @@ export const concepts: Concept[] = [
       "Expression은 컬럼을 받아 컬럼 하나를 내고 Transform은 테이블 전체를 받아 테이블을 냅니다.",
       "실행 엔진으로 Spark와 Flink를 쓰며 DataFusion 기반의 Faster pipelines로 배치·증분 파이프라인을 더 빠르게 실행할 수 있습니다.",
       "출력 검사를 통과하지 못하면 Build를 막아 하류 파이프라인이 깨지는 것을 방지합니다.",
+      "출력으로 Dataset, Object type·Link type, stream, time series, 외부 내보내기를 지원합니다. Ontology에 바로 쓰는 direct datasource의 writer는 지금 Pipeline Builder뿐입니다.",
       "생성된 코드는 기존 Java transforms 저장소로만 내보낼 수 있습니다(PySpark 불가, 기본 배치 파이프라인만). 대상 브랜치의 기존 코드는 삭제되고 되돌릴 수 없는 단방향 작업입니다.",
       "UDF·LLM 호출·미디어 연산 등은 내보낸 코드에서 TODO로 남으며 결과가 원래 파이프라인과 다를 수 있습니다.",
     ],
@@ -81,16 +82,18 @@ export const concepts: Concept[] = [
     related: [
       { label: "Expression과 Transform", href: D + "pipeline-builder/transforms-overview" },
       { label: "코드 내보내기", href: D + "pipeline-builder/export-pipeline" },
+      { label: "Direct datasource", href: D + "object-indexing/direct-datasources" },
     ],
   },
   {
     id: "builds", short: "Builds · Schedules", layer: "data", title: "Builds · Schedules",
-    lead: "Build는 transform 로직을 실행해 출력 Dataset을 새로 계산하는 작업이고 Schedule은 그 Build를 언제 실행할지 정합니다.",
+    lead: "Build는 transform·sync 같은 job을 실행해 출력을 새로 계산하는 작업이고 Schedule은 그 Build를 언제 실행할지 정합니다.",
     analogy: "CI의 빌드 잡과 cron 스케줄러를 합친 것과 같습니다. 코드를 커밋하면 실행 정의(JobSpec)가 갱신되고 트리거 조건이 맞으면 Build가 실행됩니다.",
     everyday: "공장의 생산 지시서(Build)와 생산 일정표(Schedule)와 같습니다. 지시서대로 재료를 가공해 제품을 만들고 일정표에 따라 정해진 때마다 다시 생산합니다.",
     points: [
       "Build는 job으로 구성됩니다. job 하나는 같은 로직으로 하나 이상의 출력 Dataset을 계산하며 출력이 여럿이면 항상 함께 갱신됩니다.",
-      "JobSpec은 job을 만드는 방법의 정의로 Code Repositories에 transform 코드를 커밋하면 게시됩니다.",
+      "job의 로직에는 transform뿐 아니라 Data Connection sync, health check, export 등이 있습니다.",
+      "JobSpec은 job을 만드는 방법의 정의로 데이터 변환 로직이 바뀌면(예: Code Repositories에 transform 코드 커밋) 게시됩니다.",
       "Build 한 번은 출력을 한 번 계산할 뿐이므로 데이터가 계속 흐르게 하려면 Schedule로 반복 실행합니다.",
       "Schedule의 trigger가 충족되면 Build가 실행되고 이전 실행이 끝나지 않았으면 끝난 뒤에 실행됩니다.",
     ],
@@ -102,7 +105,7 @@ export const concepts: Concept[] = [
   },
   {
     id: "dataset", short: "Dataset", layer: "data", title: "Dataset",
-    lead: "Dataset은 파일 묶음(보통 Parquet)과 스키마로 구성되며 변경은 트랜잭션 단위로 기록됩니다.",
+    lead: "Dataset은 파일 묶음(보통 Parquet)과 스키마로 구성되며 변경은 트랜잭션 단위로 기록됩니다. 스키마 없는 Dataset에 비정형 파일을 담을 수도 있고 미디어 파일은 미디어 작업에 맞춘 Media set에 저장할 수도 있습니다.",
     analogy: "겉모습은 테이블이지만 내부 동작은 Git 저장소에 가깝습니다. 트랜잭션 하나가 커밋 하나에 해당합니다.",
     everyday: "수정할 때마다 저장 버전이 남는 엑셀 파일과 같습니다. 구글 문서의 버전 기록처럼 예전 시점의 내용으로 되돌릴 수 있습니다.",
     points: [
@@ -111,7 +114,7 @@ export const concepts: Concept[] = [
       "UPDATE: 파일을 추가하거나 덮어씁니다. 덮어쓰면 하류의 증분 처리가 깨집니다.",
       "DELETE: 현재 view에서 파일 참조만 뺍니다. 실제 파일은 지우지 않으며 주로 보존(retention) 작업에 씁니다.",
     ],
-    warn: "Data Lineage → History → Rollback to transaction으로 롤백할 수 있지만 되돌아가는 것은 데이터뿐이며 로직은 그대로입니다. 보존 정책(retention)으로 삭제된 트랜잭션으로는 롤백할 수 없습니다. 보존 정책은 삭제 표시 후 보통 7일 뒤 실제로 지우며 그 이후에는 복구할 수 없습니다. 실제로 지우기 전에는 삭제 표시를 되돌릴 수 있습니다. 잘못 표시한 정책을 먼저 고치고 7일 안에 Palantir 담당자에게 연락합니다.",
+    warn: "Data Lineage → History → Rollback to transaction으로 롤백할 수 있지만 되돌아가는 것은 데이터뿐이며 로직은 그대로입니다. 보존 정책(retention)으로 삭제된 트랜잭션으로는 롤백할 수 없습니다. Object Storage v2의 Object type을 받치는 Dataset을 롤백하면 Object type이 저절로 다시 인덱싱되지 않으므로 대체 파이프라인을 실행해 다시 인덱싱해야 합니다. 보존 정책은 삭제 표시 후 보통 7일 뒤 실제로 지우며 그 이후에는 복구할 수 없습니다. 실제로 지우기 전에는 삭제 표시를 되돌릴 수 있습니다. 잘못 표시한 정책을 먼저 고치고 7일 안에 Palantir 담당자에게 연락합니다.",
     doc: D + "data-integration/datasets",
     related: [
       { label: "롤백", href: D + "data-lineage/dataset-rollback" },
@@ -128,11 +131,13 @@ export const concepts: Concept[] = [
       "덮어써진 item은 기본적으로 삭제되지 않고 버전 이력에 남으며 Build에서도 처리될 수 있습니다. 정리하려면 '덮어쓰거나 삭제된 뒤 N일 후 영구 삭제' 보존 정책을 설정합니다.",
       "Object type의 Capabilities 탭에서 media source를 지정해야 연결됩니다.",
       "reference는 Action의 파일 업로드나 Python transform으로 만들 수 있습니다.",
+      "미디어는 Data Connection의 media sync로 가져오고 Code Repositories나 Pipeline Builder로 변환할 수 있습니다.",
     ],
     warn: "Media set 권한은 Object security policy와 별개입니다. 파일을 보호하려면 Media set을 따로 잠가야 합니다. 보존 기간을 줄이면 기간이 지난 item은 즉시 접근할 수 없게 되고 다시 늘려도 복구되지 않습니다.",
     doc: D + "media-sets-advanced-formats/media-overview",
     related: [
       { label: "Ontology에서 쓰기", href: D + "media-sets-advanced-formats/media-in-ontology" },
+      { label: "media sync", href: D + "data-connection/core-concepts" },
       { label: "Capabilities 탭", href: D + "object-link-types/base-types" },
       { label: "덮어쓰기와 버전 이력", href: D + "media-sets-advanced-formats/importing-media" },
       { label: "보존 정책", href: D + "media-sets-advanced-formats/media-set-settings" },
@@ -141,7 +146,7 @@ export const concepts: Concept[] = [
   },
   {
     id: "funnel", short: "Funnel", layer: "onto", title: "Funnel · Materialization",
-    lead: "Funnel은 Dataset을 객체 저장소(OSv2)로 인덱싱합니다. Action으로 만든 편집은 인덱스에 즉시 반영됩니다.",
+    lead: "Funnel은 Dataset·Restricted view·stream 같은 datasource를 객체 저장소(OSv2)로 인덱싱합니다. Action으로 만든 편집은 인덱스에 즉시 반영됩니다.",
     analogy: "MySQL 원본을 검색용 Elasticsearch 인덱스로 동기화하고 앱은 인덱스만 조회하는 구조와 비슷합니다. Materialization은 원본과 편집을 합쳐 다시 테이블로 저장하는 materialized view에 해당합니다.",
     everyday: "도서관 책으로 검색용 목록(색인)을 만들어 두고 사람들은 그 목록으로 책을 찾는 것과 같습니다. Materialization은 목록에 반영된 수정 사항까지 합쳐 책을 새로 인쇄해 두는 것에 해당합니다.",
     points: [
@@ -153,7 +158,11 @@ export const concepts: Concept[] = [
       { label: "Funnel", href: D + "object-indexing/overview" },
       { label: "Materialization", href: D + "object-edits/materializations" },
     ],
-    related: [{ label: "편집이 적용되는 방식", href: D + "object-edits/how-edits-applied" }],
+    related: [
+      { label: "편집이 적용되는 방식", href: D + "object-edits/how-edits-applied" },
+      { label: "Restricted view", href: D + "security/restricted-views" },
+      { label: "stream datasource", href: D + "object-permissioning/managing-object-security" },
+    ],
   },
   {
     id: "onto", short: "Ontology", layer: "onto", title: "Ontology",
@@ -225,6 +234,7 @@ export const concepts: Concept[] = [
       { label: "Query 함수", href: D + "functions/query-functions" },
       { label: "언어별 지원", href: D + "functions/language-feature-support" },
       { label: "Function 권한", href: D + "functions/permissions" },
+      { label: "Function-backed action", href: D + "functions/use-functions" },
     ],
   },
   {
@@ -233,13 +243,16 @@ export const concepts: Concept[] = [
     analogy: "Google Cloud Run 같은 서버리스 컨테이너 서비스에 가깝습니다. Docker 이미지를 올리면 플랫폼이 실행과 확장을 맡습니다.",
     everyday: "회사 밖 전문 업체에 일을 맡기는 것과 같습니다. 업체는 자기에게 익숙한 방식(언어·도구)으로 일하고 Application permissions를 쓰면 누가 맡겼든 업체 자신의 출입 권한으로 일합니다.",
     points: [
-      "Function mode: 컨테이너에 함수를 올려 Workshop이나 Slate 같은 앱에서 호출합니다.",
+      "Function mode: 컨테이너에 함수를 올려 Workshop·Slate, Developer Console의 OSDK 앱, TypeScript function에서 호출합니다. TypeScript function에서 부를 때는 5분이 넘으면 시간 초과입니다.",
       "Pipeline mode: 외부 소스의 데이터를 stream·Dataset·Media set으로 가져오는 것처럼 입력을 받아 출력으로 처리합니다. job token은 입출력 리소스에만 쓸 수 있습니다.",
       "Function mode 권한은 '플랫폼 권한 없음'과 'Application permissions' 중에서 고릅니다. Application permissions는 호출한 사용자와 관계없이 연결된 서비스 유저의 권한으로 동작합니다.",
     ],
     warn: "Application permissions는 일부 환경(enrollment)에서는 제공되지 않을 수 있습니다.",
     doc: D + "compute-modules/overview",
-    related: [{ label: "실행 모드", href: D + "compute-modules/execution-modes" }],
+    related: [
+      { label: "실행 모드", href: D + "compute-modules/execution-modes" },
+      { label: "함수 호출", href: D + "compute-modules/functions" },
+    ],
   },
   {
     id: "automate", short: "Automate", layer: "logic", title: "Automate",
@@ -261,6 +274,8 @@ export const concepts: Concept[] = [
     everyday: "AIP Logic은 서류를 읽고 판단해 처리안을 내는 AI 실무자, Chatbot Studio는 회사 자료를 알고 질문에 답하거나 업무를 대신 처리하는 AI 상담 창구와 같습니다.",
     points: [
       "Logic 함수는 Object나 문자열을 입력받아 Object·문자열을 돌려주거나 Ontology 편집을 만듭니다.",
+      "편집을 Ontology에 저장하려면 Logic 함수를 게시하고 Action에서 호출해야 합니다.",
+      "Execute function 블록으로 TypeScript·Python function이나 다른 Logic 함수를 호출할 수 있습니다.",
       "Logic 함수를 자동화해 편집을 바로 적용하거나 사람이 검토하도록 대기시킬(staged) 수 있습니다.",
       "AIP Chatbot Studio의 예전 이름은 AIP Agent Studio입니다. 챗봇은 앱에 통합해 읽기·쓰기 워크플로를 처리합니다.",
     ],
@@ -269,7 +284,10 @@ export const concepts: Concept[] = [
       { label: "AIP Logic", href: D + "logic/overview" },
       { label: "AIP Chatbot Studio", href: D + "chatbot-studio/overview" },
     ],
-    related: [],
+    related: [
+      { label: "Logic 핵심 개념", href: D + "logic/core-concepts" },
+      { label: "Logic 블록", href: D + "logic/blocks" },
+    ],
   },
   {
     id: "workshop", short: "Workshop", layer: "app", title: "Workshop",
@@ -280,11 +298,14 @@ export const concepts: Concept[] = [
       "쓰기는 Action, 복잡한 계산은 Function에 연결합니다.",
       "기본 위젯으로 부족하면 Custom widget으로 직접 작성한 프론트엔드 코드를 넣을 수 있습니다.",
       "기본 도구를 넘어서는 완전한 맞춤 화면이 필요하면 OSDK React 앱을 만듭니다.",
+      "OSDK로 만든 React 앱은 Iframe 위젯으로, Quiver 대시보드는 그대로 Workshop 안에 넣을 수 있습니다.",
     ],
     doc: D + "workshop/overview",
     related: [
       { label: "앱 빌딩 개요", href: D + "app-building/overview" },
       { label: "Custom widget", href: D + "custom-widgets/overview" },
+      { label: "OSDK React 앱", href: D + "ontology-sdk-react-applications/overview" },
+      { label: "Quiver 대시보드", href: D + "quiver/overview" },
     ],
   },
   {
@@ -293,10 +314,10 @@ export const concepts: Concept[] = [
     analogy: "Prisma Client처럼 스키마(Ontology)에서 생성되는 타입 있는 클라이언트입니다. Developer Console은 GitHub의 OAuth App 설정처럼 앱을 등록하고 접근 범위를 관리하는 곳입니다.",
     everyday: "Foundry 데이터를 회사가 직접 만든 앱에서 쓸 수 있게 해 주는 전용 연결 도구입니다. Developer Console은 그 앱을 등록하고 어떤 데이터까지 쓸 수 있는지 정하는 관리 창구입니다.",
     points: [
-      "토큰의 리소스 접근 범위 = 사용자 권한 ∩ 앱의 resource restrictions",
+      "토큰의 리소스 접근 범위 = 사용자(또는 서비스 유저) 권한 ∩ 앱의 resource restrictions",
       "앱 제한에는 접근할 리소스를 정하는 resource restrictions와 할 수 있는 작업을 정하는 operation restrictions 두 종류가 있습니다.",
       "앱이 토큰을 요청할 때 고를 수 있는 것은 api:use-ontologies-read 같은 작업(operation) scope뿐입니다. scope를 빈 값([])으로 요청하면 앱의 operation restrictions 전체가 적용됩니다. scope 없이 토큰을 요청하면 앱 제한이 허용하는 사용자 권한 전부가 적용됩니다.",
-      "앱은 기본적으로 제한(restricted) 상태로 만들어집니다. 제한 없는(unrestricted) 앱은 사용자 권한만으로 접근이 결정되므로 신뢰할 수 있는 코드에만 써야 합니다.",
+      "앱은 기본적으로 제한(restricted) 상태로 만들어집니다. 제한 없는(unrestricted) 앱은 사용자 권한만으로 접근이 결정되므로 신뢰할 수 있는 코드에만 써야 합니다. unrestricted 앱이 Authorization code 방식을 쓰면 scope를 반드시 요청해야 합니다.",
       "웹 호스팅은 정적 에셋만 지원하고 서버 코드는 실행할 수 없습니다. 커스텀 404 페이지가 없으면 SPA로 간주합니다. 파일은 최대 1,000개, 전체 20MB까지 올릴 수 있습니다.",
     ],
     warn: "앱 제한은 앱이 받을 수 있는 권한의 보장된 상한입니다. 요청 scope는 작업(operation) 범위만 좁힙니다. 리소스 접근은 앱의 resource restrictions와 사용자 권한만으로 정해집니다.",
@@ -318,6 +339,7 @@ export const concepts: Concept[] = [
     points: [
       "Contour: 코드 없이 시각화·필터·변환을 하고 분석 결과를 새 Dataset으로 저장합니다. Ontology에 매핑되지 않은 데이터를 분석할 때 적합합니다.",
       "Quiver: Object와 시계열 데이터를 분석하고 연결된 Object type을 따라가며 탐색합니다. 대시보드를 Workshop 같은 앱에 넣을 수 있습니다.",
+      "Quiver는 transform table과 Dataset도 다루고 Code function 카드로 Function을 불러 쓰며 Action으로 분석 결과를 Ontology에 쓸 수 있습니다.",
       "Object Explorer: 키워드나 속성 필터로 Object를 찾고 찾은 Object set에 Action을 일괄 실행하거나 Quiver로 넘길 수 있습니다. 비기술 사용자를 위한 도구입니다.",
     ],
     doc: [
@@ -325,7 +347,10 @@ export const concepts: Concept[] = [
       { label: "Quiver", href: D + "quiver/overview" },
       { label: "Object Explorer", href: D + "object-explorer/overview" },
     ],
-    related: [],
+    related: [
+      { label: "분석 도구 비교", href: D + "analytics/types-of-analysis" },
+      { label: "Code function 카드", href: D + "quiver/card-code-function-object-set" },
+    ],
   },
   {
     id: "project", short: "Project · Role · Marking", layer: "sec", title: "Project · Role · Marking",
@@ -333,9 +358,9 @@ export const concepts: Concept[] = [
     analogy: "Role은 MySQL의 GRANT처럼 무엇을 할 수 있는지 정합니다. Marking은 모든 요청 앞에 붙는 필수 검사 미들웨어와 같아서 하나라도 통과하지 못하면 GRANT와 관계없이 차단됩니다.",
     everyday: "Role은 사무실 출입증의 등급(보기만 가능, 편집 가능 등)과 같습니다. Marking은 '기밀' 표시가 붙은 서류실의 추가 잠금이라 출입증 등급이 높아도 기밀 허가가 없으면 들어갈 수 없습니다.",
     points: [
-      "Role(Owner·Editor·Viewer·Discoverer)은 프로젝트 단위의 GRANT로 무엇을 할 수 있는지를 정합니다.",
+      "기본 Role(Owner·Editor·Viewer·Discoverer)은 프로젝트 단위의 GRANT로 무엇을 할 수 있는지를 정합니다.",
       "Marking은 all-or-nothing입니다. 하나라도 통과하지 못하면 Role과 관계없이 접근할 수 없습니다.",
-      "Marking은 파생 데이터에도 전파됩니다. 접근을 막는 장치이며 권한을 부여하지는 않습니다.",
+      "Marking은 명시적으로 제거하지 않는 한 파생 데이터에도 전파됩니다. 접근을 막는 장치이며 권한을 부여하지는 않습니다.",
       "Marking 외에 Organization과 Classification-based Access Controls(CBAC)도 필수 통제로 함께 적용됩니다.",
     ],
     warn: "Editor Role이 있어도 PII Marking의 멤버가 아니면 해당 데이터에 접근할 수 없습니다.",
@@ -353,6 +378,7 @@ export const concepts: Concept[] = [
     points: [
       "조건은 granular policy로 작성합니다. 사용자 속성(그룹 ID 등)과 property 값을 비교하며 이름이 아니라 ID를 씁니다.",
       "Dataset 권한과는 분리됩니다. 정책이 있으면 backing Dataset의 Viewer 권한 없이도 Object를 볼 수 있습니다.",
+      "원본의 필수 통제(Marking·Organization·CBAC)를 기본으로 물려받으며 정책에서 필수 통제를 더하거나 필요 없는 것을 제거할 수 있습니다.",
       "변경은 거의 즉시 반영됩니다. 반면 Restricted view(Dataset용 RLS)는 정책을 바꾼 뒤 파이프라인을 다시 Build해야 반영됩니다.",
     ],
     warn: "Ontology 안에서만 적용되므로 원본 Dataset은 따로 잠가야 합니다. 이전 datasource-derived 권한 모델을 쓰는 환경에서는 Dataset 권한도 여전히 필요합니다.",
@@ -372,6 +398,7 @@ export const concepts: Concept[] = [
       "브라우저 앱처럼 client secret을 안전하게 보관할 수 없는 public client는 PKCE가 필수입니다.",
       "PKCE는 로그인마다 새 verifier를 만들어 인가 코드 탈취를 막는 장치입니다. OSDK의 @osdk/oauth(createPublicOauthClient)가 verifier 생성과 S256 challenge를 자동으로 처리합니다.",
       "Client credentials 방식은 client secret이 필요하며 일반 Foundry 사용자와 연결되지 않는 서비스 유저 작업을 위한 것입니다.",
+      "offline_access scope를 요청하면 refresh token을 받습니다. refresh token은 쓸 때마다 새것으로 바뀌며 30일 넘게 쓰지 않으면 무효가 됩니다.",
     ],
     warn: "client secret은 브라우저 코드에 넣으면 안 됩니다. public client는 secret을 안전하게 보관할 수 없습니다.",
     doc: D + "platform-security-third-party/writing-oauth2-clients",
@@ -382,7 +409,7 @@ export const concepts: Concept[] = [
   },
   {
     id: "oma", short: "Ontology Manager", layer: "ops", title: "Ontology Manager",
-    lead: "Object type과 Action type을 만들고 관리하는 앱입니다.",
+    lead: "Object type·Link type·Action type·Interface 같은 Ontology 리소스를 만들고 관리하는 앱입니다. Function도 여기서 살펴볼 수 있습니다.",
     analogy: "MySQL Workbench의 스키마 편집 기능과 관리 콘솔을 합친 것에 가깝습니다.",
     everyday: "명부에 어떤 칸을 둘지 정하고 신청서 양식을 설계하는 관리자 화면입니다.",
     points: [
@@ -395,6 +422,7 @@ export const concepts: Concept[] = [
     related: [
       { label: "Object type 만들기", href: D + "object-link-types/create-object-type" },
       { label: "리소스 보호", href: D + "global-branching/resource-protection-and-approval-policies" },
+      { label: "Interface 지원 앱", href: D + "interfaces/interface-overview" },
       { label: "SuperRepo", href: D + "superrepo/overview" },
     ],
   },
