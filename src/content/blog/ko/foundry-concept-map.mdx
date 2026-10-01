@@ -39,7 +39,7 @@ Foundry의 구성 요소는 크게 다섯 개의 층과 이를 감싸는 권한 
    파일은 스키마 없는 Dataset이나 Media set에 보관합니다.\
    지연이 짧아야 하는 데이터는 Dataset 대신 Stream으로 받아 Ontology에 초\~분 단위로 반영합니다.\
    외부 플랫폼의 테이블은 복사하지 않고 Virtual table로 등록해 바로 조회할 수 있습니다.\
-   머신러닝 모델은 Model로 연결하고 Modeling Objective에서 평가해 배포합니다.
+   머신러닝 모델은 Models로 연결하고 Modeling Objectives에서 평가해 배포합니다.
 2. **온톨로지**: Funnel이 Dataset과 Stream의 데이터를 인덱싱해 Ontology의 Object로 만듭니다.\
    Ontology는 Dataset에 업무 의미(Object, Property, Link)를 부여한 계층이며 업무용 앱은 주로 이 계층을 읽고 씁니다.\
    Object type·Link type 같은 구조는 Ontology Manager에서 정의하며 Pipeline Builder도 Object type·Link type을 출력할 수 있습니다.\
@@ -79,7 +79,7 @@ Foundry는 권한과 동작이 여러 계층에 나뉘어 있어서 비슷해 �
 | 질문 | 결정하는 곳 | DB 비유 | 일상 비유 |
 | --- | --- | --- | --- |
 | 누가 어떤 Object를 볼 수 있는가? | Object type Viewer 권한이 있고 [Object security policy](#concept-osp)와 필수 통제(Marking, Organization, CBAC)를 모두 통과해야 함.<br />레거시 datasource-derived 모델에서는 backing datasource의 Viewer 권한도 필요.<br />Restricted view 기반 Object type은 Restricted view가 결정 | 모든 SELECT에 자동으로 붙는 WHERE | 같은 명부를 열어도 내 담당 줄만 보임 |
-| 이 Action을 제출할 수 있는가? | [Submission criteria](#concept-action)와 함께 편집 대상 Object type·Link type과 그 datasource를 볼 권한, 편집 권한이 모두 필요.<br />action log가 있으면 그 Object type 권한도 필요 | UPDATE 전에 실행되는 IF 검사 | 결재 조건을 통과해야 신청서를 낼 수 있음 |
+| 이 Action을 제출할 수 있는가? | [Submission criteria](#concept-action)를 통과하고 편집 대상 Object type·Link type과 그 datasource를 볼 권한이 필요.<br />Action 밖 편집도 허용한 타입은 writeback Dataset의 Edit 권한(Restricted view 기반이면 edit policy 통과)도 필요.<br />action log가 있으면 그 Object type 권한도 필요 | UPDATE 전에 실행되는 IF 검사 | 결재 조건을 통과해야 신청서를 낼 수 있음 |
 | 변경은 언제 실제로 저장되는가? | 기본 설정에서는 [Action](#concept-action)이 실행될 때만 | COMMIT.<br />[Edit function](#concept-function)은 변경할 SQL을 만드는 데까지만 관여 | 신청서가 처리되어야 반영됨.<br />계산기로 미리 계산해 둔 것만으로는 반영되지 않음 |
 
 ### OSDK 토큰의 리소스 범위는 사용자 권한과 앱 제한의 교집합입니다
