@@ -374,6 +374,22 @@ const themeCss = `:root { ${decl(light)} }
     text-align: left;
   }
 
+  /* 셀은 단어 단위로 줄을 바꾸지만 링크·코드처럼 띄어쓰기 없이 긴 문자열은 어디서든 끊어 표가 지나치게 넓어지지 않게 한다 */
+  article :is(th, td) :is(a, code) {
+    overflow-wrap: anywhere;
+  }
+
+  /* 화면보다 넓은 표 위의 안내 (글 페이지 스크립트가 넘칠 때만 보인다) */
+  .table-scroll-hint {
+    margin: 16px 0 -10px;
+    color: var(--muted);
+    font-size: 0.8rem;
+  }
+
+  .table-scroll-hint[hidden] {
+    display: none;
+  }
+
   /* 접었다 펴는 글 안의 곁다리 설명 (예: 이 글을 쓰게 된 이유) */
   article details {
     max-width: 760px;
