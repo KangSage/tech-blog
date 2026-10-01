@@ -76,13 +76,33 @@ const jsonLd = {
       <PostToc headings={headings} lang={lang} variant="column" />
       <!-- 글 속 컴포넌트가 스크립트로 옮겨 넣는 고정 패널 자리. 비어 있으면 숨김 -->
       <aside class="post-aside" id="post-aside" hidden></aside>
-      <div class="post-body">
+      <div class="post-body" data-table-hint={t("tableScrollHint", lang)}>
         <Content />
         <ReadAloud lang={lang} />
       </div>
     </div>
   </article>
 </BaseLayout>
+
+<script>
+  // 화면보다 넓어 가로로 스크롤되는 표에만 위쪽에 '좌우로 밀어서 보기' 안내를 붙인다. 안내는 읽어 주기에서 건너뛴다
+  const body = document.querySelector<HTMLElement>(".post-body");
+  const text = body?.dataset.tableHint;
+  if (body && text) {
+    const updates: (() => void)[] = [];
+    body.querySelectorAll("table").forEach((table) => {
+      const hint = document.createElement("p");
+      hint.className = "table-scroll-hint";
+      hint.dataset.readSkip = "";
+      hint.textContent = text;
+      table.before(hint);
+      const update = () => { hint.hidden = table.scrollWidth <= table.clientWidth + 1; };
+      update();
+      updates.push(update);
+    });
+    window.addEventListener("resize", () => updates.forEach((u) => u()));
+  }
+</script>
 
 <style>
   .post-head,

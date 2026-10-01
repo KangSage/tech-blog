@@ -111,7 +111,7 @@ scope 없이 토큰을 요청하면 앱 제한이 허용하는 사용자 권한 
 | [Object security policy](#concept-osp)로 Object를 가림 | 원본 [Dataset](#concept-dataset) | Dataset 권한을 따로 설정 |
 | [Object security policy](#concept-osp)로 media reference property를 가림 | [Media set](#concept-media)에서 파일을 직접 가져오기 | Media set 권한을 따로 설정 |
 | [Media set](#concept-media)의 파일을 같은 경로에 덮어써 교체 | 이전 파일 (기존 media reference로 접근 가능) | 덮어쓴 item의 보존 정책 설정 |
-| [Object security policy](#concept-osp)로 Object 읽기를 제한 | [Action](#concept-action)·[Function](#concept-function)이 그 Object를 읽어 만든 결과 (다른 Object type에 쓴 값, 함수 출력, 내보내기) | [필수 통제](https://www.palantir.com/docs/foundry/security/access-control-propagation)를 함께 설정<br />(Marking·CBAC·Organization)<br />필수 통제는 파생 데이터로 전파됨 |
+| [Object security policy](#concept-osp)로 Object 읽기를 제한 | [Action](#concept-action)·[Function](#concept-function)이 그 Object를 읽어 만든 결과 (다른 Object type에 쓴 값, 함수 출력, 내보내기) | [필수 통제](https://www.palantir.com/docs/foundry/security/access-control-propagation)를 함께 설정<br />(Marking·<wbr />CBAC·<wbr />Organization)<br />필수 통제는 파생 데이터로 전파됨 |
 | 사용자별 권한으로 데이터를 제한 | Application permissions를 쓰는 [Compute module](#concept-cm) (호출한 사용자가 아니라 서비스 유저 권한으로 동작) | 서비스 유저에게 필요한 권한만 부여 |
 
 </div>

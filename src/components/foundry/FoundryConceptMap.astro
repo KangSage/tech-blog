@@ -262,6 +262,7 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
       <div class="nav" hidden>
         <a class="back" href="#concept-map">↑ 지도</a>
         <button type="button" class="more" aria-expanded="false">자세히 ▾</button>
+        <button type="button" class="fold" aria-expanded="false">펼치기 ▾</button>
         <button type="button" class="step" data-step="-1">이전</button>
         <button type="button" class="step" data-step="1">다음</button>
       </div>
@@ -278,6 +279,7 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
     const chips = panel.querySelector<HTMLElement>(".chips");
     const more = panel.querySelector<HTMLButtonElement>(".more");
     const indexToggle = panel.querySelector<HTMLButtonElement>(".index-toggle");
+    const fold = panel.querySelector<HTMLButtonElement>(".fold");
     let current = 0;
 
     // 카드 패널을 글 페이지의 고정 자리로 옮긴다. 자리가 없으면 그림 옆(제자리)에서 동작
@@ -335,6 +337,17 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
     }
     cards.forEach((card) => card.querySelector(".cbody")?.addEventListener("scroll", updateFade, { passive: true }));
     window.addEventListener("resize", updateFade);
+
+    // 좁은 화면에서 위에 붙는 패널은 평소 한 줄(현재 개념 이름)로 접어 본문을 가리지 않게 한다.
+    // 지도 상자·개념 목록·본문의 개념 링크로 개념을 고르거나 접힌 막대를 누르면 펼친다. 넓은 화면에서는 이 상태를 쓰지 않는다
+    function setCollapsed(collapsed: boolean) {
+      panel!.classList.toggle("is-collapsed", collapsed);
+      if (collapsed) setExpanded(false);
+      if (fold) {
+        fold.setAttribute("aria-expanded", String(!collapsed));
+        fold.textContent = collapsed ? "펼치기 ▾" : "접기 ▴";
+      }
+    }
 
     function setExpanded(open: boolean) {
       panel!.classList.toggle("is-expanded", open);
@@ -478,6 +491,7 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
       const index = id ? ids.indexOf(id) : -1;
       if (index < 0) return;
       focusEnabled = true;
+      setCollapsed(false);
       render(index);
       history.replaceState(null, "", `#concept-${id}`);
     }
@@ -485,6 +499,8 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
     document.addEventListener("click", (event) => {
       const target = event.target as Element;
       if (more && target.closest(".more") === more) return setExpanded(!panel.classList.contains("is-expanded"));
+      if (fold && target.closest(".fold") === fold) return setCollapsed(!panel.classList.contains("is-collapsed"));
+      if (panel.classList.contains("is-collapsed") && target.closest(".card.is-active") && panel.contains(target)) return setCollapsed(false);
       if (indexToggle && target.closest(".index-toggle") === indexToggle) return setIndexOpen(!panel.classList.contains("index-open"));
       const viewButton = target.closest<HTMLElement>("button[data-view]");
       if (viewButton && panel.contains(viewButton)) return setView(viewButton.dataset.view ?? "");
@@ -562,6 +578,7 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
 
     const initial = location.hash.replace("#concept-", "");
     focusEnabled = ids.includes(initial);
+    setCollapsed(!focusEnabled);
     render(ids.includes(initial) ? ids.indexOf(initial) : ids.indexOf("onto"));
     // #concept-… 주소로 들어오면 브라우저가 이미 옛 카드 위치로 스크롤했으므로 지도 위치로 맞춘다
     if (ids.includes(initial)) {
@@ -719,6 +736,8 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
   .nav button, .back { height: 34px; padding: 0 12px; border-radius: 9px; border: 1px solid var(--border); background: var(--surface); cursor: pointer; font-size: 13px; display: inline-flex; align-items: center; text-decoration: none; color: var(--text); }
   .back { margin-right: auto; }
   .more { display: none !important; }
+  /* 접기 버튼은 좁은 화면(상단 고정 패널)에서만 보인다. .nav button보다 우선하도록 .nav를 붙인다 */
+  .nav .fold { display: none; }
 
   /* 넓은 화면의 사이드 패널: 화면 높이에 맞추고, 목록은 현재 층만 남기고 접으며, 카드는 가운데 본문만 스크롤 */
   @media (min-width: 1180px) {
@@ -753,6 +772,14 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
     [data-docked].is-expanded { max-height: 65vh; overflow-y: auto; }
     [data-docked] .more { display: inline-flex !important; }
     [data-docked] .step { display: none; }
+    [data-docked] .fold { display: inline-flex; }
+    /* 접힌 패널: 현재 개념 이름 한 줄과 펼치기 버튼만 */
+    [data-docked].is-collapsed { grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
+    [data-docked].is-collapsed .index { display: none; }
+    [data-docked].is-collapsed .card { padding: 6px 12px; cursor: pointer; }
+    [data-docked].is-collapsed .card > :not(.ct) { display: none; }
+    [data-docked].is-collapsed .ct { font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    [data-docked].is-collapsed .nav > :not(.fold) { display: none !important; }
     [data-docked] .nav button, [data-docked] .back { height: 30px; }
   }
 

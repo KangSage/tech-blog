@@ -61,6 +61,7 @@ export const ui = {
   },
   readFigure: { ko: "그림", ja: "図", en: "Figure" },
   tocTitle: { ko: "목차", ja: "目次", en: "Contents" },
+  tableScrollHint: { ko: "표를 좌우로 밀어서 볼 수 있습니다.", ja: "表は左右にスクロールできます。", en: "Scroll the table sideways to see more." },
   themeToDark: { ko: "다크 모드로 전환", ja: "ダークモードに切り替え", en: "Switch to dark mode" },
   themeToLight: { ko: "라이트 모드로 전환", ja: "ライトモードに切り替え", en: "Switch to light mode" },
 } satisfies Record<string, Record<Locale, string>>;
