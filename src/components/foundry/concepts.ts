@@ -185,7 +185,7 @@ export const concepts: Concept[] = [
     points: [
       "Data Connection의 source(연결 정보)와 원본 시스템에서 테이블을 가리키는 locator(데이터베이스·스키마·테이블 이름)로 정의합니다.",
       "Amazon S3, ADLS·OneLake, BigQuery, Databricks, Google Cloud Storage, Snowflake를 지원하고 Foundry(베타, managed Iceberg만)도 지원하며 일부 source는 테이블을 주기적으로 자동 등록(auto-registration)할 수 있습니다.",
-      "Pipeline Builder·Code Repositories의 입력과 출력, Contour 분석에 쓸 수 있고 Ontology Manager나 Pipeline Builder로 Object type을 만들 때 datasource로도 쓸 수 있습니다.",
+      "Pipeline Builder·Code Repositories의 입력과 출력, Contour 분석에 쓸 수 있습니다. Object type을 만들 때는 Ontology Manager에서 datasource로 쓰거나 Pipeline Builder에서 입력으로 씁니다.",
       "일부 source에서는 원본 시스템의 계산 엔진으로 처리하는 compute pushdown을 쓸 수 있습니다.",
     ],
     warn: "source와 테이블 유형마다 지원 기능(쓰기, 엔진 등)이 다르므로 source별 문서를 확인해야 합니다. source에서 테이블이 지워져도 자동 등록된 Virtual table은 지워지지 않고 데이터만 읽히지 않습니다.",
@@ -201,7 +201,7 @@ export const concepts: Concept[] = [
       "Foundry에서 학습한 모델, 밖에서 학습해 파일로 올린 모델, 밖에서 만든 컨테이너, 밖에서 호스팅하는 모델을 모두 연결할 수 있습니다.",
       "모델은 파일·가중치 같은 model artifact와 그것을 불러와 추론하는 방법을 정한 model adapter로 구성됩니다.",
       "Modeling Objective에 모델을 제출하면 변경할 수 없는 사본(submission)이 만들어지고 Objective에 정한 metric으로 다른 모델과 비교됩니다. 채택한 모델은 Staging·Production 같은 환경 태그가 붙은 release가 됩니다.",
-      "batch deployment는 입력 Dataset으로 추론해 출력 Dataset에 쓰며 보통 Build Schedule로 관리합니다. live deployment는 바로 호출할 수 있는 REST API endpoint를 제공합니다. Modeling Objective를 거치지 않고 모델에서 바로 direct deployment를 만들 수도 있습니다.",
+      "batch deployment는 입력 Dataset으로 추론해 출력 Dataset에 쓰며 보통 Build Schedule로 관리합니다. live deployment는 바로 호출할 수 있는 REST API endpoint를 제공합니다. Modeling Objective를 거치지 않고 모델에서 바로 live endpoint인 direct deployment를 만들 수도 있습니다.",
       "live deployment는 model function으로 감싸 TypeScript·Python Function에서 query function처럼 호출할 수 있습니다. 2026년 2월부터 새로 만드는 model function은 Ontology에 묶입니다.",
     ],
     warn: "deployment는 환경 태그가 붙은 최신 release를 가져가도록 설정할 수 있습니다. 이렇게 설정한 Production deployment에 새 모델을 반영하려면 그 모델의 release에 Production 태그를 붙입니다.",
@@ -465,7 +465,7 @@ export const concepts: Concept[] = [
       "Microsoft Copilot Studio·Google Gemini Enterprise 같은 외부 AI 앱은 별도 코드 없이 연결하고 LangChain 같은 프레임워크로 만든 에이전트도 연결할 수 있습니다.",
       "Palantir MCP는 목적이 다릅니다. Ontology를 만드는 개발자용으로 AI IDE·에이전트가 Object type·Link type·Action type 같은 구조를 만들고 고치게 하지만 Ontology 데이터를 쓰지는 못합니다.",
     ],
-    warn: "로컬 기기에서 Palantir AIP 밖에서 호스팅되는 LLM과 함께 Ontology MCP를 켜면 환경의 데이터를 외부 MCP client가 쓸 수 있게 됩니다. 켜기 전에 조직의 데이터 거버넌스 정책을 확인하고 앱 제한과 권한으로 민감한 리소스를 막아야 합니다.",
+    warn: "로컬 기기에서 Palantir AIP 밖에서 호스팅되는 LLM과 함께 Ontology MCP를 켜면 환경의 데이터를 외부 MCP client가 사용할 수 있게 됩니다. 켜기 전에 조직의 데이터 거버넌스 정책을 확인하고 앱 제한과 권한으로 민감한 리소스를 막아야 합니다.",
     doc: D + "ontology-mcp/overview",
     related: [
       { label: "샘플 아키텍처", href: D + "ontology-mcp/sample-architecture" },
