@@ -30,7 +30,7 @@ const mapNodes: MapNode[] = [
   { id: "automate", x: 302, y: 472, w: 80, h: 52, sub: "조건 → 실행" },
   { id: "aip", x: 388, y: 472, w: 92, h: 52, sub: "LLM · 챗봇" },
   { id: "workshop", x: 24, y: 576, w: 148, h: 52, sub: "노코드 앱 빌더" },
-  { id: "osdk", x: 184, y: 576, w: 170, h: 52, sub: "React 앱 · Developer Console" },
+  { id: "osdk", x: 184, y: 576, w: 170, h: 52 },
   { id: "analytics", x: 366, y: 576, w: 134, h: 52 },
   { id: "objectviews", x: 24, y: 638, w: 140, h: 28, rx: 6, cls: "t sm" },
   { id: "oauth", x: 207, y: 642, w: 124, h: 26, rx: 13, cls: "t sm" },
@@ -754,6 +754,8 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
   @media (min-width: 1180px) {
     [data-docked] { display: flex; flex-direction: column; gap: 10px; max-height: calc(100vh - 32px); }
     [data-docked] .index { display: flex; align-items: flex-start; gap: 6px; }
+    /* 전체 목록을 펼치면 31개 이름이 여러 줄이 되므로 칩 높이를 조금 줄여 패널이 화면 높이를 넘지 않게 한다 */
+    [data-docked] .chip { height: 24px; }
     [data-docked] .chips { flex: 1; min-width: 0; }
     [data-docked] .index-toggle { display: inline-flex; flex: none; height: 26px; padding: 0 8px; border-radius: 7px; border: 1px solid var(--border); background: var(--surface); font-size: 12px; white-space: nowrap; align-items: center; cursor: pointer; }
     [data-docked]:not(.index-open) .chip-group:not(.is-current) { display: none; }

@@ -71,14 +71,14 @@ export const concepts: Concept[] = [
   },
   {
     id: "pb", short: "Pipeline Builder", layer: "data", title: "Pipeline Builder",
-    lead: "클릭으로 파이프라인을 구성하는 도구입니다. 백엔드가 transform 코드를 생성하고 Build 전에 스키마를 검사합니다.",
+    lead: "클릭으로 파이프라인을 구성하는 도구입니다. 백엔드가 transform 코드를 쓰고 파이프라인 무결성을 검사하므로 Build 전에 스키마 문제를 해결할 수 있습니다.",
     analogy: "Zapier나 n8n처럼 블록을 선으로 이어 흐름을 만드는 노코드 도구와 비슷합니다. 다만 이어 붙이는 블록이 필터·조인·그룹화 같은 SQL 연산이고 뒤에서 그 연산을 수행하는 transform 코드가 자동으로 만들어집니다.",
     everyday: "블록을 끼워 맞추듯 '거르기 → 합치기 → 묶기' 같은 단계를 화면에서 이어 붙이는 도구입니다. 단계를 다 이으면 그 작업을 실제로 수행하는 프로그램이 자동으로 만들어집니다.",
     points: [
       "Expression은 컬럼을 받아 컬럼 하나를 내고 Transform은 테이블 전체를 받아 테이블을 냅니다.",
       "실행 엔진으로 Spark와 Flink를 쓰며 DataFusion 기반의 Faster pipelines로 배치·증분 파이프라인을 더 빠르게 실행할 수 있습니다.",
       "출력 검사를 통과하지 못하면 Build를 막아 하류 파이프라인이 깨지는 것을 방지합니다.",
-      "출력으로 Dataset, Object type·Link type, Stream, time series, 외부 내보내기를 지원합니다. Ontology에 바로 쓰는 direct datasource의 writer는 지금 Pipeline Builder뿐입니다.",
+      "출력으로 Dataset, Media set, 파일, Virtual table, Object type·Link type, time series를 지원합니다. Ontology에 바로 쓰는 direct datasource의 writer는 지금 Pipeline Builder뿐입니다.",
       "생성된 코드는 기존 Java transforms 저장소로만 내보낼 수 있습니다(PySpark 불가, 기본 배치 파이프라인만). 대상 브랜치의 기존 코드는 삭제되고 되돌릴 수 없는 단방향 작업입니다.",
       "UDF·LLM 호출·미디어 연산 등은 내보낸 코드에서 TODO로 남으며 결과가 원래 파이프라인과 다를 수 있습니다.",
     ],
@@ -86,6 +86,7 @@ export const concepts: Concept[] = [
     doc: D + "pipeline-builder/overview",
     related: [
       { label: "Expression과 Transform", href: D + "pipeline-builder/transforms-overview" },
+      { label: "출력 종류", href: D + "pipeline-builder/outputs-overview" },
       { label: "코드 내보내기", href: D + "pipeline-builder/export-pipeline" },
       { label: "Direct datasource", href: D + "object-indexing/direct-datasources" },
     ],
@@ -277,14 +278,15 @@ export const concepts: Concept[] = [
     everyday: "정해진 양식의 신청서와 같습니다. 양식대로 작성하고 결재 조건을 통과해야만 내용이 실제로 반영됩니다.",
     points: [
       "Parameters: 요청 body에 해당합니다.",
-      "Rules: 무엇을 바꿀지 정합니다(생성·수정·삭제·링크).",
+      "Rules: 파라미터를 Ontology 편집이나 다른 효과로 바꾸는 로직입니다. Object·링크를 만들고 고치고 지우거나 Function을 실행합니다.",
       "Submission criteria: 제출 가능 여부를 정합니다. 사용자 그룹·파라미터·Object 상태를 조합해 조건을 만듭니다.",
-      "제출하려면 편집 대상 Object type·Link type과 그 datasource를 볼 수 있어야 하고 편집 권한도 있어야 합니다. Action으로만 편집하는 타입은 대상 Object의 Read 권한, 그 밖의 타입은 writeback Dataset의 Edit 권한, Restricted view 기반 타입은 edit policy 통과가 필요합니다.",
+      "제출하려면 편집 대상 Object type·Link type과 그 datasource를 볼 수 있어야 합니다. Action으로만 편집하는 타입은 볼 수 있는 Object를 모두 편집할 수 있습니다. Action 밖 편집도 허용한 타입은 Dataset 기반이면 writeback Dataset의 Edit 권한이, Restricted view 기반이면 edit policy 통과가 추가로 필요합니다.",
       "action log를 쓰는 Action은 action log Object type에 대한 권한도 있어야 제출할 수 있습니다.",
     ],
     warn: "Submission criteria만 통과한다고 제출할 수 있는 것은 아닙니다. Object security policy 같은 행·열 통제는 Action이 읽는 데이터를 거릅니다. 이 통제는 Action이 쓴 결과로 전파되지 않고 쓰기 대상에는 그 대상의 통제가 적용됩니다.",
     doc: D + "action-types/overview",
     related: [
+      { label: "Rules", href: D + "action-types/rules" },
       { label: "Submission criteria", href: D + "action-types/submission-criteria" },
       { label: "Action 권한", href: D + "action-types/permissions" },
       { label: "권한 전파", href: D + "security/access-control-propagation" },
@@ -318,7 +320,7 @@ export const concepts: Concept[] = [
     everyday: "회사 밖 전문 업체에 일을 맡기는 것과 같습니다. 업체는 자기에게 익숙한 방식(언어·도구)으로 일하고 Application permissions를 쓰면 누가 맡겼든 업체 자신의 출입 권한으로 일합니다.",
     points: [
       "Function mode: 컨테이너에 함수를 올려 Workshop·Slate, Developer Console의 OSDK 앱, TypeScript function에서 호출합니다. TypeScript function에서 부를 때는 5분이 넘으면 시간 초과입니다.",
-      "Pipeline mode: 외부 소스의 데이터를 Stream·Dataset·Media set으로 가져오는 것처럼 입력을 받아 출력으로 처리합니다. job token은 입출력 리소스에만 쓸 수 있습니다.",
+      "Pipeline mode: 입력과 출력으로 지정한 Dataset·Stream·Media set만 다루며 사용자가 직접 질의할 수 없습니다. 데이터 계보와 provenance 통제를 지키기 위한 방식이고 함께 주어지는 job token은 그 입출력 리소스에만 쓸 수 있습니다.",
       "Function mode 권한은 '플랫폼 권한 없음'과 'Application permissions' 중에서 고릅니다. Application permissions는 호출한 사용자와 관계없이 연결된 서비스 유저의 권한으로 동작합니다.",
     ],
     warn: "Application permissions는 일부 환경(enrollment)에서는 제공되지 않을 수 있습니다.",
@@ -354,7 +356,7 @@ export const concepts: Concept[] = [
       "AIP Chatbot Studio의 예전 이름은 AIP Agent Studio입니다. 챗봇은 앱에 통합해 읽기·쓰기 워크플로를 처리합니다.",
       "AIP Evals는 AIP Logic 함수·챗봇 함수·코드 함수를 test case와 evaluation function으로 평가하는 테스트 환경입니다. LLM 결과가 실행마다 달라지는 점을 감안해 이전 버전이나 다른 모델과 결과를 비교하고 실행 간 편차를 확인합니다.",
     ],
-    warn: "플랫폼 보안은 LLM이 작업에 필요한 데이터에만 접근하도록 제한하지만 모델의 출력이나 모델이 만든 Ontology 편집까지 통제하지는 않습니다.",
+    warn: "Restricted view·Object security policy 같은 행·열 통제는 모델이 사용자 대신 읽는 데이터만 거르며 모델의 출력이나 모델이 만든 Ontology 편집으로 전파되지 않습니다. 하류까지 보호하려면 Marking이나 CBAC를 함께 겁니다.",
     doc: [
       { label: "AIP Logic", href: D + "logic/overview" },
       { label: "AIP Chatbot Studio", href: D + "chatbot-studio/overview" },
@@ -391,7 +393,7 @@ export const concepts: Concept[] = [
     ],
   },
   {
-    id: "osdk", short: "OSDK", layer: "app", title: "OSDK · Developer Console",
+    id: "osdk", short: "OSDK · Developer Console", mapLines: ["OSDK", "Developer Console"], layer: "app", title: "OSDK · Developer Console",
     lead: "OSDK는 Ontology에서 생성되는 타입 있는 클라이언트이고 Developer Console은 커스텀 앱을 관리하는 콘솔입니다.",
     analogy: "Prisma Client처럼 스키마(Ontology)에서 생성되는 타입 있는 클라이언트입니다. Developer Console은 GitHub의 OAuth App 설정처럼 앱을 등록하고 접근 범위를 관리하는 곳입니다.",
     everyday: "Foundry 데이터를 회사가 직접 만든 앱에서 쓸 수 있게 해 주는 전용 연결 도구입니다. Developer Console은 그 앱을 등록하고 어떤 데이터까지 쓸 수 있는지 정하는 관리 창구입니다.",
@@ -426,7 +428,7 @@ export const concepts: Concept[] = [
       "Quiver는 transform table과 Dataset도 다루고 Code function 카드로 Function을 불러 쓰며 Action으로 분석 결과를 Ontology에 쓸 수 있습니다.",
       "Insight: Ontology 데이터를 필터·링크 탐색·집계 단계로 이어 분석합니다. SQL 쿼리를 쓸 수 있고 Action으로 분석 결과에서 Object를 만들고 고치거나 지울 수 있습니다.",
       "Notepad는 다른 앱의 차트·표·Object를 넣는 문서 편집기로 템플릿으로 정기 보고서를 만듭니다. Fusion은 Dataset을 조회하고 결과를 Dataset으로 다시 쓰는 스프레드시트입니다.",
-      "Object Explorer: 키워드나 속성 필터로 Object를 찾고 찾은 Object set에 Action을 일괄 실행하거나 Quiver로 넘길 수 있습니다. 비기술 사용자를 위한 도구입니다.",
+      "Object Explorer: 키워드나 속성 필터로 Object를 찾고 찾은 Object set에 Action을 일괄 실행하거나 Quiver로 넘길 수 있습니다. 설정이 거의 필요 없어 기술 지식이 적은 사용자에게 맞춰져 있습니다.",
     ],
     doc: [
       { label: "Contour", href: D + "contour/overview" },
@@ -602,7 +604,7 @@ export const concepts: Concept[] = [
     everyday: "원본을 바로 고치지 않고 사본에서 먼저 고쳐 본 뒤 검토를 받아 원본에 반영하는 방식입니다. 구글 문서의 '제안 모드'와 비슷합니다.",
     points: [
       "지원 대상: Code Repositories, Pipeline Builder, Ontology(Action·Materialization 포함), Workshop, AIP Logic, Automate, Object Views, Restricted view, TypeScript function 등. TS v2 function은 로컬 OSDK를 쓸 때만 브랜치에서 수정할 수 있습니다. Python function은 브랜치에서 수정할 수 없고 특정 버전을 참조해 테스트할 수만 있습니다(Main 스키마만 사용).",
-      "Proposal이 PR 역할을 합니다. 리소스별 승인 → merge check → Merge 순서로 진행되며 일부만 실패한 병합은 되돌릴 수 없습니다.",
+      "Proposal이 PR 역할을 합니다. Proposal을 만들면 리소스마다 check(main과의 충돌, 필요한 승인 등)가 실행되고 모든 check를 통과해야 Merge할 수 있습니다. 일부 리소스만 실패한 병합은 지금은 되돌릴 수 없습니다.",
       "브랜치에서 리소스를 만들거나 지우면 Main에도 반영됩니다. Ontology 리소스는 예외로 브랜치에서 만들고 지워도 Main에 영향을 주지 않습니다.",
       "Branch protection은 리소스 owner가 켜거나 끕니다. 프로젝트의 Branch protection 탭에서 새 파일을 자동으로 보호하도록 설정할 수도 있습니다. Ontology 리소스는 먼저 project permissions로 migration해야 보호할 수 있습니다.",
       "기본값으로 35일 동안 쓰지 않은 브랜치는 비활성화되고 그 7일 뒤 브랜치 데이터가 삭제됩니다.",
