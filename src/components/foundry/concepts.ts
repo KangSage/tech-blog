@@ -73,7 +73,7 @@ export const concepts: Concept[] = [
       "Expression은 컬럼을 받아 컬럼 하나를 내고 Transform은 테이블 전체를 받아 테이블을 냅니다.",
       "실행 엔진으로 Spark와 Flink를 쓰며 DataFusion 기반의 Faster pipelines로 배치·증분 파이프라인을 더 빠르게 실행할 수 있습니다.",
       "출력 검사를 통과하지 못하면 Build를 막아 하류 파이프라인이 깨지는 것을 방지합니다.",
-      "출력으로 Dataset, Object type·Link type, stream, time series, 외부 내보내기를 지원합니다. Ontology에 바로 쓰는 direct datasource의 writer는 지금 Pipeline Builder뿐입니다.",
+      "출력으로 Dataset, Object type·Link type, Stream, time series, 외부 내보내기를 지원합니다. Ontology에 바로 쓰는 direct datasource의 writer는 지금 Pipeline Builder뿐입니다.",
       "생성된 코드는 기존 Java transforms 저장소로만 내보낼 수 있습니다(PySpark 불가, 기본 배치 파이프라인만). 대상 브랜치의 기존 코드는 삭제되고 되돌릴 수 없는 단방향 작업입니다.",
       "UDF·LLM 호출·미디어 연산 등은 내보낸 코드에서 TODO로 남으며 결과가 원래 파이프라인과 다를 수 있습니다.",
     ],
@@ -96,12 +96,13 @@ export const concepts: Concept[] = [
       "JobSpec은 job을 만드는 방법의 정의로 데이터 변환 로직이 바뀌면(예: Code Repositories에 transform 코드 커밋) 게시됩니다.",
       "Build 한 번은 출력을 한 번 계산할 뿐이므로 데이터가 계속 흐르게 하려면 Schedule로 반복 실행합니다.",
       "Schedule의 trigger가 충족되면 Build가 실행되고 이전 실행이 끝나지 않았으면 끝난 뒤에 실행됩니다.",
+      "Health check는 Dataset의 상태·시간·크기·내용·스키마 문제 등을 감시하고 문제가 생기면 플랫폼 알림과 이메일로 알려 줍니다. 검사는 Dataset·Schedule·table에 만들 수 있고 Dataset용 검사는 코드로도 만들 수 있습니다.",
     ],
     doc: [
       { label: "Builds", href: D + "data-integration/builds" },
       { label: "Schedules", href: D + "data-integration/schedules" },
     ],
-    related: [],
+    related: [{ label: "Health checks", href: D + "health-checks/overview" }],
   },
   {
     id: "dataset", short: "Dataset", layer: "data", title: "Dataset",
@@ -119,6 +120,27 @@ export const concepts: Concept[] = [
     related: [
       { label: "롤백", href: D + "data-lineage/dataset-rollback" },
       { label: "보존 정책 실행", href: D + "retention/policy-execution" },
+    ],
+  },
+  {
+    id: "stream", short: "Stream", layer: "data", title: "Stream",
+    lead: "Stream은 Dataset처럼 Foundry에 들어온 데이터를 담으면서 지연이 짧은(low-latency) 조회를 함께 제공합니다. Ontology의 입력 datasource로 쓰면 배치 Dataset 인프라를 벗어나 초~분 단위로 인덱싱되므로 지연에 민감한 운영 업무에 맞습니다.",
+    analogy: "Kafka의 changelog 토픽에 가깝습니다. 배치로 다시 계산하는 Dataset과 달리 레코드가 들어온 순서대로 흐르고 Object에는 같은 키의 가장 최근 레코드가 반영됩니다.",
+    everyday: "하루치를 모아 정리하는 장부(Dataset)와 달리 소식이 들어오는 즉시 한 줄씩 띄우는 실시간 전광판과 같습니다. 같은 항목의 새 소식이 오면 전광판에는 가장 최근 소식이 표시됩니다.",
+    points: [
+      "레코드는 Data Connection의 streaming sync로 가져오거나 REST API로 직접 보냅니다(push). API(publishRecords)는 레코드를 Stream 스키마로 검증하고 하나라도 맞지 않으면 묶음 전체를 거부합니다. OAuth 앱으로 보내려면 api:streams-write scope를 요청해야 합니다.",
+      "Stream 기반 Object type은 Pipeline Builder나 Ontology Manager에서 설정합니다. Funnel은 레코드가 쓰인 순서대로 인덱싱하므로 상류 Pipeline Builder 파이프라인에서 primary key로 나누고(partition) 이벤트 시각 순으로 정렬해 두어야 합니다.",
+      "같은 primary key는 가장 최근 업데이트가 이깁니다(most recent update wins). 레코드는 1MB를 넘을 수 없고 Object type의 property는 250개를 넘을 수 없습니다.",
+      "Stream의 Viewer 권한이 있으면 그 Stream으로 만든 Object를 모두 볼 수 있습니다. 행·열 단위로 나누려면 Object security policy를 적용합니다. Restricted view는 Stream에 만들 수 없습니다.",
+    ],
+    warn: "Stream 기반 Object type은 사용자 편집과 multi-datasource object type(MDO)을 지원하지 않습니다. 편집이 필요하면 direct datasource를 쓸 수 있지만 베타 단계라 환경(enrollment)에 따라 제공되지 않을 수 있고 지금은 Pipeline Builder만 쓰기 앱으로 지원합니다.",
+    doc: D + "data-integration/streams",
+    related: [
+      { label: "Streaming Funnel", href: D + "object-indexing/funnel-streaming-pipelines" },
+      { label: "Direct datasource", href: D + "object-indexing/direct-datasources" },
+      { label: "Push 수집", href: D + "data-connection/push-based-ingestion" },
+      { label: "레코드 보내기 API", href: D + "api/streams-v2-resources/streams/publish-records-to-stream" },
+      { label: "권한", href: D + "object-permissioning/managing-object-security" },
     ],
   },
   {
@@ -146,7 +168,7 @@ export const concepts: Concept[] = [
   },
   {
     id: "funnel", short: "Funnel", layer: "onto", title: "Funnel · Materialization",
-    lead: "Funnel은 Dataset·Restricted view·stream 같은 datasource를 객체 저장소(OSv2)로 인덱싱합니다. Action으로 만든 편집은 인덱스에 즉시 반영됩니다.",
+    lead: "Funnel은 Dataset·Restricted view·Stream 같은 datasource를 객체 저장소(OSv2)로 인덱싱합니다. Action으로 만든 편집은 인덱스에 즉시 반영됩니다.",
     analogy: "MySQL 원본을 검색용 Elasticsearch 인덱스로 동기화하고 앱은 인덱스만 조회하는 구조와 비슷합니다. Materialization은 원본과 편집을 합쳐 다시 테이블로 저장하는 materialized view에 해당합니다.",
     everyday: "도서관 책으로 검색용 목록(색인)을 만들어 두고 사람들은 그 목록으로 책을 찾는 것과 같습니다. Materialization은 목록에 반영된 수정 사항까지 합쳐 책을 새로 인쇄해 두는 것에 해당합니다.",
     points: [
@@ -161,7 +183,7 @@ export const concepts: Concept[] = [
     related: [
       { label: "편집이 적용되는 방식", href: D + "object-edits/how-edits-applied" },
       { label: "Restricted view", href: D + "security/restricted-views" },
-      { label: "stream datasource", href: D + "object-permissioning/managing-object-security" },
+      { label: "Stream datasource", href: D + "object-permissioning/managing-object-security" },
     ],
   },
   {
@@ -173,6 +195,7 @@ export const concepts: Concept[] = [
       "Object의 값은 backing datasource(원본 Dataset)의 데이터와 Action 편집을 합친 것입니다. Action으로만 채우는 Object type처럼 datasource가 없는 경우도 있습니다.",
       "Link type은 1:1, 1:N, N:1, N:M 관계를 표현합니다. N:M 관계는 조인 테이블 Dataset으로 연결합니다.",
       "Object set의 예: 상태가 '지연'인 항공편 전체",
+      "Time series property는 Object property의 한 종류로 값 하나 대신 타임스탬프가 붙은 값의 이력을 저장합니다. Workshop에서는 Chart XY·Map·Metric Card·Object Table 위젯에서 쓸 수 있습니다. time series 서비스가 설치되어 있어야 하므로 환경에 따라 쓸 수 없을 수 있습니다.",
     ],
     doc: D + "ontology/core-concepts",
     related: [
@@ -180,6 +203,7 @@ export const concepts: Concept[] = [
       { label: "Materializations", href: D + "object-edits/materializations" },
       { label: "Object type 만들기", href: D + "object-link-types/create-object-type" },
       { label: "Platform SDK와 OSDK", href: D + "api/v2/general/overview/sdks" },
+      { label: "Time series property", href: D + "workshop/time-series-properties" },
     ],
   },
   {
@@ -244,7 +268,7 @@ export const concepts: Concept[] = [
     everyday: "회사 밖 전문 업체에 일을 맡기는 것과 같습니다. 업체는 자기에게 익숙한 방식(언어·도구)으로 일하고 Application permissions를 쓰면 누가 맡겼든 업체 자신의 출입 권한으로 일합니다.",
     points: [
       "Function mode: 컨테이너에 함수를 올려 Workshop·Slate, Developer Console의 OSDK 앱, TypeScript function에서 호출합니다. TypeScript function에서 부를 때는 5분이 넘으면 시간 초과입니다.",
-      "Pipeline mode: 외부 소스의 데이터를 stream·Dataset·Media set으로 가져오는 것처럼 입력을 받아 출력으로 처리합니다. job token은 입출력 리소스에만 쓸 수 있습니다.",
+      "Pipeline mode: 외부 소스의 데이터를 Stream·Dataset·Media set으로 가져오는 것처럼 입력을 받아 출력으로 처리합니다. job token은 입출력 리소스에만 쓸 수 있습니다.",
       "Function mode 권한은 '플랫폼 권한 없음'과 'Application permissions' 중에서 고릅니다. Application permissions는 호출한 사용자와 관계없이 연결된 서비스 유저의 권한으로 동작합니다.",
     ],
     warn: "Application permissions는 일부 환경(enrollment)에서는 제공되지 않을 수 있습니다.",
@@ -299,6 +323,7 @@ export const concepts: Concept[] = [
       "기본 위젯으로 부족하면 Custom widget으로 직접 작성한 프론트엔드 코드를 넣을 수 있습니다.",
       "기본 도구를 넘어서는 완전한 맞춤 화면이 필요하면 OSDK React 앱을 만듭니다.",
       "OSDK로 만든 React 앱은 Iframe 위젯으로, Quiver 대시보드는 그대로 Workshop 안에 넣을 수 있습니다.",
+      "Slate는 드래그 앤 드롭으로 앱과 대시보드를 만드는 또 다른 도구로 CSS로 화면의 모든 스타일을 바꿀 수 있습니다. Object 데이터·Function·Action과 함께 Foundry 외부의 데이터베이스·API 데이터도 쓸 수 있습니다.",
     ],
     doc: D + "workshop/overview",
     related: [
@@ -306,6 +331,7 @@ export const concepts: Concept[] = [
       { label: "Custom widget", href: D + "custom-widgets/overview" },
       { label: "OSDK React 앱", href: D + "ontology-sdk-react-applications/overview" },
       { label: "Quiver 대시보드", href: D + "quiver/overview" },
+      { label: "Slate", href: D + "slate/overview" },
     ],
   },
   {
@@ -319,6 +345,7 @@ export const concepts: Concept[] = [
       "앱이 토큰을 요청할 때 고를 수 있는 것은 api:use-ontologies-read 같은 작업(operation) scope뿐입니다. scope를 빈 값([])으로 요청하면 앱의 operation restrictions 전체가 적용됩니다. scope 없이 토큰을 요청하면 앱 제한이 허용하는 사용자 권한 전부가 적용됩니다.",
       "앱은 기본적으로 제한(restricted) 상태로 만들어집니다. 제한 없는(unrestricted) 앱은 사용자 권한만으로 접근이 결정되므로 신뢰할 수 있는 코드에만 써야 합니다. unrestricted 앱이 Authorization code 방식을 쓰면 scope를 반드시 요청해야 합니다.",
       "웹 호스팅은 정적 에셋만 지원하고 서버 코드는 실행할 수 없습니다. 커스텀 404 페이지가 없으면 SPA로 간주합니다. 파일은 최대 1,000개, 전체 20MB까지 올릴 수 있습니다.",
+      "Platform SDK는 어느 환경(enrollment)에서나 Ontology를 포함한 모든 Foundry API를 호출하는 범용 라이브러리이고 OSDK는 각 환경에서 생성되어 Platform SDK 위에 Ontology를 더 다루기 쉽게 추상화한 라이브러리입니다.",
     ],
     warn: "앱 제한은 앱이 받을 수 있는 권한의 보장된 상한입니다. 요청 scope는 작업(operation) 범위만 좁힙니다. 리소스 접근은 앱의 resource restrictions와 사용자 권한만으로 정해집니다.",
     doc: [
@@ -328,6 +355,7 @@ export const concepts: Concept[] = [
     related: [
       { label: "앱 제한", href: D + "developer-console/application-restrictions" },
       { label: "웹 호스팅", href: D + "developer-console/deploy-custom-application-on-foundry" },
+      { label: "Platform SDK와 OSDK", href: D + "api/v2/general/overview/sdks" },
     ],
   },
   {
@@ -362,13 +390,17 @@ export const concepts: Concept[] = [
       "Marking은 all-or-nothing입니다. 하나라도 통과하지 못하면 Role과 관계없이 접근할 수 없습니다.",
       "Marking은 명시적으로 제거하지 않는 한 파생 데이터에도 전파됩니다. 접근을 막는 장치이며 권한을 부여하지는 않습니다.",
       "Marking 외에 Organization과 Classification-based Access Controls(CBAC)도 필수 통제로 함께 적용됩니다.",
+      "Compass는 Foundry의 파일 시스템으로 Project·폴더·리소스를 정리하고 관리하며 Quicksearch는 앱·Object·Dataset 같은 리소스를 찾는 검색 도구입니다. Quicksearch는 기존 권한을 그대로 따르므로 접근 권한이 없는 콘텐츠는 결과에 보이지 않고 Discover 권한이 있는 콘텐츠는 Request access 안내로 열립니다.",
     ],
     warn: "Editor Role이 있어도 PII Marking의 멤버가 아니면 해당 데이터에 접근할 수 없습니다.",
     doc: [
       { label: "Project · Role", href: D + "security/projects-and-roles" },
       { label: "Marking", href: D + "security/markings" },
     ],
-    related: [],
+    related: [
+      { label: "Compass", href: D + "compass/overview" },
+      { label: "Quicksearch", href: D + "getting-started/quicksearch" },
+    ],
   },
   {
     id: "osp", short: "Object security policy", layer: "sec", title: "Object security policy",
@@ -390,6 +422,25 @@ export const concepts: Concept[] = [
     ],
   },
   {
+    id: "rv", short: "Restricted view", layer: "sec", title: "Restricted view",
+    lead: "Restricted view는 Dataset에서 사용자가 볼 권한이 있는 행만 보이게 합니다. backing Dataset 위에 만들며 그 행으로 만든 Object에도 같은 행 단위 통제가 적용됩니다.",
+    analogy: "원본 테이블로 만든 materialized view에 Postgres RLS를 건 것과 비슷합니다. 원본이 바뀌면 view가 자동으로 다시 계산(Build)되지만 정책을 바꾼 뒤에도 다시 Build해야 새 정책이 적용됩니다.",
+    everyday: "원본 장부 앞에 둔 열람 창구와 같습니다. 창구는 찾아온 사람의 소속을 확인해 볼 수 있는 줄만 보여 주고 열람 규칙을 바꾸면 창구의 열람본을 다시 만들어야 새 규칙이 적용됩니다.",
+    points: [
+      "정책은 granular policy로 작성합니다. 사용자 속성, backing Dataset의 컬럼, 특정 값(문자열·Boolean·숫자·배열)을 비교해 조건을 만들며 사용자별로 거르려면 사용자 속성과 비교하는 항이 하나 이상 있어야 합니다.",
+      "Owner Role이나 필요한 권한이 있는 사용자가 Dataset의 우클릭 메뉴로 하류에 만듭니다. 만들면 입력 Dataset이 갱신될 때마다 다시 Build하는 Schedule이 자동으로 생깁니다.",
+      "Ontology Manager에서 Dataset처럼 Object type의 datasource로 고를 수 있습니다. 특정 primary key의 Object에 접근할 수 있는지는 그 행에 접근할 수 있는지로 정해집니다.",
+      "Dataset에만 만들 수 있고 Stream 등 다른 datasource에는 만들 수 없습니다. transform처럼 새 Dataset을 만드는 배치 작업의 입력으로도 쓸 수 없습니다.",
+    ],
+    warn: "정책은 사용자가 읽는 것만 거릅니다. Function, Action, AIP Logic, OSDK 응답, writeback, 내보내기에는 적용되지 않습니다. 정책을 바꾸면 파이프라인을 다시 Build해야 읽기에 반영됩니다. Object 보안에는 대부분 Object security policy가 권장되며 변경도 거의 즉시 반영됩니다. Restricted view는 backing Dataset을 Ontology 밖(예: Code Workspaces)에서도 행 단위로 보호해야 할 때 적합합니다.",
+    doc: D + "security/restricted-views",
+    related: [
+      { label: "정책 방식 비교", href: D + "object-permissioning/managing-object-security" },
+      { label: "Granular policy", href: D + "platform-security-management/manage-granular-policies" },
+      { label: "권한 전파", href: D + "security/access-control-propagation" },
+    ],
+  },
+  {
     id: "oauth", short: "OAuth", layer: "sec", title: "OAuth",
     lead: "Authorization code 방식은 사용자를 대신해 동작하고 Client credentials 방식은 서비스 유저(앱 전용 계정)로 동작합니다.",
     analogy: "'Google로 로그인'과 서버 간 API 키의 차이와 같습니다.",
@@ -405,6 +456,29 @@ export const concepts: Concept[] = [
     related: [
       { label: "클라이언트 등록", href: D + "platform-security-third-party/register-3pa" },
       { label: "@osdk/oauth 소스", href: "https://github.com/palantir/osdk-ts/blob/main/packages/oauth/src/createPublicOauthClient.ts" },
+    ],
+  },
+  {
+    id: "approvals", short: "Approvals · Checkpoints", mapLines: ["Approvals", "Checkpoints"], layer: "sec", title: "Approvals · Checkpoints",
+    lead: "Approvals는 권한이 없는 변경을 request로 올리고 검토자가 승인하면 그 변경을 실제로 적용(invoke)하는 앱입니다. Checkpoints는 민감한 작업 전에 사용자에게 사유를 묻고 그 기록을 검토할 수 있게 남기는 데이터 거버넌스 도구입니다.",
+    analogy: "Approvals는 GitHub PR의 필수 리뷰(CODEOWNERS)와 비슷합니다. request 하나에 담긴 변경(task)마다 담당 검토자가 승인해야 하고 모두 승인되면 적용(invoke)됩니다. Checkpoints는 운영 DB 접속이나 데이터 반출 전에 사유를 입력하게 하고 감사 로그에 남기는 접근 게이트웨이와 같습니다.",
+    everyday: "Approvals는 회사의 전자결재와 같습니다. 결재 문서 하나에 여러 항목이 있으면 항목마다 담당 결재자가 승인해야 처리됩니다. Checkpoints는 보안 구역에 들어가거나 자료를 반출할 때 출입 대장에 목적을 적게 하는 것과 같습니다.",
+    points: [
+      "request는 하나 이상의 task로 구성되며 모든 task가 승인되어야 invoke되어 변경이 적용됩니다. task 예: 그룹 멤버십, Project 접근, Marking 접근, Project 참조 추가, Ontology proposal",
+      "task마다 승인할 수 있는 검토자(eligible reviewer)가 다릅니다. 예를 들어 Project 접근은 그 Project의 Owner가 승인하고 Marking 접근은 그 Marking에 Manage permissions가 있는 관리자가 승인합니다.",
+      "상태에는 Pending approval, Changes requested, Action required, Closed, Rejected and Closed, Completed가 있습니다. 닫힌 request는 다시 열 수 없고 완료된 request는 과거 결정의 감사 기록으로 남습니다.",
+      "Checkpoints는 Action 제출, Contour·Quiver export, 그룹·Marking 멤버 변경, Project Role 부여, 로그인 등 60개가 넘는 상호작용에 붙일 수 있습니다. 사유는 시각·사용자·관련 리소스와 함께 기록되어 관리자가 검토합니다.",
+      "Global Branching proposal을 만들면 Ontology proposal이 자동으로 생기고 Global Branching proposal을 병합할 때 함께 병합됩니다. 이 Ontology proposal은 Approvals에서 task의 한 종류로 다뤄집니다.",
+    ],
+    warn: "모든 task가 승인되어도 필수 checkpoint가 비어 있으면 Action required 상태로 남아 invoke되지 않으며 검토자가 대신 제출할 수 있습니다. Submit action checkpoint는 Workshop·Object view·Object Explorer처럼 UI에서 사용자가 직접 제출한 Action에만 적용됩니다. Automate처럼 비동기로 제출하거나 API·OSDK로 제출한 Action에는 적용되지 않습니다.",
+    doc: [
+      { label: "Approvals", href: D + "approvals/overview" },
+      { label: "Checkpoints", href: D + "checkpoints/overview" },
+    ],
+    related: [
+      { label: "Checkpoint type", href: D + "checkpoints/checkpoint-types" },
+      { label: "Ontology proposal 검토", href: D + "ontologies/review-ontology-proposals" },
+      { label: "리소스 보호", href: D + "global-branching/resource-protection-and-approval-policies" },
     ],
   },
   {
@@ -470,6 +544,31 @@ export const concepts: Concept[] = [
       { label: "업그레이드", href: D + "marketplace/upgrades" },
       { label: "Store 권한", href: D + "foundry-devops/manage-store-permissions" },
       { label: "릴리스 관리", href: D + "devops-release-management/use-devops-for-release-management" },
+    ],
+  },
+  {
+    id: "lineage", short: "Data Lineage · Workflow Lineage", mapLines: ["Data Lineage", "Workflow Lineage"], layer: "ops", title: "Data Lineage · Workflow Lineage",
+    lead: "Data Lineage는 데이터가 원천에서 Ontology를 거쳐 워크플로까지 흐르는 과정을 보여 주는 대화형 도구입니다. Workflow Lineage는 Ontology 위에 만든 앱과 그 아래 처리 과정을 이해하고 관리하는 작업 공간입니다.",
+    analogy: "Data Lineage는 dbt docs의 lineage 그래프처럼 테이블이 어떤 작업을 거쳐 만들어지는지 보여 줍니다. Workflow Lineage는 IDE의 'Find usages'와 의존성 그래프를 합친 것과 비슷해서 컬럼 하나를 쓰는 Action과 화면을 끝까지 따라갈 수 있습니다.",
+    everyday: "Data Lineage는 원재료가 어느 공정을 거쳐 제품이 되었는지 보여 주는 생산 이력표와 같습니다. Workflow Lineage는 매장에 놓인 상품(앱)이 어떤 부품과 양식으로 조립되었는지 보여 주는 조립도에 가깝습니다.",
+    points: [
+      "Data Lineage는 원천부터 Ontology와 워크플로까지 전 구간을 보여 주고 Workflow Lineage는 Ontology 위의 워크플로를 관리합니다. Workflow Lineage에서 Object type을 Data Lineage로 열면 그 Object type으로 들어오는 데이터의 Schedule을 확인할 수 있습니다.",
+      "Data Lineage에서는 Schedule을 관리하고 Build timeline으로 Build 이력을 봅니다. Dataset을 이전 트랜잭션으로 롤백하는 곳도 Data Lineage입니다. 브랜치의 리소스를 Build하는 Schedule이 반복된 Build 실패로 멈추면 Build Schedules 앱이나 Data Lineage에서 다시 시작합니다.",
+      "Workflow Lineage는 Object·Action·Function·Interface·Custom widget·앱의 API 이름·입력·Ontology 편집·Submission criteria를 보여 줍니다. Object의 특정 컬럼을 쓰는 하류 Action과 Workshop 앱을 모두 찾을 수 있습니다.",
+      "Workflow Lineage에서는 권한·사용량·마지막 재인덱싱 상태를 색으로 보고 Action 버전 일괄 변경이나 Submission criteria 직접 수정 같은 작업도 합니다.",
+      "둘 다 Global Branching을 지원합니다. 브랜치에서 리소스를 지우면 브랜치 상태가 깨질 수 있으므로 지우기 전에 lineage로 다른 브랜치 리소스가 그 리소스에 기대고 있지 않은지 확인해야 합니다.",
+    ],
+    warn: "Workflow Lineage에 누가 접근할지는 관리자가 Control Panel에서 정하며 환경(enrollment)에 따라 아직 켜져 있지 않을 수 있습니다.",
+    doc: [
+      { label: "Data Lineage", href: D + "data-lineage/overview" },
+      { label: "Workflow Lineage", href: D + "workflow-lineage/overview" },
+    ],
+    related: [
+      { label: "Schedule 관리", href: D + "data-lineage/manage-schedules" },
+      { label: "Build timeline", href: D + "data-lineage/build-timeline" },
+      { label: "롤백", href: D + "data-lineage/dataset-rollback" },
+      { label: "브랜치 지원 범위", href: D + "global-branching/integrations" },
+      { label: "브랜치에서 리소스 제거", href: D + "global-branching/core-concepts" },
     ],
   },
 ];
