@@ -288,6 +288,17 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
       aside.append(panel);
       aside.hidden = false;
       panel.dataset.docked = "";
+      // 좁은 화면에서는 패널이 위에 붙는 막대가 되므로 글 첫머리가 아니라 지도 바로 위에서 시작하게 옮긴다.
+      // 개념 링크는 모두 지도 아래 본문에 있다. 넓은 화면에서는 원래 자리(본문 옆 열)로 돌려놓는다
+      const home = aside.parentElement;
+      const homeNext = aside.nextElementSibling;
+      const narrow = window.matchMedia("(max-width: 1179px)");
+      const place = () => {
+        if (narrow.matches) root.before(aside);
+        else if (home && aside.parentElement !== home) home.insertBefore(aside, homeNext);
+      };
+      place();
+      narrow.addEventListener("change", place);
     }
     // 카드 id는 JS가 없을 때의 앵커용. 켜진 뒤에는 지워서 #concept-… 해시로 브라우저가 스크롤하지 않게 한다
     cards.forEach((card) => card.removeAttribute("id"));
