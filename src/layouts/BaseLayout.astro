@@ -176,6 +176,23 @@ const themeCss = `:root { ${decl(light)} }
     :root:has(.post-aside:not([hidden])) {
       --site-width: 1148px;
     }
+
+    /* 목차가 있고 패널이 없는 글: 목차 220px + 본문 760px */
+    :root:has(.post-toc):not(:has(.post-aside:not([hidden]))) {
+      --site-width: 1008px;
+    }
+
+    /* 블로그 메인: 찾기 사이드바 260px + 글 목록 760px */
+    :root:has(.home-grid) {
+      --site-width: 1052px;
+    }
+  }
+
+  /* 아주 넓은 화면에서 목차와 패널이 함께 있는 글: 220 + 760 + 360px */
+  @media (min-width: 1440px) {
+    :root:has(.post-toc):has(.post-aside:not([hidden])) {
+      --site-width: 1396px;
+    }
   }
 
   .site-header {

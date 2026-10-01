@@ -1,0 +1,146 @@
+---
+// 글 목차. 본문의 h2·h3로 만든다.
+//   variant="column": 넓은 화면의 왼쪽 열(글 페이지 그리드 안). 화면에 고정되고 지금 읽는 절을 표시한다.
+//   variant="inline": 왼쪽 열이 없을 때 글 머리 아래에 접힌 '목차'로 보인다.
+// 어느 쪽이 보일지는 글 페이지의 CSS가 화면 폭과 오른쪽 패널 유무로 정한다. nav라서 읽어 주기는 읽지 않는다.
+import type { MarkdownHeading } from "astro";
+import type { Locale } from "@/lib/i18n";
+import { t } from "@/lib/ui";
+
+interface Props {
+  headings: MarkdownHeading[];
+  lang: Locale;
+  variant: "column" | "inline";
+}
+
+const { headings, lang, variant } = Astro.props;
+const items = headings.filter((h) => h.depth === 2 || h.depth === 3);
+const title = t("tocTitle", lang);
+---
+
+{items.length > 1 && (
+  variant === "column" ? (
+    <nav class="post-toc" aria-label={title} data-toc>
+      <p class="toc-title">{title}</p>
+      <ol class="toc-list">
+        {items.map((h) => <li class={`d${h.depth}`}><a href={`#${h.slug}`}>{h.text}</a></li>)}
+      </ol>
+    </nav>
+  ) : (
+    <details class="toc-inline">
+      <summary>{title}</summary>
+      <nav aria-label={title} data-toc>
+        <ol class="toc-list">
+          {items.map((h) => <li class={`d${h.depth}`}><a href={`#${h.slug}`}>{h.text}</a></li>)}
+        </ol>
+      </nav>
+    </details>
+  )
+)}
+
+<script>
+  const navs = Array.from(document.querySelectorAll<HTMLElement>("[data-toc]"));
+  const body = document.querySelector<HTMLElement>(".post-body");
+  if (navs.length && body) {
+    const links = navs.flatMap((nav) => Array.from(nav.querySelectorAll<HTMLAnchorElement>("a[href^='#']")));
+    const ids = Array.from(new Set(links.map((a) => decodeURIComponent(a.hash.slice(1)))));
+    const heads = ids.map((id) => document.getElementById(id)).filter((el): el is HTMLElement => !!el);
+
+    // 좁은 화면에서는 오른쪽 패널(개념 카드 등)이 위에 붙으므로, 목차로 이동한 제목이 그 아래에 보이게 여백을 둔다
+    // 패널은 다른 스크립트가 나중에 채우고 높이도 바뀌므로, 쓸 때마다 그 자리에서 잰다
+    const aside = document.getElementById("post-aside");
+    const offset = () => {
+      const sticky = aside && !aside.hidden && getComputedStyle(aside).position === "sticky" && aside.getBoundingClientRect().width > window.innerWidth / 2;
+      return sticky ? aside!.offsetHeight : 0;
+    };
+    const setOffset = () => document.documentElement.style.setProperty("--toc-offset", `${offset()}px`);
+    setOffset();
+    window.addEventListener("resize", setOffset);
+    if (aside) new ResizeObserver(setOffset).observe(aside);
+    // 목차를 누르면 브라우저가 스크롤하기 전에 여백을 다시 맞춘다
+    links.forEach((a) => a.addEventListener("click", setOffset));
+
+    // 지금 읽는 절: 보이는 영역(고정 패널 아래) 위쪽 1/3 지점을 지난 마지막 제목
+    let current = "";
+    const mark = () => {
+      const top = offset();
+      const line = top + (window.innerHeight - top) / 3;
+      let id = heads[0]?.id ?? "";
+      for (const h of heads) {
+        if (h.getBoundingClientRect().top <= line) id = h.id;
+        else break;
+      }
+      if (id === current) return;
+      current = id;
+      links.forEach((a) => {
+        if (decodeURIComponent(a.hash.slice(1)) === id) a.setAttribute("aria-current", "true");
+        else a.removeAttribute("aria-current");
+      });
+    };
+    mark();
+    window.addEventListener("scroll", mark, { passive: true });
+    window.addEventListener("resize", mark);
+  }
+</script>
+
+<style>
+  .toc-title {
+    margin: 0 0 8px;
+    color: var(--muted);
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .toc-list {
+    display: grid;
+    gap: 2px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: 0.88rem;
+    line-height: 1.45;
+  }
+
+  .toc-list a {
+    display: block;
+    padding: 4px 10px;
+    border-left: 2px solid var(--border);
+    color: var(--muted);
+    text-decoration: none;
+  }
+
+  .toc-list .d3 a {
+    padding-left: 22px;
+    font-size: 0.84rem;
+  }
+
+  .toc-list a:hover {
+    color: var(--accent);
+  }
+
+  .toc-list a[aria-current] {
+    border-left-color: var(--accent);
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  .toc-inline {
+    margin: 14px 0 0;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface);
+  }
+
+  .toc-inline summary {
+    padding: 8px 12px;
+    color: var(--muted);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .toc-inline nav {
+    padding: 0 10px 10px;
+  }
+</style>
