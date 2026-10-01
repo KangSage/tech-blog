@@ -1,5 +1,6 @@
 ---
 import { render } from "astro:content";
+import PostToc from "@/components/PostToc.astro";
 import ReadAloud from "@/components/ReadAloud.astro";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { categoryLabels } from "@/lib/categories";
@@ -21,7 +22,7 @@ export async function getStaticPaths() {
 const lang = assertLocale(Astro.params.lang);
 const { post } = Astro.props;
 const slug = slugFromId(post.id);
-const { Content } = await render(post);
+const { Content, headings } = await render(post);
 const alternates = await getAlternates(post.data.translationKey);
 const canonicalPath = blogPath(lang, slug);
 const jsonLd = {
@@ -69,8 +70,10 @@ const jsonLd = {
           ))}
         </ul>
       )}
+      <PostToc headings={headings} lang={lang} variant="inline" />
     </header>
     <div class="post-grid">
+      <PostToc headings={headings} lang={lang} variant="column" />
       <!-- 글 속 컴포넌트가 스크립트로 옮겨 넣는 고정 패널 자리. 비어 있으면 숨김 -->
       <aside class="post-aside" id="post-aside" hidden></aside>
       <div class="post-body">
@@ -93,6 +96,16 @@ const jsonLd = {
 
   .post-body {
     min-width: 0;
+  }
+
+  /* 목차로 이동한 제목이 좁은 화면의 고정 패널 아래에 보이게 한다 (--toc-offset은 PostToc가 잰다) */
+  .post-body :global(:is(h2, h3)) {
+    scroll-margin-top: calc(var(--toc-offset, 0px) + 12px);
+  }
+
+  /* 왼쪽 목차 열은 넓은 화면에서만 보인다. 그 밖에는 글 머리 아래의 접힌 목차를 쓴다 */
+  .post-grid :global(.post-toc) {
+    display: none;
   }
 
   /* 좁은 화면: 패널이 본문 위에 붙어 스크롤해도 상단에 고정 */
@@ -137,5 +150,68 @@ const jsonLd = {
       grid-column: 1;
       grid-row: 1;
     }
+
+    /* 오른쪽 패널이 없는 글: 목차 | 본문 2열 */
+    .post-grid:has(:global(.post-toc)):not(:has(.post-aside:not([hidden]))) {
+      display: grid;
+      grid-template-columns: 220px 760px;
+      gap: 28px;
+      align-items: start;
+    }
+
+    .post-grid:has(:global(.post-toc)):not(:has(.post-aside:not([hidden]))) .post-body {
+      grid-column: 2;
+    }
+
+    .post-grid:not(:has(.post-aside:not([hidden]))) :global(.post-toc) {
+      display: block;
+      grid-column: 1;
+      grid-row: 1;
+    }
+
+    article:has(:global(.post-toc)):not(:has(.post-aside:not([hidden]))) .post-head {
+      margin-left: 248px;
+    }
+
+    article:has(:global(.post-toc)):not(:has(.post-aside:not([hidden]))) .post-head :global(.toc-inline) {
+      display: none;
+    }
+  }
+
+  /* 아주 넓은 화면에서 패널이 있는 글: 목차 | 본문 | 패널 3열 */
+  @media (min-width: 1440px) {
+    .post-grid:has(:global(.post-toc)):has(.post-aside:not([hidden])) {
+      grid-template-columns: 220px 760px 360px;
+    }
+
+    .post-grid:has(:global(.post-toc)):has(.post-aside:not([hidden])) :global(.post-toc) {
+      display: block;
+      grid-column: 1;
+      grid-row: 1;
+    }
+
+    .post-grid:has(:global(.post-toc)):has(.post-aside:not([hidden])) .post-body {
+      grid-column: 2;
+    }
+
+    .post-grid:has(:global(.post-toc)):has(.post-aside:not([hidden])) .post-aside {
+      grid-column: 3;
+    }
+
+    article:has(:global(.post-toc)):has(.post-aside:not([hidden])) .post-head {
+      margin-left: 248px;
+    }
+
+    article:has(:global(.post-toc)):has(.post-aside:not([hidden])) .post-head :global(.toc-inline) {
+      display: none;
+    }
+  }
+
+  /* 목차 열: 화면에 고정하고 길면 열 안에서 스크롤 */
+  .post-grid :global(.post-toc) {
+    position: sticky;
+    top: 16px;
+    max-height: calc(100vh - 32px);
+    overflow-y: auto;
   }
 </style>

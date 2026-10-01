@@ -36,10 +36,37 @@ const alternates = locales
   {posts.length === 0 ? (
     <p class="notice">{t("noPosts", lang)}</p>
   ) : (
-    <>
-      <PostFinder posts={posts} tags={tags} lang={lang} />
-      <PostList posts={posts} lang={lang} />
-      <p class="no-results" data-no-results hidden>{t("noResults", lang)}</p>
-    </>
+    <div class="home-grid">
+      <aside class="home-aside">
+        <PostFinder posts={posts} tags={tags} lang={lang} />
+      </aside>
+      <div class="home-main">
+        <PostList posts={posts} lang={lang} />
+        <p class="no-results" data-no-results hidden>{t("noResults", lang)}</p>
+      </div>
+    </div>
   )}
 </BaseLayout>
+
+<style>
+  /* 넓은 화면: 왼쪽은 글 찾기(검색·카테고리·태그), 오른쪽은 글 목록. 찾기 열은 화면에 고정 */
+  @media (min-width: 1180px) {
+    .home-grid {
+      display: grid;
+      grid-template-columns: 260px 760px;
+      gap: 32px;
+      align-items: start;
+    }
+
+    .home-aside {
+      position: sticky;
+      top: 16px;
+      max-height: calc(100vh - 32px);
+      overflow-y: auto;
+    }
+
+    .home-main {
+      min-width: 0;
+    }
+  }
+</style>
