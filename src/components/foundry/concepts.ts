@@ -193,10 +193,10 @@ export const concepts: Concept[] = [
     related: [{ label: "Iceberg tables", href: D + "data-integration/iceberg-tables" }],
   },
   {
-    id: "model", short: "Model", layer: "data", title: "Models · Modeling Objectives",
-    lead: "Model은 Foundry 안에서 학습했거나 밖에서 가져온 머신러닝 모델을 같은 방식으로 다루는 리소스입니다. Modeling Objective는 하나의 운영 문제를 중심으로 데이터·메타데이터·모델을 모아 두는 단위이며 Modeling Objectives 앱에서 모델을 제출·평가·릴리스·배포합니다.",
-    analogy: "Model은 모델 레지스트리에 올린 모델 버전에 해당합니다. Modeling Objective에 모델을 제출하는 것은 PR을 올리는 것과 같고 release와 deployment는 Staging·Production 태그로 배포하는 모델용 CI/CD입니다.",
-    everyday: "Model은 회사가 쓰는 예측 도구 하나하나입니다. Modeling Objective는 '어떤 문제를 풀 도구인가'를 정해 두고 후보 도구를 비교 심사한 뒤 합격한 것을 현장에 배치하는 심사 위원회와 같습니다.",
+    id: "model", short: "Models · Modeling Objectives", mapLines: ["Models", "Modeling Objectives"], layer: "data", title: "Models · Modeling Objectives",
+    lead: "Models는 Foundry 안에서 학습했거나 밖에서 가져온 머신러닝 모델을 같은 방식으로 다루는 리소스입니다. Modeling Objective는 하나의 운영 문제를 중심으로 데이터·메타데이터·모델을 모아 두는 단위이며 Modeling Objectives 앱에서 모델을 제출·평가·릴리스·배포합니다.",
+    analogy: "Models는 모델 레지스트리에 올린 모델 버전에 해당합니다. Modeling Objective에 모델을 제출하는 것은 PR을 올리는 것과 같고 release와 deployment는 Staging·Production 태그로 배포하는 모델용 CI/CD입니다.",
+    everyday: "Models는 회사가 쓰는 예측 도구 하나하나입니다. Modeling Objective는 '어떤 문제를 풀 도구인가'를 정해 두고 후보 도구를 비교 심사한 뒤 합격한 것을 현장에 배치하는 심사 위원회와 같습니다.",
     points: [
       "Foundry에서 학습한 모델, 밖에서 학습해 파일로 올린 모델, 밖에서 만든 컨테이너, 밖에서 호스팅하는 모델을 모두 연결할 수 있습니다.",
       "모델은 파일·가중치 같은 model artifact와 그것을 불러와 추론하는 방법을 정한 model adapter로 구성됩니다.",

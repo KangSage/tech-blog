@@ -39,7 +39,7 @@ Foundry의 구성 요소는 크게 다섯 개의 층과 이를 감싸는 권한 
    파일은 스키마 없는 Dataset이나 Media set에 보관합니다.\
    지연이 짧아야 하는 데이터는 Dataset 대신 Stream으로 받아 Ontology에 초\~분 단위로 반영합니다.\
    외부 플랫폼의 테이블은 복사하지 않고 Virtual table로 등록해 바로 조회할 수 있습니다.\
-   머신러닝 모델은 Model로 연결하고 Modeling Objective에서 평가해 배포합니다.
+   머신러닝 모델은 Models로 연결하고 Modeling Objectives에서 평가해 배포합니다.
 2. **온톨로지**: Funnel이 Dataset과 Stream의 데이터를 인덱싱해 Ontology의 Object로 만듭니다.\
    Ontology는 Dataset에 업무 의미(Object, Property, Link)를 부여한 계층이며 업무용 앱은 주로 이 계층을 읽고 씁니다.\
    Object type·Link type 같은 구조는 Ontology Manager에서 정의하며 Pipeline Builder도 Object type·Link type을 출력할 수 있습니다.\
