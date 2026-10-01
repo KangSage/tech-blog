@@ -185,7 +185,7 @@ export const concepts: Concept[] = [
     points: [
       "Data Connection의 source(연결 정보)와 원본 시스템에서 테이블을 가리키는 locator(데이터베이스·스키마·테이블 이름)로 정의합니다.",
       "Amazon S3, ADLS·OneLake, BigQuery, Databricks, Google Cloud Storage, Snowflake를 지원하며 일부 source는 테이블을 주기적으로 자동 등록(auto-registration)할 수 있습니다.",
-      "Pipeline Builder·Code Repositories의 입력과 출력, Contour 분석, Ontology Manager의 Object type datasource로 쓸 수 있습니다. Pipeline Builder로 Object type을 만드는 데에는 쓸 수 없습니다.",
+      "Pipeline Builder·Code Repositories의 입력과 출력, Contour 분석에 쓸 수 있고 Ontology Manager나 Pipeline Builder로 Object type을 만들 때 datasource로도 쓸 수 있습니다.",
       "일부 source에서는 원본 시스템의 계산 엔진으로 처리하는 compute pushdown을 쓸 수 있습니다.",
     ],
     warn: "source와 테이블 유형마다 지원 기능(쓰기, 엔진 등)이 다르므로 source별 문서를 확인해야 합니다. source에서 테이블이 지워져도 자동 등록된 Virtual table은 지워지지 않고 데이터만 읽히지 않습니다.",
@@ -204,7 +204,7 @@ export const concepts: Concept[] = [
       "batch deployment는 입력 Dataset으로 추론해 출력 Dataset에 쓰며 보통 Build Schedule로 관리합니다. live deployment는 바로 호출할 수 있는 REST API endpoint를 제공합니다.",
       "live deployment는 model function으로 감싸 TypeScript·Python Function에서 query function처럼 호출할 수 있습니다. 2026년 2월부터 새로 만드는 model function은 Ontology에 묶입니다.",
     ],
-    warn: "deployment는 자기 환경 태그가 붙은 최신 release를 가져갑니다. Production deployment에 새 모델을 반영하려면 그 모델의 release에 Production 태그를 붙여야 합니다.",
+    warn: "deployment는 환경 태그가 붙은 최신 release를 가져가도록 설정할 수 있습니다. 이렇게 설정한 Production deployment에 새 모델을 반영하려면 그 모델의 release에 Production 태그를 붙입니다.",
     doc: [
       { label: "Models", href: D + "integrate-models/integrate-overview" },
       { label: "Modeling Objectives", href: D + "model-integration/objectives" },
@@ -480,7 +480,7 @@ export const concepts: Concept[] = [
       "Marking은 all-or-nothing입니다. 하나라도 통과하지 못하면 Role과 관계없이 접근할 수 없습니다.",
       "Marking은 명시적으로 제거하지 않는 한 파생 데이터에도 전파됩니다. 접근을 막는 장치이며 권한을 부여하지는 않습니다.",
       "Marking 외에 Organization과 Classification-based Access Controls(CBAC)도 필수 통제로 함께 적용됩니다.",
-      "Object type 같은 Ontology 리소스도 Project에 저장해 Project Role로 권한을 관리합니다. 이 방식은 이전 모델인 ontology roles와 datasource-derived 권한을 대체하며 새 Ontology에는 기본으로 켜져 있고 기존 Ontology는 owner가 켠 뒤 리소스를 migration해야 합니다.",
+      "Object type 같은 Ontology 리소스도 Project에 저장해 Project Role로 권한을 관리합니다. 이 방식은 이전 모델인 ontology roles와 datasource-derived 권한을 대체하며 새 Ontology에는 기본으로 켜져 있고 기존 Ontology는 owner가 켠 뒤 리소스를 migration해야 합니다. Default Ontology에는 아직 제공되지 않습니다.",
       "Compass는 Foundry의 파일 시스템으로 Project·폴더·리소스를 정리하고 관리하며 Quicksearch는 앱·Object·Dataset 같은 리소스를 찾는 검색 도구입니다. Quicksearch는 기존 권한을 그대로 따르므로 접근 권한이 없는 콘텐츠는 결과에 보이지 않고 Discover 권한이 있는 콘텐츠는 Request access 안내로 열립니다.",
     ],
     warn: "Editor Role이 있어도 PII Marking의 멤버가 아니면 해당 데이터에 접근할 수 없습니다.",
@@ -524,7 +524,7 @@ export const concepts: Concept[] = [
       "Ontology Manager에서 Dataset처럼 Object type의 datasource로 고를 수 있습니다. 특정 primary key의 Object에 접근할 수 있는지는 그 행에 접근할 수 있는지로 정해집니다.",
       "Dataset에만 만들 수 있고 Stream 등 다른 datasource에는 만들 수 없습니다. transform처럼 새 Dataset을 만드는 배치 작업의 입력으로도 쓸 수 없습니다.",
     ],
-    warn: "정책은 사용자가 읽는 것만 거릅니다. Function, Action, AIP Logic, OSDK 응답, writeback, 내보내기에는 적용되지 않습니다. 정책을 바꾸면 파이프라인을 다시 Build해야 읽기에 반영됩니다. Object 보안에는 대부분 Object security policy가 권장되며 변경도 거의 즉시 반영됩니다. Restricted view는 backing Dataset을 Ontology 밖(예: Code Workspaces)에서도 행 단위로 보호해야 할 때 적합합니다.",
+    warn: "정책은 사용자가 읽는 순간에 행을 거를 뿐 읽은 뒤의 데이터로 전파되지 않습니다. Function 반환값, Action 편집, AIP Logic 도구 호출, OSDK 응답, writeback, 내보내기로 넘어간 데이터에는 원본 정책이 따라가지 않으므로 파생 데이터까지 보호하려면 backing Dataset에 Marking을 함께 겁니다. 정책을 바꾸면 파이프라인을 다시 Build해야 읽기에 반영됩니다. Object 보안에는 대부분 Object security policy가 권장되며 변경도 거의 즉시 반영됩니다. Restricted view는 backing Dataset을 Ontology 밖(예: Code Workspaces)에서도 행 단위로 보호해야 할 때 적합합니다.",
     doc: D + "security/restricted-views",
     related: [
       { label: "정책 방식 비교", href: D + "object-permissioning/managing-object-security" },
@@ -645,7 +645,7 @@ export const concepts: Concept[] = [
     everyday: "Data Lineage는 원재료가 어느 공정을 거쳐 제품이 되었는지 보여 주는 생산 이력표와 같습니다. Workflow Lineage는 매장에 놓인 상품(앱)이 어떤 부품과 양식으로 조립되었는지 보여 주는 조립도에 가깝습니다.",
     points: [
       "Data Lineage는 원천부터 Ontology와 워크플로까지 전 구간을 보여 주고 Workflow Lineage는 Ontology 위의 워크플로를 관리합니다. Workflow Lineage에서 Object type을 Data Lineage로 열면 그 Object type으로 들어오는 데이터의 Schedule을 확인할 수 있습니다.",
-      "Data Lineage에서는 Schedule을 관리하고 Build timeline으로 Build 이력을 봅니다. Dataset을 이전 트랜잭션으로 롤백하는 곳도 Data Lineage입니다. 브랜치의 리소스를 Build하는 Schedule이 반복된 Build 실패로 멈추면 Build Schedules 앱이나 Data Lineage에서 다시 시작합니다.",
+      "Data Lineage에서는 Schedule을 관리하고 Build timeline으로 Build 이력을 봅니다. Dataset을 이전 트랜잭션으로 롤백하는 곳도 Data Lineage입니다. 보관(archive)되었거나 비활성 상태인 브랜치에서는 Build가 자동으로 실패하므로 그 브랜치의 리소스를 Build하는 Schedule이 반복된 실패로 멈출 수 있습니다. 이때는 Build Schedules 앱이나 Data Lineage에서 다시 시작합니다.",
       "Workflow Lineage는 Object·Action·Function·Interface·Custom widget·앱의 API 이름·입력·Ontology 편집·Submission criteria를 보여 줍니다. Object의 특정 컬럼을 쓰는 하류 Action과 Workshop 앱을 모두 찾을 수 있습니다.",
       "Workflow Lineage에서는 권한·사용량·마지막 재인덱싱 상태를 색으로 보고 Action 버전 일괄 변경이나 Submission criteria 직접 수정 같은 작업도 합니다.",
       "둘 다 Global Branching을 지원합니다. 브랜치에서 리소스를 지우면 브랜치 상태가 깨질 수 있으므로 지우기 전에 lineage로 다른 브랜치 리소스가 그 리소스에 기대고 있지 않은지 확인해야 합니다.",
