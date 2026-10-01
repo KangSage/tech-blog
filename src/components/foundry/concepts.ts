@@ -184,7 +184,7 @@ export const concepts: Concept[] = [
     everyday: "다른 도서관의 책을 우리 도서관 목록에 올려 두고 필요할 때 그 도서관에서 바로 열람하는 상호대차와 같습니다. 책을 복사해 오지 않습니다.",
     points: [
       "Data Connection의 source(연결 정보)와 원본 시스템에서 테이블을 가리키는 locator(데이터베이스·스키마·테이블 이름)로 정의합니다.",
-      "Amazon S3, ADLS·OneLake, BigQuery, Databricks, Google Cloud Storage, Snowflake를 지원하며 일부 source는 테이블을 주기적으로 자동 등록(auto-registration)할 수 있습니다.",
+      "Amazon S3, ADLS·OneLake, BigQuery, Databricks, Google Cloud Storage, Snowflake를 지원하고 Foundry(베타, managed Iceberg만)도 지원하며 일부 source는 테이블을 주기적으로 자동 등록(auto-registration)할 수 있습니다.",
       "Pipeline Builder·Code Repositories의 입력과 출력, Contour 분석에 쓸 수 있고 Ontology Manager나 Pipeline Builder로 Object type을 만들 때 datasource로도 쓸 수 있습니다.",
       "일부 source에서는 원본 시스템의 계산 엔진으로 처리하는 compute pushdown을 쓸 수 있습니다.",
     ],
@@ -194,14 +194,14 @@ export const concepts: Concept[] = [
   },
   {
     id: "model", short: "Model", layer: "data", title: "Models · Modeling Objectives",
-    lead: "Model은 Foundry 안에서 학습했거나 밖에서 가져온 머신러닝 모델을 같은 방식으로 다루는 리소스입니다. Modeling Objective는 하나의 운영 문제를 중심으로 모델을 제출·평가·릴리스·배포하는 앱입니다.",
+    lead: "Model은 Foundry 안에서 학습했거나 밖에서 가져온 머신러닝 모델을 같은 방식으로 다루는 리소스입니다. Modeling Objective는 하나의 운영 문제를 중심으로 데이터·메타데이터·모델을 모아 두는 단위이며 Modeling Objectives 앱에서 모델을 제출·평가·릴리스·배포합니다.",
     analogy: "Model은 모델 레지스트리에 올린 모델 버전에 해당합니다. Modeling Objective에 모델을 제출하는 것은 PR을 올리는 것과 같고 release와 deployment는 Staging·Production 태그로 배포하는 모델용 CI/CD입니다.",
     everyday: "Model은 회사가 쓰는 예측 도구 하나하나입니다. Modeling Objective는 '어떤 문제를 풀 도구인가'를 정해 두고 후보 도구를 비교 심사한 뒤 합격한 것을 현장에 배치하는 심사 위원회와 같습니다.",
     points: [
       "Foundry에서 학습한 모델, 밖에서 학습해 파일로 올린 모델, 밖에서 만든 컨테이너, 밖에서 호스팅하는 모델을 모두 연결할 수 있습니다.",
       "모델은 파일·가중치 같은 model artifact와 그것을 불러와 추론하는 방법을 정한 model adapter로 구성됩니다.",
       "Modeling Objective에 모델을 제출하면 변경할 수 없는 사본(submission)이 만들어지고 Objective에 정한 metric으로 다른 모델과 비교됩니다. 채택한 모델은 Staging·Production 같은 환경 태그가 붙은 release가 됩니다.",
-      "batch deployment는 입력 Dataset으로 추론해 출력 Dataset에 쓰며 보통 Build Schedule로 관리합니다. live deployment는 바로 호출할 수 있는 REST API endpoint를 제공합니다.",
+      "batch deployment는 입력 Dataset으로 추론해 출력 Dataset에 쓰며 보통 Build Schedule로 관리합니다. live deployment는 바로 호출할 수 있는 REST API endpoint를 제공합니다. Modeling Objective를 거치지 않고 모델에서 바로 direct deployment를 만들 수도 있습니다.",
       "live deployment는 model function으로 감싸 TypeScript·Python Function에서 query function처럼 호출할 수 있습니다. 2026년 2월부터 새로 만드는 model function은 Ontology에 묶입니다.",
     ],
     warn: "deployment는 환경 태그가 붙은 최신 release를 가져가도록 설정할 수 있습니다. 이렇게 설정한 Production deployment에 새 모델을 반영하려면 그 모델의 release에 Production 태그를 붙입니다.",
@@ -209,7 +209,10 @@ export const concepts: Concept[] = [
       { label: "Models", href: D + "integrate-models/integrate-overview" },
       { label: "Modeling Objectives", href: D + "model-integration/objectives" },
     ],
-    related: [{ label: "Functions on models", href: D + "functions/functions-on-models" }],
+    related: [
+      { label: "Functions on models", href: D + "functions/functions-on-models" },
+      { label: "Direct deployment", href: D + "manage-models/create-a-model-deployment" },
+    ],
   },
   {
     id: "funnel", short: "Funnel", layer: "onto", title: "Funnel · Materialization",
@@ -240,7 +243,7 @@ export const concepts: Concept[] = [
       "Object의 값은 backing datasource(원본 Dataset)의 데이터와 Action 편집을 합친 것입니다. Action으로만 채우는 Object type처럼 datasource가 없는 경우도 있습니다.",
       "Link type은 1:1, 1:N, N:1, N:M 관계를 표현합니다. N:M 관계는 조인 테이블 Dataset으로 연결합니다.",
       "Object set의 예: 상태가 '지연'인 항공편 전체",
-      "Shared property는 여러 Object type이 함께 쓰는 property입니다. 메타데이터(이름·설명 등)는 한곳에서 관리하지만 값은 Object마다 따로 가집니다.",
+      "Shared property는 여러 Object type이 함께 쓰는 property입니다. 메타데이터는 한곳에서 관리하지만 값은 Object마다 따로 가집니다.",
       "Time series property는 Object property의 한 종류로 값 하나 대신 타임스탬프가 붙은 값의 이력을 저장합니다. Workshop에서는 Chart XY·Map·Metric Card·Object Table 위젯에서 쓸 수 있습니다. time series 서비스가 설치되어 있어야 하므로 환경에 따라 쓸 수 없을 수 있습니다.",
     ],
     doc: D + "ontology/core-concepts",
@@ -421,7 +424,7 @@ export const concepts: Concept[] = [
       "Contour: 코드 없이 시각화·필터·변환을 하고 분석 결과를 새 Dataset으로 저장합니다. Ontology에 매핑되지 않은 데이터를 분석할 때 적합합니다.",
       "Quiver: Object와 시계열 데이터를 분석하고 연결된 Object type을 따라가며 탐색합니다. 대시보드를 Workshop 같은 앱에 넣을 수 있습니다.",
       "Quiver는 transform table과 Dataset도 다루고 Code function 카드로 Function을 불러 쓰며 Action으로 분석 결과를 Ontology에 쓸 수 있습니다.",
-      "Insight: Ontology 데이터를 필터·링크 탐색·집계 단계로 이어 분석합니다. SQL 쿼리를 쓸 수 있고 Action으로 분석 결과에서 Object를 만들거나 고칠 수 있습니다.",
+      "Insight: Ontology 데이터를 필터·링크 탐색·집계 단계로 이어 분석합니다. SQL 쿼리를 쓸 수 있고 Action으로 분석 결과에서 Object를 만들고 고치거나 지울 수 있습니다.",
       "Notepad는 다른 앱의 차트·표·Object를 넣는 문서 편집기로 템플릿으로 정기 보고서를 만듭니다. Fusion은 Dataset을 조회하고 결과를 Dataset으로 다시 쓰는 스프레드시트입니다.",
       "Object Explorer: 키워드나 속성 필터로 Object를 찾고 찾은 Object set에 Action을 일괄 실행하거나 Quiver로 넘길 수 있습니다. 비기술 사용자를 위한 도구입니다.",
     ],
@@ -462,7 +465,7 @@ export const concepts: Concept[] = [
       "Microsoft Copilot Studio·Google Gemini Enterprise 같은 외부 AI 앱은 별도 코드 없이 연결하고 LangChain 같은 프레임워크로 만든 에이전트도 연결할 수 있습니다.",
       "Palantir MCP는 목적이 다릅니다. Ontology를 만드는 개발자용으로 AI IDE·에이전트가 Object type·Link type·Action type 같은 구조를 만들고 고치게 하지만 Ontology 데이터를 쓰지는 못합니다.",
     ],
-    warn: "Palantir AIP 밖에서 호스팅되는 LLM과 함께 쓰면 환경의 데이터가 외부 MCP client로 나갑니다. 켜기 전에 조직의 데이터 거버넌스 정책을 확인하고 앱 제한과 권한으로 민감한 리소스를 막아야 합니다.",
+    warn: "로컬 기기에서 Palantir AIP 밖에서 호스팅되는 LLM과 함께 Ontology MCP를 켜면 환경의 데이터를 외부 MCP client가 쓸 수 있게 됩니다. 켜기 전에 조직의 데이터 거버넌스 정책을 확인하고 앱 제한과 권한으로 민감한 리소스를 막아야 합니다.",
     doc: D + "ontology-mcp/overview",
     related: [
       { label: "샘플 아키텍처", href: D + "ontology-mcp/sample-architecture" },
@@ -524,7 +527,7 @@ export const concepts: Concept[] = [
       "Ontology Manager에서 Dataset처럼 Object type의 datasource로 고를 수 있습니다. 특정 primary key의 Object에 접근할 수 있는지는 그 행에 접근할 수 있는지로 정해집니다.",
       "Dataset에만 만들 수 있고 Stream 등 다른 datasource에는 만들 수 없습니다. transform처럼 새 Dataset을 만드는 배치 작업의 입력으로도 쓸 수 없습니다.",
     ],
-    warn: "정책은 사용자가 읽는 순간에 행을 거를 뿐 읽은 뒤의 데이터로 전파되지 않습니다. Function 반환값, Action 편집, AIP Logic 도구 호출, OSDK 응답, writeback, 내보내기로 넘어간 데이터에는 원본 정책이 따라가지 않으므로 파생 데이터까지 보호하려면 backing Dataset에 Marking을 함께 겁니다. 정책을 바꾸면 파이프라인을 다시 Build해야 읽기에 반영됩니다. Object 보안에는 대부분 Object security policy가 권장되며 변경도 거의 즉시 반영됩니다. Restricted view는 backing Dataset을 Ontology 밖(예: Code Workspaces)에서도 행 단위로 보호해야 할 때 적합합니다.",
+    warn: "정책은 사용자가 읽는 순간에 행을 거를 뿐 읽은 뒤의 데이터로 전파되지 않습니다. Function 반환값, Action 편집, AIP Logic 도구 호출, OSDK 응답, writeback, 내보내기로 넘어간 데이터에는 원본 정책이 따라가지 않습니다. Object security policy와 Property security policy도 같습니다. 파생 데이터까지 보호하려면 backing Dataset에 Marking을 함께 겁니다. 정책을 바꾸면 파이프라인을 다시 Build해야 읽기에 반영됩니다. Object 보안에는 대부분 Object security policy가 권장되며 변경도 거의 즉시 반영됩니다. Restricted view는 backing Dataset을 Ontology 밖(예: Code Workspaces)에서도 행 단위로 보호해야 할 때 적합합니다.",
     doc: D + "security/restricted-views",
     related: [
       { label: "정책 방식 비교", href: D + "object-permissioning/managing-object-security" },
