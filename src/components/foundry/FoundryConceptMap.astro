@@ -7,30 +7,35 @@ import { concepts, layerLabels, type Layer } from "./concepts";
 const layers = Object.entries(layerLabels) as [Layer, string][];
 // 개념 지도 상자의 배치 (viewBox 좌표). 이름은 넣지 않는다: concepts.ts의 short/mapLines를 쓴다.
 // 그리는 순서가 곧 겹침 순서라서, Ontology 안에 들어가는 상자(interfaces, osp)는 onto 뒤에 둔다.
+// Data Lineage · Workflow Lineage는 원천부터 앱까지 걸치므로 CROSS_CUTTING으로 다룬다(아래 스크립트).
 interface MapNode { id: string; x: number; y: number; w: number; h: number; rx?: number; cls?: string; sub?: string; edges?: string }
 const mapNodes: MapNode[] = [
-  { id: "dc", x: 170, y: 14, w: 184, h: 40, sub: "외부 → Dataset·Media set" },
-  { id: "transform", x: 24, y: 92, w: 212, h: 52, sub: "Code Repositories" },
-  { id: "pb", x: 288, y: 92, w: 212, h: 52, sub: "클릭 → transform 생성" },
-  { id: "builds", x: 142, y: 156, w: 114, h: 22, rx: 11, cls: "t sm", edges: "builds:transform builds:pb builds:dataset" },
-  { id: "dataset", x: 24, y: 190, w: 276, h: 52, sub: "트랜잭션 · SNAPSHOT / APPEND 등" },
-  { id: "media", x: 324, y: 190, w: 176, h: 52, sub: "파일 · 버전 이력" },
-  { id: "funnel", x: 96, y: 256, w: 132, h: 24, rx: 12, cls: "t sm" },
-  { id: "onto", x: 24, y: 300, w: 476, h: 96, rx: 10, cls: "tb", sub: "OSv2 · Object type · Property · Link type · Object set" },
-  { id: "interfaces", x: 40, y: 356, w: 150, h: 28, rx: 6, cls: "t sm", edges: "interfaces:onto" },
-  { id: "osp", x: 334, y: 356, w: 154, h: 28, rx: 6, cls: "t sm", edges: "osp:onto" },
-  { id: "action", x: 24, y: 436, w: 80, h: 52, sub: "+ 제출 조건" },
-  { id: "function", x: 110, y: 436, w: 76, h: 52, sub: "TS · Python" },
-  { id: "cm", x: 192, y: 436, w: 104, h: 52, cls: "t sm", sub: "Docker 컨테이너" },
-  { id: "automate", x: 302, y: 436, w: 80, h: 52, sub: "조건 → 실행" },
-  { id: "aip", x: 388, y: 436, w: 92, h: 52, sub: "LLM · 챗봇" },
-  { id: "workshop", x: 24, y: 540, w: 148, h: 52, sub: "노코드 앱 빌더" },
-  { id: "osdk", x: 184, y: 540, w: 170, h: 52, sub: "React 앱 · Developer Console" },
-  { id: "analytics", x: 366, y: 540, w: 134, h: 52 },
-  { id: "oauth", x: 207, y: 606, w: 124, h: 26, rx: 13, cls: "t sm" },
-  { id: "oma", x: 24, y: 696, w: 152, h: 40, cls: "t sm" },
-  { id: "branch", x: 190, y: 696, w: 152, h: 40, cls: "t sm" },
-  { id: "market", x: 356, y: 696, w: 144, h: 40, cls: "t sm" },
+  { id: "dc", x: 170, y: 14, w: 184, h: 40, sub: "외부 → Dataset·Stream 등" },
+  { id: "transform", x: 24, y: 92, w: 200, h: 52, sub: "Code Repositories" },
+  { id: "pb", x: 300, y: 92, w: 200, h: 52, sub: "클릭 → transform 생성" },
+  { id: "builds", x: 134, y: 156, w: 114, h: 22, rx: 11, cls: "t sm", edges: "builds:transform builds:pb builds:dataset" },
+  { id: "dataset", x: 24, y: 190, w: 246, h: 52, sub: "트랜잭션 · SNAPSHOT / APPEND 등" },
+  { id: "stream", x: 282, y: 190, w: 92, h: 52, sub: "저지연 레코드" },
+  { id: "media", x: 386, y: 190, w: 114, h: 52, sub: "파일 · 버전 이력" },
+  { id: "rv", x: 156, y: 256, w: 104, h: 24, rx: 6, cls: "t sm" },
+  { id: "funnel", x: 156, y: 292, w: 148, h: 24, rx: 12, cls: "t sm" },
+  { id: "onto", x: 24, y: 336, w: 476, h: 96, rx: 10, cls: "tb", sub: "OSv2 · Object type · Property · Link type · Object set" },
+  { id: "interfaces", x: 40, y: 392, w: 150, h: 28, rx: 6, cls: "t sm", edges: "interfaces:onto" },
+  { id: "osp", x: 334, y: 392, w: 154, h: 28, rx: 6, cls: "t sm", edges: "osp:onto" },
+  { id: "action", x: 24, y: 472, w: 80, h: 52, sub: "+ 제출 조건" },
+  { id: "function", x: 110, y: 472, w: 76, h: 52, sub: "TS · Python" },
+  { id: "cm", x: 192, y: 472, w: 104, h: 52, cls: "t sm", sub: "Docker 컨테이너" },
+  { id: "automate", x: 302, y: 472, w: 80, h: 52, sub: "조건 → 실행" },
+  { id: "aip", x: 388, y: 472, w: 92, h: 52, sub: "LLM · 챗봇" },
+  { id: "workshop", x: 24, y: 576, w: 148, h: 52, sub: "노코드 앱 빌더" },
+  { id: "osdk", x: 184, y: 576, w: 170, h: 52, sub: "React 앱 · Developer Console" },
+  { id: "analytics", x: 366, y: 576, w: 134, h: 52 },
+  { id: "oauth", x: 207, y: 642, w: 124, h: 26, rx: 13, cls: "t sm" },
+  { id: "oma", x: 24, y: 732, w: 152, h: 40, cls: "t sm" },
+  { id: "branch", x: 190, y: 732, w: 152, h: 40, cls: "t sm" },
+  { id: "market", x: 356, y: 732, w: 144, h: 40, cls: "t sm" },
+  { id: "lineage", x: 24, y: 782, w: 152, h: 44, cls: "t sm" },
+  { id: "approvals", x: 190, y: 782, w: 152, h: 44, cls: "t sm" },
 ];
 
 // 빌드 시 검사: 카드와 지도 상자가 1:1로 대응하고, 여러 줄 이름이 목록 이름과 같은지 확인한다.
@@ -54,11 +59,11 @@ const byId = Object.fromEntries(concepts.map((c) => [c.id, c]));
 
 // 개념 지도 그림에서 층별 세로 구간 (viewBox 좌표)
 const bands: { layer: Layer; top: number; bottom: number }[] = [
-  { layer: "data", top: 2, bottom: 248 },
-  { layer: "onto", top: 251, bottom: 400 },
-  { layer: "logic", top: 403, bottom: 494 },
-  { layer: "app", top: 497, bottom: 666 },
-  { layer: "ops", top: 669, bottom: 742 },
+  { layer: "data", top: 2, bottom: 284 },
+  { layer: "onto", top: 287, bottom: 436 },
+  { layer: "logic", top: 439, bottom: 530 },
+  { layer: "app", top: 533, bottom: 702 },
+  { layer: "ops", top: 705, bottom: 832 },
 ];
 const groups = layers.map(([layer, label]) => ({ layer, label, items: concepts.filter((c) => c.layer === layer) }));
 // 마침표 등으로 끝나는 문장마다 줄을 바꿔 보여준다
@@ -73,7 +78,7 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
   <div class="explore">
     <p class="map-scroll-hint" data-read-skip>그림을 좌우로 밀어서 볼 수 있습니다.</p>
     <figure class="fig" id="concept-map">
-      <svg class="map" viewBox="-64 0 584 744" role="group" aria-label="Foundry 흐름: Data Connection이 외부 데이터를 Dataset과 Media set으로 가져오고 Python transform·Pipeline Builder가 그 Dataset을 입력으로 Build해 새 Dataset을 만들며 Funnel이 Ontology로 인덱싱합니다. Action·Function·Compute module·Automate·AIP Logic은 Ontology를 읽고 편집은 Action을 거쳐 저장합니다. Workshop·React 앱은 Ontology를 사용하고 분석 앱은 Ontology와 Dataset을 함께 사용합니다. Project·Role·Marking이 전체를 감쌉니다.">
+      <svg class="map" viewBox="-64 0 584 836" role="group" aria-label="Foundry 흐름: Data Connection이 외부 데이터를 Dataset·Stream·Media set으로 가져오고 Python transform·Pipeline Builder가 그 Dataset을 입력으로 Build해 새 Dataset을 만듭니다. Restricted view는 Dataset에서 사용자가 볼 수 있는 행만 보이게 하며 Funnel이 Dataset·Restricted view·Stream을 Ontology로 인덱싱합니다. Action·Function·Compute module·Automate·AIP Logic은 Ontology를 읽고 편집은 Action을 거쳐 저장합니다. Workshop·React 앱은 Ontology를 사용하고 분석 앱은 Ontology와 Dataset을 함께 사용합니다. Project·Role·Marking이 전체를 감쌉니다.">
         <defs>
           <marker id="fcm-ah" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
             <path class="ahp" d="M0,1 L9,5 L0,9 z"></path>
@@ -93,71 +98,75 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
 
         <!-- 권한: Project·Role·Marking이 데이터~앱 층 전체를 감싸는 테두리 -->
         <a class="node frame-node l-sec" href="#concept-project" data-id="project" aria-label={byId.project.title}>
-          <rect class="frame" x="12" y="4" width="500" height="660" rx="12"></rect>
-          <rect class="box" x="18" y="636" width="150" height="24" rx="12"></rect>
-          <text class="tab" x="93" y="652">{byId.project.short}</text>
+          <rect class="frame" x="12" y="4" width="500" height="696" rx="12"></rect>
+          <rect class="box" x="18" y="672" width="150" height="24" rx="12"></rect>
+          <text class="tab" x="93" y="688">{byId.project.short}</text>
         </a>
 
         <!-- 데이터: 가져오기 → 가공(build) → 저장 -->
-        <!-- sync는 먼저 Dataset에 쓰고(가운데 세로선) transform·Pipeline Builder는 그 원본 Dataset을 입력으로 읽는다(양옆 사선) -->
-        <line class="ar" data-edges="dc:transform" x1="190" y1="54" x2="130" y2="90" marker-end="url(#fcm-ah)"></line>
-        <line class="ar" data-edges="dc:pb" x1="334" y1="54" x2="394" y2="90" marker-end="url(#fcm-ah)"></line>
-        <text class="lab ae" data-edges="dc:transform dc:pb" x="258" y="72">원본 Dataset을</text>
-        <text class="lab ae" data-edges="dc:transform dc:pb" x="258" y="85">입력으로</text>
-        <line class="ar" data-edges="dc:dataset" x1="270" y1="54" x2="270" y2="188" marker-end="url(#fcm-ah)"></line>
-        <text class="lab as" data-edges="dc:dataset" x="276" y="72">sync</text>
-        <line class="ar" data-edges="transform:dataset" x1="130" y1="144" x2="130" y2="188" marker-end="url(#fcm-ah)"></line>
-        <line class="ar" data-edges="pb:dataset" x1="394" y1="144" x2="290" y2="188" marker-end="url(#fcm-ah)"></line>
+        <!-- sync는 transform과 Pipeline Builder 사이의 틈으로 Dataset과 Stream에 바로 쓰고(세로선 두 개) transform·Pipeline Builder는 그 원본 Dataset을 입력으로 읽는다(양옆 사선) -->
+        <line class="ar" data-edges="dc:transform" x1="186" y1="54" x2="124" y2="90" marker-end="url(#fcm-ah)"></line>
+        <line class="ar" data-edges="dc:pb" x1="338" y1="54" x2="400" y2="90" marker-end="url(#fcm-ah)"></line>
+        <text class="lab ae" data-edges="dc:transform dc:pb" x="250" y="72">원본 Dataset을</text>
+        <text class="lab ae" data-edges="dc:transform dc:pb" x="250" y="85">입력으로</text>
+        <line class="ar" data-edges="dc:dataset" x1="256" y1="54" x2="256" y2="188" marker-end="url(#fcm-ah)"></line>
+        <line class="ar" data-edges="dc:stream" x1="292" y1="54" x2="292" y2="188" marker-end="url(#fcm-ah)"></line>
+        <text class="lab as" data-edges="dc:dataset dc:stream" x="262" y="72">sync</text>
+        <line class="ar" data-edges="transform:dataset" x1="124" y1="144" x2="124" y2="188" marker-end="url(#fcm-ah)"></line>
+        <line class="ar" data-edges="pb:dataset" x1="400" y1="144" x2="264" y2="188" marker-end="url(#fcm-ah)"></line>
 
-        <!-- 온톨로지: 인덱싱 → Ontology -->
-        <line class="ar" data-edges="dataset:funnel" x1="162" y1="242" x2="162" y2="256"></line>
-        <line class="ar" data-edges="funnel:onto" x1="162" y1="280" x2="162" y2="298" marker-end="url(#fcm-ah)"></line>
+        <!-- 데이터 → 온톨로지: Dataset은 바로 또는 Restricted view를 거쳐, Stream은 바로 Funnel의 입력이 된다 (Restricted view는 Stream에 만들 수 없음) -->
+        <line class="ar" data-edges="dataset:rv" x1="208" y1="242" x2="208" y2="254" marker-end="url(#fcm-ah)"></line>
+        <line class="ar" data-edges="rv:funnel" x1="208" y1="280" x2="208" y2="290" marker-end="url(#fcm-ah)"></line>
+        <line class="ar" data-edges="dataset:funnel" x1="266" y1="242" x2="266" y2="290" marker-end="url(#fcm-ah)"></line>
+        <line class="ar" data-edges="stream:funnel" x1="296" y1="242" x2="296" y2="290" marker-end="url(#fcm-ah)"></line>
+        <line class="ar" data-edges="funnel:onto" x1="230" y1="316" x2="230" y2="334" marker-end="url(#fcm-ah)"></line>
         <a class="node link l-onto" href="#concept-funnel" data-id="funnel" data-edges="funnel:onto funnel:dataset" aria-label="Materialization">
-          <rect class="hit" x="246" y="246" width="110" height="52"></rect>
-          <line class="ar dash" x1="256" y1="300" x2="256" y2="244" marker-end="url(#fcm-ah)"></line>
-          <text class="lab as" x="262" y="276">Materialization</text>
+          <rect class="hit" x="50" y="246" width="104" height="88"></rect>
+          <line class="ar dash" x1="60" y1="336" x2="60" y2="244" marker-end="url(#fcm-ah)"></line>
+          <text class="lab as" x="66" y="278">Materialization</text>
         </a>
         <a class="node link l-data" href="#concept-media" data-id="media" data-edges="media:onto" aria-label="media reference">
-          <rect class="hit" x="404" y="246" width="60" height="52"></rect>
-          <line class="ar dash" x1="412" y1="242" x2="412" y2="298" marker-end="url(#fcm-ah)"></line>
-          <text class="lab as" x="418" y="266">media</text>
-          <text class="lab as" x="418" y="279">ref</text>
+          <rect class="hit" x="412" y="246" width="60" height="88"></rect>
+          <line class="ar dash" x1="420" y1="242" x2="420" y2="334" marker-end="url(#fcm-ah)"></line>
+          <text class="lab as" x="426" y="266">media</text>
+          <text class="lab as" x="426" y="279">ref</text>
         </a>
 
         <!-- 로직 → 온톨로지: 아래 층이 위 층을 읽고 쓴다. 맨 오른쪽(x=494)은 분석 앱이 Ontology로 가는 통로 -->
-        <line class="ar" data-edges="action:onto" x1="64" y1="434" x2="64" y2="398" marker-end="url(#fcm-ah)"></line>
-        <text class="lab as" data-edges="action:onto" x="70" y="419">쓰기(편집)</text>
-        <line class="ar" data-edges="function:onto" x1="148" y1="434" x2="148" y2="398" marker-end="url(#fcm-ah)"></line>
-        <text class="lab as" data-edges="function:onto" x="154" y="419">읽기·계산</text>
-        <line class="ar dash" data-edges="cm:onto" x1="244" y1="434" x2="244" y2="398" marker-end="url(#fcm-ah)"></line>
-        <text class="lab as" data-edges="cm:onto" x="250" y="419">서비스 유저</text>
-        <line class="ar" data-edges="automate:onto" x1="342" y1="434" x2="342" y2="398" marker-end="url(#fcm-ah)"></line>
-        <text class="lab as" data-edges="automate:onto" x="348" y="419">감시·실행</text>
-        <line class="ar" data-edges="aip:onto" x1="434" y1="434" x2="434" y2="398" marker-end="url(#fcm-ah)"></line>
+        <line class="ar" data-edges="action:onto" x1="64" y1="470" x2="64" y2="434" marker-end="url(#fcm-ah)"></line>
+        <text class="lab as" data-edges="action:onto" x="70" y="455">쓰기(편집)</text>
+        <line class="ar" data-edges="function:onto" x1="148" y1="470" x2="148" y2="434" marker-end="url(#fcm-ah)"></line>
+        <text class="lab as" data-edges="function:onto" x="154" y="455">읽기·계산</text>
+        <line class="ar dash" data-edges="cm:onto" x1="244" y1="470" x2="244" y2="434" marker-end="url(#fcm-ah)"></line>
+        <text class="lab as" data-edges="cm:onto" x="250" y="455">서비스 유저</text>
+        <line class="ar" data-edges="automate:onto" x1="342" y1="470" x2="342" y2="434" marker-end="url(#fcm-ah)"></line>
+        <text class="lab as" data-edges="automate:onto" x="348" y="455">감시·실행</text>
+        <line class="ar" data-edges="aip:onto" x1="434" y1="470" x2="434" y2="434" marker-end="url(#fcm-ah)"></line>
         <!-- AIP Logic은 편집을 계산만 하고 저장은 Action을 거친다 -->
-        <text class="lab as" data-edges="aip:onto" x="440" y="413">읽기와</text>
-        <text class="lab as" data-edges="aip:onto" x="440" y="426">편집 계산</text>
+        <text class="lab as" data-edges="aip:onto" x="440" y="449">읽기와</text>
+        <text class="lab as" data-edges="aip:onto" x="440" y="462">편집 계산</text>
 
         <!-- 앱 → 로직·Ontology: 세 앱이 하나의 가로선에 모이고, 그 선에서 로직 상자로는 호출, 오른쪽 통로로는 Ontology 직접 조회.
              (Automate는 조건으로 실행되므로 호출 대상 아님. Object Explorer도 Action을 일괄 실행할 수 있어 분석 앱도 로직에 연결) -->
-        <line class="ar" data-edges="workshop:action osdk:action analytics:action" x1="64" y1="516" x2="64" y2="490" marker-end="url(#fcm-ah)"></line>
-        <line class="ar" data-edges="workshop:function osdk:function analytics:function" x1="148" y1="516" x2="148" y2="490" marker-end="url(#fcm-ah)"></line>
-        <line class="ar" data-edges="workshop:cm osdk:cm" x1="244" y1="516" x2="244" y2="490" marker-end="url(#fcm-ah)"></line>
-        <line class="ar" data-edges="workshop:aip osdk:aip" x1="434" y1="516" x2="434" y2="490" marker-end="url(#fcm-ah)"></line>
-        <line class="ar" data-edges="workshop:onto osdk:onto analytics:onto" x1="494" y1="516" x2="494" y2="398" marker-end="url(#fcm-ah)"></line>
-        <text class="lab as" data-edges="workshop:onto osdk:onto analytics:onto" x="440" y="510">직접 조회</text>
-        <line class="ar" data-edges="workshop:action workshop:function workshop:cm workshop:aip osdk:action osdk:function osdk:cm osdk:aip analytics:action analytics:function workshop:onto osdk:onto analytics:onto" x1="64" y1="516" x2="494" y2="516"></line>
-        <line class="ar" data-edges="workshop:action workshop:function workshop:cm workshop:aip workshop:onto" x1="98" y1="538" x2="98" y2="518" marker-end="url(#fcm-ah)"></line>
-        <line class="ar" data-edges="osdk:action osdk:function osdk:cm osdk:aip osdk:onto" x1="269" y1="538" x2="269" y2="518" marker-end="url(#fcm-ah)"></line>
-        <line class="ar" data-edges="analytics:action analytics:function analytics:onto" x1="470" y1="538" x2="470" y2="518" marker-end="url(#fcm-ah)"></line>
-        <text class="lab" data-edges="workshop:action workshop:function workshop:cm workshop:aip osdk:action osdk:function osdk:cm osdk:aip analytics:action analytics:function" x="183" y="532">앱이 로직을 호출</text>
-        <line class="ar" data-edges="osdk:oauth" x1="269" y1="592" x2="269" y2="606"></line>
+        <line class="ar" data-edges="workshop:action osdk:action analytics:action" x1="64" y1="552" x2="64" y2="526" marker-end="url(#fcm-ah)"></line>
+        <line class="ar" data-edges="workshop:function osdk:function analytics:function" x1="148" y1="552" x2="148" y2="526" marker-end="url(#fcm-ah)"></line>
+        <line class="ar" data-edges="workshop:cm osdk:cm" x1="244" y1="552" x2="244" y2="526" marker-end="url(#fcm-ah)"></line>
+        <line class="ar" data-edges="workshop:aip osdk:aip" x1="434" y1="552" x2="434" y2="526" marker-end="url(#fcm-ah)"></line>
+        <line class="ar" data-edges="workshop:onto osdk:onto analytics:onto" x1="494" y1="552" x2="494" y2="434" marker-end="url(#fcm-ah)"></line>
+        <text class="lab as" data-edges="workshop:onto osdk:onto analytics:onto" x="440" y="546">직접 조회</text>
+        <line class="ar" data-edges="workshop:action workshop:function workshop:cm workshop:aip osdk:action osdk:function osdk:cm osdk:aip analytics:action analytics:function workshop:onto osdk:onto analytics:onto" x1="64" y1="552" x2="494" y2="552"></line>
+        <line class="ar" data-edges="workshop:action workshop:function workshop:cm workshop:aip workshop:onto" x1="98" y1="574" x2="98" y2="554" marker-end="url(#fcm-ah)"></line>
+        <line class="ar" data-edges="osdk:action osdk:function osdk:cm osdk:aip osdk:onto" x1="269" y1="574" x2="269" y2="554" marker-end="url(#fcm-ah)"></line>
+        <line class="ar" data-edges="analytics:action analytics:function analytics:onto" x1="470" y1="574" x2="470" y2="554" marker-end="url(#fcm-ah)"></line>
+        <text class="lab" data-edges="workshop:action workshop:function workshop:cm workshop:aip osdk:action osdk:function osdk:cm osdk:aip analytics:action analytics:function" x="183" y="568">앱이 로직을 호출</text>
+        <line class="ar" data-edges="osdk:oauth" x1="269" y1="628" x2="269" y2="642"></line>
         <!-- 왼쪽 끝을 Project · Role · Marking 태그 바로 뒤에 고정한다. 가운데 정렬이면 글꼴이 넓은 환경에서 태그를 덮는다 -->
-        <text class="lab as" data-edges="osdk:oauth" x="180" y="644">토큰 리소스 = 사용자(또는 서비스 유저) 권한 ∩ 앱 제한</text>
-        <text class="lab as" data-edges="osdk:oauth" x="180" y="657">(scope는 작업 범위만 좁힘)</text>
+        <text class="lab as" data-edges="osdk:oauth" x="180" y="680">토큰 리소스 = 사용자(또는 서비스 유저) 권한 ∩ 앱 제한</text>
+        <text class="lab as" data-edges="osdk:oauth" x="180" y="693">(scope는 작업 범위만 좁힘)</text>
 
-        <!-- 운영 -->
-        <text class="lab as" x="24" y="688">Ontology 정의와 여러 층의 변경·배포 관리 (지원 범위 안)</text>
+        <!-- 운영: 두 줄. Approvals · Checkpoints는 권한 층의 개념이지만 Global Branching의 proposal 승인과 이어지므로 그 아래에 둔다 -->
+        <text class="lab as" x="24" y="724">Ontology 정의, 여러 층의 변경·배포 관리 (지원 범위 안), 의존 관계 확인과 승인</text>
         <!-- 개념 상자: 위치·크기·부제는 mapNodes, 이름은 concepts.ts의 short(또는 mapLines)에서 가져온다 -->
         {mapNodes.map((n) => {
           const c = byId[n.id];
@@ -335,7 +344,7 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
     const map = root.querySelector<SVGElement>(".map");
     const edgeEls = Array.from(root.querySelectorAll<SVGElement>(".map [data-edges]"));
     const nodeEls = Array.from(root.querySelectorAll<SVGElement>(".map .node"));
-    const CROSS_CUTTING = new Set(["project", "branch", "market"]);
+    const CROSS_CUTTING = new Set(["project", "branch", "market", "lineage"]);
     // 그림에 선은 없지만 공식 문서로 확인된 관계. 각 쌍의 근거는 해당 카드의 doc/related에 있다
     const EXTRA_EDGES: [string, string][] = [
       // Automate의 effect
@@ -361,6 +370,21 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
       ["oma", "onto"],
       ["oma", "action"],
       ["oma", "interfaces"],
+      // Stream을 출력하는 Pipeline Builder·Compute module, Stream 기반 Object type의 행·열 통제
+      ["pb", "stream"],
+      ["cm", "stream"],
+      ["stream", "osp"],
+      // Restricted view: Object security policy와 비교되는 방식, 자동으로 생기는 Build Schedule, Owner Role과 Marking 검토
+      ["rv", "osp"],
+      ["rv", "builds"],
+      ["rv", "project"],
+      // Approvals · Checkpoints: Global Branching proposal과 함께 생기는 Ontology proposal(Ontology Manager에서 검토),
+      // 그룹·Project·Marking 접근 요청, Submit action checkpoint, Contour·Quiver export와 Object Explorer 검색 checkpoint
+      ["approvals", "branch"],
+      ["approvals", "oma"],
+      ["approvals", "project"],
+      ["approvals", "action"],
+      ["approvals", "analytics"],
     ];
     const pairsOf = (el: SVGElement) =>
       (el.dataset.edges ?? "").split(" ").filter(Boolean).map((pair) => pair.split(":") as [string, string]);
