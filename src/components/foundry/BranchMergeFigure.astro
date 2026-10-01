@@ -230,13 +230,30 @@ const diamondPoints = (d: Diamond) => `${d.cx},${d.cy - d.hh} ${d.cx + d.hw},${d
 </figure>
 
 <style>
-  /* 오류·성공 색은 사이트 테마에 없어 여기서 정한다. 사이트에 다크 모드가 생기면 이 변수만 바꾸면 된다 */
+  /* 오류·성공 색은 사이트 토큰에 없어 여기서 정한다. 다크 값은 아래에서 덮어쓴다 */
   .bmf {
     --bmf-err: #b3261e;
     --bmf-err-soft: #fdeceb;
     --bmf-ok: #1e7b3a;
     --bmf-ok-soft: #e7f4ea;
     margin: 28px 0;
+  }
+
+  /* 다크 모드: 어두운 바탕에 맞춘 오류·성공 색 (글자·선과 바탕의 대비는 모두 6:1 이상) */
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme="light"])) .bmf {
+      --bmf-err: #f28b82;
+      --bmf-err-soft: #3a1d1c;
+      --bmf-ok: #81c995;
+      --bmf-ok-soft: #16301f;
+    }
+  }
+
+  :global(:root[data-theme="dark"]) .bmf {
+    --bmf-err: #f28b82;
+    --bmf-err-soft: #3a1d1c;
+    --bmf-ok: #81c995;
+    --bmf-ok-soft: #16301f;
   }
 
   .bmf-scroll {
