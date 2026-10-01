@@ -25,7 +25,7 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
-    "oh-my-codex": "^0.20.5",
+    "oh-my-codex": "^0.21.6",
     "typescript": "^6.0.3"
   }
 }
