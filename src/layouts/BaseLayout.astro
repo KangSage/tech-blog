@@ -365,6 +365,8 @@ const themeCss = `:root { ${decl(light)} }
     border: 1px solid var(--border);
     padding: 8px 12px;
     vertical-align: top;
+    /* 한글은 글자마다 줄을 바꿀 수 있어 좁은 화면에서 열이 한 글자 폭까지 줄어든다. 단어 단위로만 바꿔 열이 단어 폭은 유지하게 하고, 넘치면 표가 가로로 스크롤된다 */
+    word-break: keep-all;
   }
 
   article th {
