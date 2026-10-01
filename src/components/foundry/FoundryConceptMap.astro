@@ -509,6 +509,21 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
     --s-sec: #eedcbf; --s-data: #c4e2e2; --s-onto: #d5d6f3; --s-logic: #efcbd3; --s-app: #c8e1d2; --s-ops: #d8dce2;
     font-size: 15px;
   }
+  /* 다크 모드의 층 색: 선·글자(--c)는 밝게, 상자 바탕(--t)과 선택 바탕(--s)은 층 색이 살짝 도는 어두운 색 */
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme="light"])) .fcm,
+    :global(:root:not([data-theme="light"])) .panel {
+      --c-sec: #e0a24a; --c-data: #3fbcbc; --c-onto: #9a9df2; --c-logic: #ef7b95; --c-app: #5fc68c; --c-ops: #9eaabb;
+      --t-sec: #2a2216; --t-data: #13292a; --t-onto: #1e1f38; --t-logic: #2e171d; --t-app: #15291d; --t-ops: #20242b;
+      --s-sec: #4a3a1f; --s-data: #1f4546; --s-onto: #32345e; --s-logic: #502632; --s-app: #234632; --s-ops: #343b46;
+    }
+  }
+  :global(:root[data-theme="dark"]) .fcm,
+  :global(:root[data-theme="dark"]) .panel {
+    --c-sec: #e0a24a; --c-data: #3fbcbc; --c-onto: #9a9df2; --c-logic: #ef7b95; --c-app: #5fc68c; --c-ops: #9eaabb;
+    --t-sec: #2a2216; --t-data: #13292a; --t-onto: #1e1f38; --t-logic: #2e171d; --t-app: #15291d; --t-ops: #20242b;
+    --s-sec: #4a3a1f; --s-data: #1f4546; --s-onto: #32345e; --s-logic: #502632; --s-app: #234632; --s-ops: #343b46;
+  }
   .fcm { margin: 24px 0 8px; }
   .l-sec { --c: var(--c-sec); --t: var(--t-sec); --s: var(--s-sec); }
   .l-data { --c: var(--c-data); --t: var(--t-data); --s: var(--s-data); }

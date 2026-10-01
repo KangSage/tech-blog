@@ -32,12 +32,33 @@ const pageTitle = title === SITE.name ? title : `${title} | ${SITE.name}`;
 const path = Astro.url.pathname;
 const currentNav = path.includes("/tags/") ? "tags" : path.includes("/security/") ? "" : "posts";
 const canonical = absoluteUrl(canonicalPath);
+
+// 색 토큰은 여기 한 곳에서 정한다. 다크 값은 '시스템이 다크이고 라이트를 고르지 않음'과 '다크를 고름' 두 경우에 같은 값으로 쓰인다
+const light = {
+  "color-scheme": "light",
+  "--bg": "#fafafa", "--surface": "#ffffff", "--text": "#202124", "--muted": "#5f6368", "--border": "#dadce0",
+  "--accent": "#146c94", "--accent-soft": "#e5f4fa", "--warning": "#8a5a00",
+  "--code-bg": "#111827", "--code-fg": "#f9fafb", "--notice-border": "#e8d18c", "--notice-bg": "#fff8df",
+};
+const dark = {
+  "color-scheme": "dark",
+  "--bg": "#121417", "--surface": "#1b1f24", "--text": "#e6e8eb", "--muted": "#a3abb5", "--border": "#363c45",
+  "--accent": "#5cb8e4", "--accent-soft": "#173444", "--warning": "#e3b341",
+  "--code-bg": "#0b0d10", "--code-fg": "#e6e8eb", "--notice-border": "#6b5a1f", "--notice-bg": "#262110",
+};
+const decl = (tokens: Record<string, string>) => Object.entries(tokens).map(([k, v]) => `${k}: ${v};`).join(" ");
+const themeCss = `:root { ${decl(light)} }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { ${decl(dark)} } }
+:root[data-theme="dark"] { ${decl(dark)} }`;
 ---
 
 <!doctype html>
 <html lang={locale}>
   <head>
     <meta charset="utf-8" />
+    <!-- 저장된 테마를 그리기 전에 적용해 깜빡임을 막는다 -->
+    <script is:inline>try { const t = localStorage.getItem("theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch {}</script>
+    <style is:inline set:html={themeCss}></style>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{pageTitle}</title>
     <meta name="description" content={description} />
@@ -77,6 +98,10 @@ const canonical = absoluteUrl(canonicalPath);
           </a>
         ))}
       </nav>}
+      <button type="button" class="theme-toggle" data-label-dark={t("themeToDark", locale)} data-label-light={t("themeToLight", locale)} hidden>
+        <svg class="i-moon" viewBox="0 0 20 20" aria-hidden="true"><path d="M15.5 12.6A6.5 6.5 0 0 1 7.4 4.5a6.5 6.5 0 1 0 8.1 8.1z"></path></svg>
+        <svg class="i-sun" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="3.6"></circle><path d="M10 1.5v2.4M10 16.1v2.4M1.5 10h2.4M16.1 10h2.4M4 4l1.7 1.7M14.3 14.3 16 16M4 16l1.7-1.7M14.3 5.7 16 4"></path></svg>
+      </button>
     </header>
     <main>
       <slot />
@@ -88,20 +113,39 @@ const canonical = absoluteUrl(canonicalPath);
         <a href={href("/ko/security/")}>{t("security", locale)}</a>
       </nav>
     </footer>
+    <script>
+      // 테마 토글: 기본은 시스템 설정을 따르고, 누르면 반대 모드를 이 브라우저에 기억한다.
+      // 고른 모드가 시스템 설정과 같아지면 기억을 지워 다시 시스템을 따른다
+      const toggle = document.querySelector<HTMLButtonElement>(".theme-toggle");
+      if (toggle) {
+        const root = document.documentElement;
+        const media = matchMedia("(prefers-color-scheme: dark)");
+        const system = () => (media.matches ? "dark" : "light");
+        const current = () => root.dataset.theme ?? system();
+        const update = () => {
+          const label = current() === "dark" ? toggle.dataset.labelLight! : toggle.dataset.labelDark!;
+          toggle.setAttribute("aria-label", label);
+          toggle.title = label;
+          toggle.dataset.mode = current();
+        };
+        toggle.addEventListener("click", () => {
+          const next = current() === "dark" ? "light" : "dark";
+          try {
+            if (next === system()) { delete root.dataset.theme; localStorage.removeItem("theme"); }
+            else { root.dataset.theme = next; localStorage.setItem("theme", next); }
+          } catch { root.dataset.theme = next; }
+          update();
+        });
+        media.addEventListener("change", update);
+        update();
+        toggle.hidden = false;
+      }
+    </script>
   </body>
 </html>
 
 <style is:global>
   :root {
-    color-scheme: light;
-    --bg: #fafafa;
-    --surface: #ffffff;
-    --text: #202124;
-    --muted: #5f6368;
-    --border: #dadce0;
-    --accent: #146c94;
-    --accent-soft: #e5f4fa;
-    --warning: #8a5a00;
     font-family:
       Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
       sans-serif;
@@ -156,6 +200,60 @@ const canonical = absoluteUrl(canonicalPath);
 
   .language-nav {
     margin-left: auto;
+  }
+
+  /* 테마 토글: 헤더 오른쪽 끝. 언어 메뉴가 있으면 그 뒤에 붙는다 */
+  .theme-toggle {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    /* 헤더 글줄보다 높은 만큼 위아래를 당겨 헤더 높이를 바꾸지 않는다 */
+    margin-block: -5px;
+    margin-left: auto;
+    padding: 0;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface);
+    color: var(--muted);
+    cursor: pointer;
+  }
+
+  .language-nav + .theme-toggle {
+    margin-left: 0;
+  }
+
+  .theme-toggle:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .theme-toggle[hidden] {
+    display: none;
+  }
+
+  .theme-toggle svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .theme-toggle .i-moon {
+    fill: currentColor;
+  }
+
+  .theme-toggle .i-sun {
+    fill: currentColor;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+  }
+
+  /* 지금이 다크면 해 아이콘(라이트로), 라이트면 달 아이콘(다크로) */
+  .theme-toggle[data-mode="dark"] .i-moon,
+  .theme-toggle:not([data-mode="dark"]) .i-sun {
+    display: none;
   }
 
   .main-nav a,
@@ -225,8 +323,8 @@ const canonical = absoluteUrl(canonicalPath);
     border: 1px solid var(--border);
     border-radius: 8px;
     padding: 16px;
-    background: #111827;
-    color: #f9fafb;
+    background: var(--code-bg);
+    color: var(--code-fg);
   }
 
   pre code {
@@ -541,10 +639,10 @@ const canonical = absoluteUrl(canonicalPath);
   }
 
   .notice {
-    border: 1px solid #e8d18c;
+    border: 1px solid var(--notice-border);
     border-radius: 8px;
     padding: 16px;
-    background: #fff8df;
+    background: var(--notice-bg);
     color: var(--warning);
   }
 
@@ -556,6 +654,18 @@ const canonical = absoluteUrl(canonicalPath);
 
     .language-nav {
       margin-left: 0;
+    }
+
+    /* 좁은 화면은 헤더가 세로로 쌓이므로 토글을 오른쪽 위에 띄워 줄을 늘리지 않는다 */
+    .site-header {
+      position: relative;
+    }
+
+    .theme-toggle {
+      position: absolute;
+      top: 16px;
+      right: 0;
+      margin-block: 0;
     }
   }
 </style>
