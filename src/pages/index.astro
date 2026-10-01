@@ -1,5 +1,5 @@
 ---
-import { withBase } from "@/lib/i18n";
+import { SITE, withBase } from "@/lib/i18n";
 
 const target = withBase("/ko/");
 ---
@@ -8,12 +8,14 @@ const target = withBase("/ko/");
 <html lang="ko">
   <head>
     <meta charset="utf-8" />
+    <!-- 다크 모드 기기에서 리다이렉트 직전에 흰 화면이 번쩍이지 않게 한다 -->
+    <meta name="color-scheme" content="light dark" />
     <meta http-equiv="refresh" content={`0; url=${target}`} />
     <link rel="canonical" href={target} />
     <link rel="icon" href={withBase("/favicon.svg")} type="image/svg+xml" />
-    <title>Tech Blog</title>
+    <title>{SITE.name}</title>
   </head>
   <body>
-    <p><a href={target}>Tech Blog로 이동</a></p>
+    <p><a href={target}>{SITE.name} 홈으로 이동</a></p>
   </body>
 </html>
