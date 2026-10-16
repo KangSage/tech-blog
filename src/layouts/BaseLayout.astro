@@ -379,6 +379,25 @@ const themeCss = `:root { ${decl(light)} }
     overflow-wrap: anywhere;
   }
 
+  /* 본문 스크린샷: 본문 폭에 맞춰 줄이고 밝은 화면이 배경과 섞이지 않게 테두리를 둔다 */
+  article figure {
+    margin: 24px 0;
+  }
+
+  article figure img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+  }
+
+  article figcaption {
+    margin-top: 8px;
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+
   /* 화면보다 넓은 표 위의 안내 (글 페이지 스크립트가 넘칠 때만 보인다) */
   .table-scroll-hint {
     margin: 16px 0 -10px;
