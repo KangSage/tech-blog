@@ -518,6 +518,8 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
     // 자세히는 카드 본문만 여닫는다. 막대 전체를 접는 버튼(접기 ▴)과 함께 보이므로 닫는 문구를 다르게 둔다
     function setExpanded(open: boolean) {
       panel!.classList.toggle("is-expanded", open);
+      // 다시 열 때 브라우저가 예전 스크롤 위치를 되살리므로 카드 맨 위에서 시작한다
+      if (open) panel!.scrollTop = 0;
       if (more) {
         more.setAttribute("aria-expanded", String(open));
         more.textContent = open ? "간단히 ▴" : "자세히 ▾";
@@ -825,8 +827,10 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
         fig.focus({ preventScroll: true });
         return;
       }
-      if (more && target.closest(".more") === more) return setExpanded(!panel.classList.contains("is-expanded"));
-      if (fold && target.closest(".fold") === fold) return setCollapsed(!panel.classList.contains("is-collapsed"));
+      // 좁은 화면에서 화면 아래쪽에 있던 막대가 아래로 커지면 누른 버튼이 화면 밖으로 밀리므로 다시 보이게 한다(보이면 그대로)
+      const keepPressedInView = (button: HTMLElement) => { if (aside && aside.nextElementSibling === root) button.scrollIntoView({ block: "nearest" }); };
+      if (more && target.closest(".more") === more) { setExpanded(!panel.classList.contains("is-expanded")); return keepPressedInView(more); }
+      if (fold && target.closest(".fold") === fold) { setCollapsed(!panel.classList.contains("is-collapsed")); return keepPressedInView(fold); }
       if (panel.classList.contains("is-collapsed") && target.closest(".card.is-active") && panel.contains(target)) return setCollapsed(false);
       if (indexToggle && target.closest(".index-toggle") === indexToggle) return setIndexOpen(!panel.classList.contains("index-open"));
       const viewButton = target.closest<HTMLElement>("button[data-view]");
