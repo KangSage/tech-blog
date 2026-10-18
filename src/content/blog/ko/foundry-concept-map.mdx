@@ -46,7 +46,8 @@ Foundry의 구성 요소는 크게 데이터·온톨로지·로직·앱의 네 �
 3. **로직**: Action은 Ontology를 수정하고 Function은 조회와 계산을 담당합니다.\
    직접 만든 컨테이너 코드는 Compute module로, 조건에 따른 자동 실행은 Automate로, LLM 기반 로직은 AIP Logic으로 만듭니다.
 4. **앱**: Workshop(노코드)이나 OSDK 기반 React 앱은 Ontology를 직접 조회하고 쓰기는 Action으로 처리하며 복잡한 계산이 필요하면 Function 같은 로직 계층을 호출합니다.\
-   Workshop은 링크로 연결된 Object의 집계와 property 사이의 계산을 Derived properties로 화면에서 바로 하기도 하며 Ontology는 바꾸지 않습니다.\
+   Workshop은 링크로 연결된 Object의 집계나 여러 property 값을 조합한 계산을 Derived properties로 화면에서 바로 하기도 합니다.\
+   이렇게 만든 Derived properties는 정의한 Workshop 모듈 안에만 있고 Ontology에 저장되지 않습니다.\
    Contour · Quiver · Object Explorer로는 코드 없이 데이터를 분석합니다.\
    Object Views는 Object 하나의 정보를 모아 보여 주고 외부 AI 에이전트는 Ontology MCP로 Ontology를 읽고 Action을 실행합니다.
 5. **운영**: Ontology Manager, Global Branching, Marketplace, Data Lineage · Workflow Lineage는 한 층에 속하지 않고 여러 층에 걸쳐 쓰이는 도구라서 지도에서는 맨 아래 운영 줄에 모았습니다.\

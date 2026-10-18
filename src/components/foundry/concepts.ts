@@ -409,7 +409,7 @@ export const concepts: Concept[] = [
     analogy: "Retool과 비슷합니다. Layout = JSX 구조, Widget = 컴포넌트, Variable = useState, Event = 이벤트 핸들러입니다.",
     everyday: "파워포인트에서 도형을 끌어다 놓듯 표·차트·버튼을 배치해 업무 화면을 만드는 도구입니다. 버튼을 누르면 신청서(Action)가 제출되는 식으로 연결됩니다.",
     points: [
-      "쓰기는 Action, 복잡한 계산은 Function에 연결합니다. 링크로 연결된 Object의 집계와 property 사이의 계산은 Derived properties로 Workshop 안에서 바로 할 수도 있으며 Ontology는 바꾸지 않습니다.",
+      "쓰기는 Action, 복잡한 계산은 Function에 연결합니다. 링크로 연결된 Object의 집계나 여러 property 값을 조합한 계산은 Derived properties로 Workshop 안에서 바로 할 수도 있습니다. Derived properties는 정의한 Workshop 모듈 안에만 있고 Ontology에 저장되지 않습니다.",
       "기본 위젯으로 부족하면 Custom widget으로 직접 작성한 프론트엔드 코드를 넣을 수 있습니다.",
       "기본 도구를 넘어서는 완전한 맞춤 화면이 필요하면 OSDK React 앱을 만듭니다.",
       "OSDK로 만든 React 앱은 Iframe 위젯으로, Quiver 대시보드는 그대로 Workshop 안에 넣을 수 있습니다.",
@@ -505,7 +505,7 @@ export const concepts: Concept[] = [
       "Microsoft Copilot Studio·Google Gemini Enterprise 같은 외부 AI 앱은 별도 코드 없이 연결하고 LangChain 같은 프레임워크로 만든 에이전트도 연결할 수 있습니다.",
       "Palantir MCP는 목적이 다릅니다. Ontology를 만드는 개발자용으로 AI IDE·에이전트가 Object type·Link type·Action type 같은 구조를 만들고 고치게 하며 Ontology 데이터에 기록(write)하지는 못합니다. 다만 Object와 Dataset을 조회하는 도구가 있고 로컬 AI 도구에서 쓰면 도구 출력이 그 도구의 LLM 제공자에게 전송됩니다(예: Claude Code는 Anthropic). 로컬 사용은 기본으로 꺼져 있고 Control Panel에서 켭니다.",
     ],
-    warn: "로컬 기기에서 Palantir AIP 밖에서 호스팅되는 LLM과 함께 Ontology MCP를 켜면 환경의 데이터를 외부 MCP client가 사용할 수 있게 됩니다. 켜기 전에 조직의 데이터 거버넌스 정책을 확인하고 앱 제한과 권한으로 민감한 리소스를 막아야 합니다.",
+    warn: "Palantir AIP 밖에서 호스팅되는 LLM과 함께 로컬 기기에서 Ontology MCP를 켜면 환경의 데이터를 외부 MCP client가 사용할 수 있게 됩니다. 켜기 전에 조직의 데이터 거버넌스 정책을 확인하고 앱 제한과 권한으로 민감한 리소스를 막아야 합니다.",
     doc: D + "ontology-mcp/overview",
     related: [
       { label: "샘플 아키텍처", href: D + "ontology-mcp/sample-architecture" },
@@ -551,11 +551,11 @@ export const concepts: Concept[] = [
     everyday: "같은 명부를 열어도 사람마다 자기 담당 고객의 줄만 보이도록 나머지를 자동으로 가려 주는 것과 같습니다.",
     points: [
       "조건은 granular policy로 작성합니다. 사용자 속성(그룹 ID 등)과 property 값을 비교하며 이름이 아니라 ID를 씁니다. 그룹·Marking·Organization 멤버십에 NOT 조건을 쓰는 것은 피해야 합니다.",
-      "Dataset 권한과는 분리됩니다. 정책이 있으면 backing Dataset의 Viewer 권한 없이도 Object를 볼 수 있습니다.",
+      "backing datasource 권한과는 분리됩니다. 정책이 있으면 backing datasource의 Viewer 권한 없이도 Object를 볼 수 있습니다.",
       "backing datasource의 Marking·Organization·Classification-based Access Controls(CBAC) 같은 필수 통제를 기본으로 물려받으며 정책에서 필수 통제를 더하거나 필요 없는 것을 제거할 수 있습니다.",
       "변경은 거의 즉시 반영되지만 그룹 멤버십 같은 사용자 속성의 변경은 잠시 캐시됩니다. 반면 Restricted view(Dataset용 RLS)는 정책을 바꾼 뒤 파이프라인을 다시 Build해야 반영됩니다.",
     ],
-    warn: "Ontology 안에서만 적용되므로 backing Dataset은 따로 잠가야 합니다. 레거시 datasource-derived 권한 모델을 쓰는 환경에서는 Dataset 권한도 여전히 필요합니다.",
+    warn: "Ontology 안에서만 적용되므로 backing Dataset은 따로 잠가야 합니다. 레거시 datasource-derived 권한 모델을 쓰는 환경에서는 backing datasource의 Viewer 권한도 여전히 필요합니다.",
     doc: D + "object-permissioning/object-security-policies",
     related: [
       { label: "Restricted view", href: D + "security/restricted-views" },
@@ -658,7 +658,7 @@ export const concepts: Concept[] = [
       "TypeScript v2(TS v2)·Python function은 저장소 템플릿을 지원 버전 이상으로 올리고 로컬 OSDK를 켜면 브랜치에서 개발하고 브랜치 전용 버전을 게시할 수 있습니다(2026년 10월 GA). 로컬 OSDK가 없는 TS v2·Python 저장소는 브랜치에서 특정 버전을 참조할 수만 있고 브랜치 스키마로 코드를 고칠 수는 없습니다.",
       "Developer Console은 npm으로 설치한 TypeScript SDK와 Vite 6~8 앱에 한해 브랜치에서 SDK를 생성하고 브랜치 데이터로 테스트할 수 있습니다(2026년 10월부터). 브랜치에서는 릴리스 태그와 운영 웹사이트 게시가 막힙니다.",
       "Proposal이 PR 역할을 합니다. Proposal을 만들면 리소스마다 check(Main과의 충돌, 필요한 승인 등)가 실행되고 모든 check를 통과해야 Merge할 수 있습니다. 일부 리소스만 실패한 병합은 지금은 되돌릴 수 없습니다.",
-      "브랜치에서 리소스를 만들거나 지우면 Main에도 반영됩니다. Ontology 리소스는 예외로 브랜치에서 만들고 지워도 Main에 영향을 주지 않습니다.",
+      "브랜치에서 리소스를 만들거나 지우면 Main에도 반영됩니다. Ontology 리소스는 예외로 브랜치에서 만들고 지워도 Main에 영향을 주지 않습니다. 다만 Materialization은 브랜치에서 새로 만들거나 고칠 수 없습니다.",
       "병합할 때 Build 범위를 고릅니다. 영향받는 리소스 전부, 브랜치에서 바꾼 리소스만, Build 안 함 중 하나이며 Build 안 함을 고르면 병합 뒤 직접 Build해야 합니다.",
       "Branch protection은 리소스의 Owner가 켜거나 끕니다. Project의 Branch protection 탭에서 새 파일을 자동으로 보호하도록 설정할 수도 있습니다. Ontology 리소스는 먼저 project-based 권한으로 migration해야 보호할 수 있습니다.",
       "기본값으로 35일 동안 쓰지 않은 브랜치는 비활성화되고 그 7일 뒤 브랜치 데이터가 삭제됩니다.",
@@ -679,6 +679,7 @@ export const concepts: Concept[] = [
       { label: "GA 공지", href: D + "announcements/2026-05" },
       { label: "브랜치에서 Action 실행", href: D + "action-types/branching-action-types" },
       { label: "Ontology 브랜치", href: D + "ontologies/branching-ontology" },
+      { label: "브랜치의 Materialization", href: D + "object-edits/materializations" },
     ],
   },
   {
@@ -718,7 +719,7 @@ export const concepts: Concept[] = [
       "Data Lineage에서는 Schedule을 관리하고 Build timeline으로 Build 이력을 봅니다. Dataset을 이전 트랜잭션으로 롤백하는 곳도 Data Lineage입니다. 보관(archive)되었거나 비활성 상태인 브랜치에서는 Build가 자동으로 실패하므로 그 브랜치의 리소스를 Build하는 Schedule이 반복된 실패로 멈출 수 있습니다. 이때는 브랜치를 다시 활성화(보관된 브랜치는 복원)한 뒤 필요하면 Build Schedules 앱이나 Data Lineage에서 Schedule을 직접 다시 시작합니다. 다만 그사이 JobSpec이 지워졌다면 Data Lineage 같은 다른 앱에서 실행한 첫 Build로는 JobSpec이 다시 만들어지지 않습니다. 이때는 Code Repositories에서 사소한 변경을 커밋한 뒤 저장소 안에서 Build하고 Pipeline Builder에서는 다시 Deploy하고 Build합니다.",
       "Workflow Lineage는 Object·Action·Function·Interface·Custom widget·앱·모델 등의 API 이름·입력·Ontology 편집·Submission criteria를 보여 줍니다. Object의 특정 컬럼을 쓰는 하류 Action과 Workshop 앱을 모두 찾을 수 있습니다.",
       "Workflow Lineage에서는 권한·사용량·마지막 재인덱싱 상태를 색으로 보고 Action 버전 일괄 변경이나 Submission criteria 직접 수정 같은 작업도 합니다.",
-      "둘 다 Global Branching을 지원합니다. 브랜치에서 리소스를 제거하면 그 리소스는 Main의 버전으로 돌아가므로 브랜치 상태가 깨질 수 있습니다. 제거하기 전에 lineage로 다른 브랜치 리소스가 그 변경에 기대고 있지 않은지 확인해야 합니다.",
+      "둘 다 Global Branching을 지원합니다. 리소스를 브랜치에서 빼면(remove from branch) 그 리소스는 Main의 버전으로 돌아가므로 브랜치 상태가 깨질 수 있습니다. 빼기 전에 lineage로 다른 브랜치 리소스가 그 변경에 기대고 있지 않은지 확인해야 합니다.",
     ],
     warn: "Workflow Lineage에 누가 접근할지는 관리자가 Control Panel에서 정하며 환경(enrollment)에 따라 아직 켜져 있지 않을 수 있습니다.",
     doc: [
@@ -730,7 +731,7 @@ export const concepts: Concept[] = [
       { label: "Build timeline", href: D + "data-lineage/build-timeline" },
       { label: "롤백", href: D + "data-lineage/dataset-rollback" },
       { label: "브랜치 지원 범위", href: D + "global-branching/integrations" },
-      { label: "브랜치에서 리소스 제거", href: D + "global-branching/core-concepts" },
+      { label: "브랜치에서 리소스 빼기", href: D + "global-branching/core-concepts" },
     ],
   },
 ];
