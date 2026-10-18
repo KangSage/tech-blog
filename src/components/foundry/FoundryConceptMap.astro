@@ -813,6 +813,8 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
 
     document.addEventListener("click", (event) => {
       const target = event.target as Element;
+      // 이번 조작으로 막대가 위로 커졌는지 알기 위해 누르기 전 막대 위치를 잡아 둔다
+      const barTopBefore = aside?.getBoundingClientRect().top ?? 0;
       // "지도에서 보기": 좁은 화면에서는 막대를 접고 그 높이만큼 비워 지도로 간다(기본 링크 이동은 막대 아래에 지도를 숨긴다)
       const back = target.closest(".back");
       if (back && panel.contains(back)) {
@@ -833,7 +835,7 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
       const keepPressedInView = (button: HTMLElement) => {
         if (!aside || aside.nextElementSibling !== root) return;
         const barTop = aside.getBoundingClientRect().top;
-        if (barTop < 0) window.scrollBy(0, barTop);
+        if (barTop < 0 && barTop < barTopBefore - 0.5) window.scrollBy(0, barTop);
         if (aside.getBoundingClientRect().top <= 0.5) return;
         const dock = Array.from(document.querySelectorAll<HTMLElement>(".ra-dock .ra-bar, .ra-dock .ra-start")).find((el) => el.getClientRects().length > 0);
         const limit = Math.min(window.innerHeight - 4, (dock?.getBoundingClientRect().top ?? window.innerHeight) - 8);
@@ -850,7 +852,10 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
       const routeButton = target.closest<HTMLElement>("button[data-route]");
       if (routeButton && routeBox?.contains(routeButton)) {
         const rid = routeButton.dataset.route ?? "";
+        // 좁은 화면에서 막대가 아직 위에 붙기 전이면 첫 단계 카드로 바뀌며 달라진 막대 높이만큼 따라 움직여 누른 버튼을 제자리에 둔다(지도 상자와 같게)
+        const routeBarBefore = aside && aside.nextElementSibling === root && aside.getBoundingClientRect().top > 0.5 ? aside.offsetHeight : null;
         setRoute(rid);
+        if (aside && routeBarBefore !== null) window.scrollBy(0, aside.offsetHeight - routeBarBefore);
         // 첫 단계 카드로 바뀌며 커진 막대가 누른 버튼과 질문을 덮지 않게 한다
         if (routeBox) keepBelowBar(routeBox.getBoundingClientRect().top);
         return history.replaceState(null, "", rid ? `#route-${rid}` : location.pathname + location.search);
