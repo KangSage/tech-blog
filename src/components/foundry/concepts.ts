@@ -30,7 +30,7 @@ export interface Concept {
   related: { label: string; href: string }[];
 }
 
-const D = "https://www.palantir.com/docs/foundry/";
+export const D = "https://www.palantir.com/docs/foundry/";
 
 // 모든 설명은 doc/related에 링크한 Palantir 공식 문서(osdk-ts 소스 포함)로 확인한 내용만 담는다
 export const concepts: Concept[] = [
