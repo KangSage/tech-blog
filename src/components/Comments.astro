@@ -1,0 +1,99 @@
+---
+import { commentsEnabled, giscus } from "@/lib/comments";
+import type { Locale } from "@/lib/i18n";
+import { t } from "@/lib/ui";
+
+interface Props {
+  lang: Locale;
+}
+
+const { lang } = Astro.props;
+// giscus client.js가 읽는 data-* 속성. theme은 불러올 때 현재 화면 모드에 맞춰 채운다
+const config = {
+  repo: giscus.repo,
+  repoId: giscus.repoId,
+  category: giscus.category,
+  categoryId: giscus.categoryId,
+  mapping: "pathname",
+  strict: "1",
+  reactionsEnabled: "1",
+  emitMetadata: "0",
+  inputPosition: "bottom",
+  lang,
+  loading: "lazy",
+};
+---
+
+{commentsEnabled && (
+  <section class="post-comments" aria-labelledby="comments-title" data-giscus={JSON.stringify(config)}>
+    <h2 id="comments-title">{t("commentsTitle", lang)}</h2>
+    <p class="comments-note">{t("commentsNote", lang)}</p>
+    <!-- giscus가 이 상자 안에 iframe을 넣는다. id는 GitHub 로그인 뒤 돌아올 위치가 된다 -->
+    <div class="giscus" id="comments"></div>
+  </section>
+)}
+
+<script>
+  // 댓글 영역 근처까지 스크롤했을 때 giscus를 불러온다. 그 전에는 giscus.app에 아무 요청도 보내지 않는다.
+  // 헤더 토글이나 시스템 설정으로 화면 모드가 바뀌면 iframe을 다시 불러오지 않고 테마만 바꾼다
+  const section = document.querySelector<HTMLElement>(".post-comments");
+  const box = section?.querySelector<HTMLElement>(".giscus");
+  if (section?.dataset.giscus && box) {
+    const origin = "https://giscus.app";
+    const root = document.documentElement;
+    const media = matchMedia("(prefers-color-scheme: dark)");
+    const theme = () => ((root.dataset.theme ?? (media.matches ? "dark" : "light")) === "dark" ? "dark" : "light");
+
+    const load = () => {
+      const script = document.createElement("script");
+      script.src = `${origin}/client.js`;
+      Object.assign(script.dataset, JSON.parse(section.dataset.giscus!), { theme: theme() });
+      script.crossOrigin = "anonymous";
+      script.async = true;
+      section.append(script);
+    };
+
+    const syncTheme = () => {
+      box.querySelector<HTMLIFrameElement>("iframe.giscus-frame")?.contentWindow?.postMessage(
+        { giscus: { setConfig: { theme: theme() } } },
+        origin,
+      );
+    };
+    new MutationObserver(syncTheme).observe(root, { attributes: true, attributeFilter: ["data-theme"] });
+    media.addEventListener("change", syncTheme);
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((entry) => entry.isIntersecting)) return;
+        observer.disconnect();
+        load();
+      },
+      { rootMargin: "600px 0px" },
+    );
+    observer.observe(section);
+  }
+</script>
+
+<style>
+  .post-comments {
+    max-width: 760px;
+    margin-top: 56px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+  }
+
+  .post-comments h2 {
+    margin-top: 0;
+  }
+
+  .comments-note {
+    margin: 0 0 16px;
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+
+  /* giscus는 불러오는 동안 높이가 0이라 자리를 조금 잡아 둔다 */
+  .giscus {
+    min-height: 120px;
+  }
+</style>
