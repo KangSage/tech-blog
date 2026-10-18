@@ -9,7 +9,7 @@ tags: ["palantir-foundry", "ontology", "interface", "access-control", "팔란티
 draft: false
 ---
 
-import { Image } from "astro:assets";
+import PostFigure from "@/components/PostFigure.astro";
 import interfaceOverview from "@/assets/blog/foundry-row-permission-interface/interface-overview.jpg";
 import webSecuredPage from "@/assets/blog/foundry-row-permission-interface/web-secured-page.jpg";
 import proposalInterfaceCreated from "@/assets/blog/foundry-row-permission-interface/proposal-interface-created.jpg";
@@ -131,10 +131,7 @@ TypeScript의 `interface`와 비슷한 개념으로 볼 수 있습니다.
 
 요컨대 Interface는 **"권한 값을 담는 칸이 어디에 있는가"**만 하나로 통일하고 **"그 칸에 어떤 값을 채울 것인가"**는 기존 도메인 로직이 그대로 결정하도록 역할을 분리한 것입니다.
 
-<figure>
-<a href={interfaceOverview.src}><Image src={interfaceOverview} alt="Ontology Manager의 Ks Secured interface 화면. 구현 타입 6개와 속성 Viewer Group Ids 1개, 연결된 Action 타입 3개가 보인다" /></a>
-<figcaption>Ontology Manager → Interfaces → Ks Secured 화면입니다.<br />가운데에는 이를 구현한 6개 타입이 있고 왼쪽 아래에는 공통 속성 1개(Viewer Group Ids)가 표시됩니다.<br />오른쪽 아래 Action types에 보이는 부여·회수·백필 Action 3개는 Interface 전용 Action이 아니라 내부 함수가 Interface를 통해 권한 값을 수정하는 일반 함수 기반 Action입니다.</figcaption>
-</figure>
+<PostFigure src={interfaceOverview} alt="Ontology Manager의 Ks Secured interface 화면. 구현 타입 6개와 속성 Viewer Group Ids 1개, 연결된 Action 타입 3개가 보인다">Ontology Manager → Interfaces → Ks Secured 화면입니다.<br />가운데에는 이를 구현한 6개 타입이 있고 왼쪽 아래에는 공통 속성 1개(Viewer Group Ids)가 표시됩니다.<br />오른쪽 아래 Action types에 보이는 부여·회수·백필 Action 3개는 Interface 전용 Action이 아니라 내부 함수가 Interface를 통해 권한 값을 수정하는 일반 함수 기반 Action입니다.</PostFigure>
 
 ### 읽기: Interface 조회 한 번으로 끝내는 권한 점검
 
@@ -172,10 +169,7 @@ export async function auditSecuredObjects(client: Client): Promise<Map<string, {
 
 검증을 위해 React 웹 앱에도 동일한 조회 로직을 붙여 Interface 통합 조회 결과와 6개 타입 개별 조회 결과를 나란히 비교해 보았습니다.
 
-<figure>
-<a href={webSecuredPage.src}><Image src={webSecuredPage} alt="웹 앱의 권한 대상 Interface 화면. 6개 타입 모두 interface 조회 수와 타입 직접 조회 수가 같고 권한 값 없음은 0, 합계 60" /></a>
-<figcaption>관리자 계정으로 확인한 Main 브랜치 조회 결과입니다.<br />6개 타입 모두 Interface 조회 건수와 타입별 직접 조회 건수가 정확히 일치하며 권한 값이 비어 있는 객체는 0건입니다.<br /><em>내 그룹으로 보임</em> 컬럼은 현재 로그인한 사용자의 그룹이 <code>viewerGroupIds</code>에 포함된 객체 수를 뜻합니다.</figcaption>
-</figure>
+<PostFigure src={webSecuredPage} alt="웹 앱의 권한 대상 Interface 화면. 6개 타입 모두 interface 조회 수와 타입 직접 조회 수가 같고 권한 값 없음은 0, 합계 60">관리자 계정으로 확인한 Main 브랜치 조회 결과입니다.<br />6개 타입 모두 Interface 조회 건수와 타입별 직접 조회 건수가 정확히 일치하며 권한 값이 비어 있는 객체는 0건입니다.<br /><em>내 그룹으로 보임</em> 컬럼은 현재 로그인한 사용자의 그룹이 <code>viewerGroupIds</code>에 포함된 객체 수를 뜻합니다.</PostFigure>
 
 ### 쓰기: 구체적인 타입을 몰라도 되는 편집
 
@@ -311,10 +305,7 @@ Interface를 통한 조회(읽기)는 브랜치에서도 문제없이 동작했�
 2. **2단계 브랜치 (`ks-interface-v2`)**: 이제 `KsSecured` Interface가 Main에 정식으로 존재하므로 쓰기 코드를 `Edits.Interface` 기반으로 교체합니다.\
    CI 통과를 확인한 뒤 병합을 완료합니다.
 
-<figure>
-<a href={proposalInterfaceCreated.src}><Image src={proposalInterfaceCreated} alt="Global Branching Proposal 화면. 병합된 리소스에 오브젝트 타입 6개와 Created 표시가 붙은 Ks Secured interface, keystone-functions 레포가 있다" /></a>
-<figcaption>1단계 Proposal 화면입니다.<br />구현이 추가된 오브젝트 타입 6개와 새로 생성된 Interface(Created)와 함수 레포지토리가 함께 Main으로 병합됩니다.</figcaption>
-</figure>
+<PostFigure src={proposalInterfaceCreated} alt="Global Branching Proposal 화면. 병합된 리소스에 오브젝트 타입 6개와 Created 표시가 붙은 Ks Secured interface, keystone-functions 레포가 있다">1단계 Proposal 화면입니다.<br />구현이 추가된 오브젝트 타입 6개와 새로 생성된 Interface(Created)와 함수 레포지토리가 함께 Main으로 병합됩니다.</PostFigure>
 
 1단계를 Main에 병합한 뒤 2단계 브랜치를 열자 로컬 Gradle 빌드가 생성한 `entityMetadataMapping.json`에 드디어 `KsSecured`가 포함되었고 CI도 깔끔하게 통과했습니다.\
 1단계에서 400 에러를 뱉던 브랜치 미리보기 실행 역시 정상 동작했습니다.
@@ -341,10 +332,7 @@ Ontology Manager에서 대상 오브젝트 타입을 열고 **Interfaces 탭 →
 검증 환경의 6개 타입 모두 기본값으로 이 옵션이 꺼져 있었습니다.\
 토글을 켜면 "Interface Action 타입의 제출 조건(Submission criteria)이 모든 구현 타입에 동일하게 적용된다"는 안내 문구가 함께 표시됩니다.
 
-<figure>
-<a href={objectTypeInterfacesTab.src}><Image src={objectTypeInterfacesTab} alt="오브젝트 타입 Ks Grant의 Interfaces 탭. Viewer Group Ids가 Viewer Group Ids로 채워져 있고 Interface action control에 Enable interface actions 토글이 켜져 있다" /></a>
-<figcaption>오브젝트 타입 → Interfaces 탭 화면입니다.<br />상단은 Interface 속성을 기존 속성으로 매핑한 부분(<em>Fulfilled by</em>)이고 하단이 <em>Enable interface actions</em> 토글과 주의 안내입니다.</figcaption>
-</figure>
+<PostFigure src={objectTypeInterfacesTab} alt="오브젝트 타입 Ks Grant의 Interfaces 탭. Viewer Group Ids가 Viewer Group Ids로 채워져 있고 Interface action control에 Enable interface actions 토글이 켜져 있다">오브젝트 타입 → Interfaces 탭 화면입니다.<br />상단은 Interface 속성을 기존 속성으로 매핑한 부분(<em>Fulfilled by</em>)이고 하단이 <em>Enable interface actions</em> 토글과 주의 안내입니다.</PostFigure>
 
 여기서 [공식 문서](https://www.palantir.com/docs/foundry/action-types/actions-on-interfaces)의 설명과 이 환경에서 본 동작을 나란히 놓으면 헷갈리는 부분이 있습니다.\
 공식 문서는 Interface Action 타입의 제출 조건과 권한이 구현 타입 전체에 동일하게 적용되며 *Interface action control*에서 타입별로 이를 비활성화할 수 있다고 설명합니다.\
@@ -382,17 +370,11 @@ Foundry의 함수 버전은 [Semantic Versioning](https://www.palantir.com/docs/
 코드 레포의 **Tags → New tag** 메뉴에서 대상 Branch를 현재 작업 중인 Global Branch로 지정하고 Minor 버전을 선택해 태그를 발행하자 레포 검사가 통과했습니다.\
 이후 Proposal을 병합하니 코드 레포의 `master` 브랜치에 정식 버전 태그(`2.3.0`)가 생성되었습니다.
 
-<figure>
-<a href={repoNewTagDialog.src}><Image src={repoNewTagDialog} alt="코드 레포의 Tag and release 대화상자. 브랜치 선택과 Stable, Prerelease 옵션, Patch 2.4.1, Minor 2.5.0, Major 3.0.0 선택지가 보인다" /></a>
-<figcaption>코드 레포 → Tags → New tag 대화상자입니다.<br />2단계 병합까지 마친 뒤 master 기준으로 다시 캡처한 화면이라 최신 태그가 2.4.0으로 표시되어 있습니다.<br />Proposal 병합 요건을 충족하려면 여기서 Branch를 작업 중인 Global Branch로 변경해 태그를 발행하면 됩니다.</figcaption>
-</figure>
+<PostFigure src={repoNewTagDialog} alt="코드 레포의 Tag and release 대화상자. 브랜치 선택과 Stable, Prerelease 옵션, Patch 2.4.1, Minor 2.5.0, Major 3.0.0 선택지가 보인다">코드 레포 → Tags → New tag 대화상자입니다.<br />2단계 병합까지 마친 뒤 master 기준으로 다시 캡처한 화면이라 최신 태그가 2.4.0으로 표시되어 있습니다.<br />Proposal 병합 요건을 충족하려면 여기서 Branch를 작업 중인 Global Branch로 변경해 태그를 발행하면 됩니다.</PostFigure>
 
 이어진 2단계 브랜치에서는 새 함수 버전(`2.4.0`)을 발행한 뒤 권한 부여·회수·백필 Action의 Rules 설정에서 함수 버전을 `2.4.0`으로 직접 올려 저장했습니다.
 
-<figure>
-<a href={actionRulesFunctionVersion.src}><Image src={actionRulesFunctionVersion} alt="Grant Ks Permission Action 타입의 Rules 화면. Run function 규칙의 함수 grantKsPermission과 버전 2.4.0, 꺼진 Auto upgrade 토글이 보인다" /></a>
-<figcaption>Action 타입 → Rules 설정 화면입니다.<br />실행할 함수 이름 아래에 버전 선택 드롭다운(2.4.0)과 <em>Auto upgrade to compatible versions</em> 토글이 있습니다.</figcaption>
-</figure>
+<PostFigure src={actionRulesFunctionVersion} alt="Grant Ks Permission Action 타입의 Rules 화면. Run function 규칙의 함수 grantKsPermission과 버전 2.4.0, 꺼진 Auto upgrade 토글이 보인다">Action 타입 → Rules 설정 화면입니다.<br />실행할 함수 이름 아래에 버전 선택 드롭다운(2.4.0)과 <em>Auto upgrade to compatible versions</em> 토글이 있습니다.</PostFigure>
 
 ### 2. Developer Console의 웹 앱 리소스는 Main 병합 후에만 추가할 수 있었다
 
@@ -403,10 +385,7 @@ Foundry의 함수 버전은 [Semantic Versioning](https://www.palantir.com/docs/
 Developer Console의 앱은 Global Branch 바깥에 있기 때문에 아직 브랜치에만 존재하는 Interface는 앱의 허용 리소스 목록에 추가할 수 없었습니다.\
 결국 1단계 Proposal을 Main에 병합한 뒤에야 Developer Console에서 `KsSecured`와 관련 Action을 리소스에 등록하고 웹 앱 연동을 마칠 수 있었습니다.
 
-<figure>
-<a href={devConsoleSdkResources.src}><Image src={devConsoleSdkResources} alt="Developer Console의 Ontology SDK Resources 화면. Action types에 권한 부여, 백필, 회수 Action이 보이고 Interfaces 섹션에 Ks Secured가 있다" /></a>
-<figcaption>Developer Console → 앱 → Ontology SDK → Resources 설정 화면입니다.<br />1단계 병합 후 Interfaces 섹션에 Ks Secured를 추가했습니다(무관한 Action 항목들은 가렸습니다).</figcaption>
-</figure>
+<PostFigure src={devConsoleSdkResources} alt="Developer Console의 Ontology SDK Resources 화면. Action types에 권한 부여, 백필, 회수 Action이 보이고 Interfaces 섹션에 Ks Secured가 있다">Developer Console → 앱 → Ontology SDK → Resources 설정 화면입니다.<br />1단계 병합 후 Interfaces 섹션에 Ks Secured를 추가했습니다(무관한 Action 항목들은 가렸습니다).</PostFigure>
 
 ### 3. `VALIDATE_ONLY` 모드와 `returnEdits` 옵션을 함께 보내면 400 에러가 발생했다
 
