@@ -130,7 +130,7 @@ export const concepts: Concept[] = [
       "UPDATE: 파일을 추가하거나 덮어씁니다. 덮어쓰면 하류 파이프라인이 증분으로 처리하지 못하고 SNAPSHOT(배치) 처리로 돌아갑니다.",
       "DELETE: 현재 view에서 파일 참조만 뺍니다. 실제 파일은 지우지 않으며 주로 보존(retention) 작업에 씁니다.",
       "Iceberg table은 Dataset 대신 표 데이터를 담는 다른 리소스 유형으로 Foundry가 관리하는 Iceberg 카탈로그나 외부 카탈로그(Virtual table)로 씁니다.",
-      "View는 파일을 갖지 않고 읽힐 때 하나 이상의 backing Dataset을 합쳐(union) 보여 주며 primary key로 중복을 없앨 수 있습니다. transform의 입력으로는 쓸 수 있지만 출력으로는 쓸 수 없습니다.",
+      "View는 Dataset의 view처럼 동작하지만 파일을 갖지 않는 리소스로 읽힐 때 하나 이상의 backing Dataset을 합쳐(union) 보여 주며 primary key로 중복을 없앨 수 있습니다. transform의 입력으로는 쓸 수 있지만 출력으로는 쓸 수 없습니다.",
     ],
     warn: "Data Lineage → History → Rollback to transaction으로 롤백할 수 있지만 되돌아가는 것은 데이터뿐이며 로직은 그대로입니다. 보존 정책(retention)으로 삭제된 트랜잭션으로는 롤백할 수 없습니다. Object Storage v2의 Object type을 받치는 Dataset을 롤백하면 Object type이 저절로 다시 인덱싱되지 않습니다. Funnel의 replacement pipeline이 성공적으로 실행되어 다시 인덱싱되도록 직접 조치해야 합니다. 보존 정책은 삭제 표시 후 보통 7일 뒤 실제로 지우며 그 이후에는 복구할 수 없습니다. 실제로 지우기 전에는 삭제 표시를 되돌릴 수 있습니다. 잘못 표시한 정책을 먼저 고치고 7일 안에 Palantir 담당자에게 연락합니다.",
     doc: D + "data-integration/datasets",
@@ -237,7 +237,7 @@ export const concepts: Concept[] = [
     everyday: "도서관 책으로 검색용 목록(색인)을 만들어 두고 사람들은 그 목록으로 책을 찾는 것과 같습니다. Materialization은 목록에 반영된 수정 사항까지 합쳐 책을 새로 인쇄해 두는 것에 해당합니다.",
     points: [
       "Funnel 파이프라인에는 batch와 streaming 두 종류가 있습니다. 쓰기·편집의 지연을 줄여야 하면 direct datasource(베타)를 쓸 수 있습니다.",
-      "Action 편집은 원본 backing Dataset이 아니라 Funnel이 내부에서 관리하는 Dataset에 저장됩니다. 이 Dataset은 원본에 새 트랜잭션이 생길 때 또는 편집이 있었다면 6시간마다 Build됩니다.",
+      "Action 편집은 backing Dataset이 아니라 Funnel이 내부에서 관리하는 Dataset에 저장됩니다. 이 Dataset은 backing Dataset에 새 트랜잭션이 생길 때 또는 편집이 있었다면 6시간마다 Build됩니다.",
       "Funnel이 소유하는 changelog Dataset과 merged Dataset에는 사용자가 접근할 수 없습니다.",
       "Materialization은 사용자가 따로 만드는 출력 Dataset으로 원본과 편집을 합친 각 Object의 최신 상태를 담습니다. OSv2에서는 선택 사항이며 하류 파이프라인이나 대량 다운로드처럼 편집이 반영된 데이터가 필요할 때 만듭니다. 입력 datasource 종류에 따라 Dataset 대신 Restricted view로 만들 수도 있습니다.",
     ],
@@ -304,7 +304,7 @@ export const concepts: Concept[] = [
       "제출하려면 편집 대상 Object type·Link type과 그 datasource를 볼 수 있어야 합니다. Action으로만 편집하는 타입은 볼 수 있는 Object를 모두 편집할 수 있습니다. Action 밖 편집도 허용한 타입은 Dataset 기반이면 writeback Dataset의 Edit 권한이, Restricted view 기반이면 edit policy 통과가 추가로 필요합니다.",
       "action log를 쓰는 Action은 action log Object type에 대한 권한도 있어야 제출할 수 있습니다.",
     ],
-    warn: "Submission criteria만 통과한다고 제출할 수 있는 것은 아닙니다. Object security policy 같은 행·열 통제는 Action이 읽는 데이터를 거릅니다. 이 통제는 Action이 쓴 결과로 전파되지 않고 쓰기 대상에는 그 대상의 통제가 적용됩니다. Marking도 Action이 쓴 결과에 저절로 따라가지 않습니다. Action은 쓰는 데이터의 보안을 로직이 정하므로 Marking이 붙은 데이터를 읽고 그보다 덜 제한된 곳에 쓸 수 있습니다. 공식 문서는 Marking이 붙은 데이터를 읽을 수 있는 Action에 read authorization(베타)을 설정하라고 안내하며 write authorization을 그보다 덜 제한적으로 두면 여전히 낮은 보안으로 쓸 수 있습니다.",
+    warn: "Submission criteria만 통과한다고 제출할 수 있는 것은 아닙니다. Object security policy 같은 행·열 통제는 Action이 읽는 데이터를 거릅니다. 이 통제는 Action이 쓴 결과로 전파되지 않고 쓰기 대상에는 그 대상의 통제가 적용됩니다. Marking도 Action이 쓴 결과에 저절로 따라가지 않습니다. Action은 쓰는 데이터의 보안을 로직이 정하므로 Marking이 붙은 데이터를 읽고 그보다 덜 제한된 곳에 쓸 수 있습니다. 공식 문서는 Marking이 붙은 데이터를 읽을 수 있는 Action에 read authorization(베타)을 설정하라고 안내합니다. read authorization을 설정해도 write authorization을 그보다 덜 제한적으로 두면 Action은 여전히 읽은 데이터보다 낮은 보안으로 결과를 쓸 수 있습니다.",
     doc: D + "action-types/overview",
     related: [
       { label: "Rules", href: D + "action-types/rules" },
@@ -360,7 +360,7 @@ export const concepts: Concept[] = [
     everyday: "'매주 월요일 9시에 보고서 보내기', '긴급 알림이 새로 생기면 담당자에게 알리기' 같은 업무 규칙을 정해 두면 알아서 처리해 주는 자동 비서입니다.",
     points: [
       "조건: 시간 기반(예: 매주 월요일 오전 9시), Ontology 데이터 기반(예: 우선순위가 높은 Alert Object 추가), 둘의 조합, Dataset 갱신(예: Dataset이 갱신되면 실행)",
-      "streaming dataset도 초당 200건을 넘지 않으면 직접 감시할 수 있습니다.",
+      "Stream도 초당 200건을 넘지 않으면 직접 감시할 수 있습니다.",
       "효과: Action 제출, AIP Logic 함수 실행, Function 실행(Function effect, 베타), 플랫폼·이메일 알림. Function effect는 Function이 돌려준 Ontology 편집을 적용하지 않으므로 편집하려면 Function-backed action을 씁니다.",
       "조건은 계속 감시하거나 일정에 맞춰 확인합니다.",
       "조건 평가와 Action·Logic·Function 효과는 자동화 소유자(owner)의 권한으로 실행됩니다. Action의 Submission criteria도 소유자 기준으로 평가되고 편집 이력의 Edited by에는 소유자가 남습니다.",
@@ -388,7 +388,7 @@ export const concepts: Concept[] = [
       "AIP Chatbot Studio의 예전 이름은 AIP Agent Studio입니다. 챗봇은 앱에 통합해 읽기·쓰기 워크플로를 처리합니다.",
       "AIP Evals는 AIP Logic 함수·챗봇 함수·코드 함수를 test case와 evaluation function으로 평가하는 테스트 환경입니다. LLM 결과가 실행마다 달라지는 점을 감안해 이전 버전이나 다른 모델과 결과를 비교하고 실행 간 편차를 확인합니다.",
     ],
-    warn: "Restricted view·Object security policy 같은 행·열 통제는 모델이 사용자 대신 읽는 데이터만 거르며 모델의 출력이나 모델이 만든 Ontology 편집으로 전파되지 않습니다. 하류까지 보호하려면 Marking이나 Classification-based Access Controls(CBAC)를 함께 겁니다.",
+    warn: "Restricted view·Object security policy 같은 행·열 통제는 모델이 사용자 대신 읽는 데이터만 거르며 모델의 출력이나 모델이 만든 Ontology 편집으로 전파되지 않습니다. 하류까지 보호하려면 Marking이나 Classification-based Access Controls(CBAC)를 함께 겁니다. 다만 Action이 쓴 결과에는 Marking도 저절로 따라가지 않습니다(Action type 카드 참고).",
     doc: [
       { label: "AIP Logic", href: D + "logic/overview" },
       { label: "AIP Chatbot Studio", href: D + "chatbot-studio/overview" },
@@ -715,7 +715,7 @@ export const concepts: Concept[] = [
     everyday: "Data Lineage는 원재료가 어느 공정을 거쳐 제품이 되었는지 보여 주는 생산 이력표와 같습니다. Workflow Lineage는 매장에 놓인 상품(앱)이 어떤 부품과 양식으로 조립되었는지 보여 주는 조립도에 가깝습니다.",
     points: [
       "Data Lineage는 원천부터 Ontology와 워크플로까지 전 구간을 보여 주고 Workflow Lineage는 Ontology 위의 워크플로를 관리합니다. Workflow Lineage에서 Object type을 Data Lineage로 열면 그 Object type으로 들어오는 데이터의 Schedule을 확인할 수 있습니다.",
-      "Data Lineage에서는 Schedule을 관리하고 Build timeline으로 Build 이력을 봅니다. Dataset을 이전 트랜잭션으로 롤백하는 곳도 Data Lineage입니다. 보관(archive)되었거나 비활성 상태인 브랜치에서는 Build가 자동으로 실패하므로 그 브랜치의 리소스를 Build하는 Schedule이 반복된 실패로 멈출 수 있습니다. 이때는 브랜치를 다시 활성화(보관된 브랜치는 복원)한 뒤 필요하면 Build Schedules 앱이나 Data Lineage에서 Schedule을 직접 다시 시작합니다. 다만 그사이 job spec이 지워졌다면 Data Lineage 같은 다른 앱에서 실행한 첫 Build로는 job spec이 다시 만들어지지 않습니다. 이때는 Code Repositories에서 사소한 변경을 커밋한 뒤 저장소 안에서 Build하고 Pipeline Builder에서는 다시 Deploy하고 Build합니다.",
+      "Data Lineage에서는 Schedule을 관리하고 Build timeline으로 Build 이력을 봅니다. Dataset을 이전 트랜잭션으로 롤백하는 곳도 Data Lineage입니다. 보관(archive)되었거나 비활성 상태인 브랜치에서는 Build가 자동으로 실패하므로 그 브랜치의 리소스를 Build하는 Schedule이 반복된 실패로 멈출 수 있습니다. 이때는 브랜치를 다시 활성화(보관된 브랜치는 복원)한 뒤 필요하면 Build Schedules 앱이나 Data Lineage에서 Schedule을 직접 다시 시작합니다. 다만 그사이 JobSpec이 지워졌다면 Data Lineage 같은 다른 앱에서 실행한 첫 Build로는 JobSpec이 다시 만들어지지 않습니다. 이때는 Code Repositories에서 사소한 변경을 커밋한 뒤 저장소 안에서 Build하고 Pipeline Builder에서는 다시 Deploy하고 Build합니다.",
       "Workflow Lineage는 Object·Action·Function·Interface·Custom widget·앱·모델 등의 API 이름·입력·Ontology 편집·Submission criteria를 보여 줍니다. Object의 특정 컬럼을 쓰는 하류 Action과 Workshop 앱을 모두 찾을 수 있습니다.",
       "Workflow Lineage에서는 권한·사용량·마지막 재인덱싱 상태를 색으로 보고 Action 버전 일괄 변경이나 Submission criteria 직접 수정 같은 작업도 합니다.",
       "둘 다 Global Branching을 지원합니다. 브랜치에서 리소스를 제거하면 그 리소스는 Main의 버전으로 돌아가므로 브랜치 상태가 깨질 수 있습니다. 제거하기 전에 lineage로 다른 브랜치 리소스가 그 변경에 기대고 있지 않은지 확인해야 합니다.",
