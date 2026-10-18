@@ -207,7 +207,8 @@ const jsonLd = {
     position: sticky;
     top: 0;
     z-index: 10;
-    margin: 0 -16px;
+    /* 본문 끝의 읽어 주기 도크(위 여백 32px + 재생 중 조작 바 약 89px)와 겹치지 않게 막대가 그만큼 앞에서 멈춘다. 뒤따르는 지도의 음수 margin-top이 흐름 위치를 되돌린다 */
+    margin: 0 -16px 124px;
     padding: 8px 16px 10px;
     background: var(--bg);
     border-bottom: 1px solid var(--border);

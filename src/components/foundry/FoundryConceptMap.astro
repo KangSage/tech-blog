@@ -786,7 +786,8 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
       if (!node || !node.matches(":focus-visible")) return;
       const r = node.getBoundingClientRect();
       const box = mapScroll.getBoundingClientRect();
-      if (r.width > box.width - 8) return;
+      // 칸보다 넓은 상자(좁은 화면의 Ontology)는 가운데에 맞춰 이름과 부제가 보이게 한다
+      if (r.width > box.width - 8) { mapScroll.scrollLeft += r.left + r.width / 2 - (box.left + box.width / 2); return; }
       if (r.left < box.left + 4) mapScroll.scrollLeft -= box.left + 4 - r.left;
       else if (r.right > box.right - 4) mapScroll.scrollLeft += r.right - (box.right - 4);
     });
@@ -1217,6 +1218,8 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
 
   /* 좁은 화면에서 상단에 고정된 패널: 제목·요약만 보이고 '자세히'로 펼침 */
   @media (max-width: 1179px) {
+    /* 막대(#post-aside)는 지도 바로 앞에 오며 margin-bottom 124px로 본문 끝의 읽어 주기 도크 앞에서 멈춘다. 겹쳐지는 여백이 원래의 24px가 되게 한다 */
+    :global(#post-aside) + .fcm { margin-top: -100px; }
     [data-docked] { gap: 8px; }
     [data-docked] .chips { display: flex; gap: 5px; overflow-x: auto; padding: 4px; margin: -4px -4px 0; scrollbar-width: thin; }
     [data-docked] .chip-group, [data-docked] .gitems { display: contents; }
