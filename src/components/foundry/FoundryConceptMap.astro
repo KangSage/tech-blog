@@ -813,7 +813,7 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
 
     document.addEventListener("click", (event) => {
       const target = event.target as Element;
-      // 막대 높이가 바뀌면 크롬은 스크롤 앵커링으로 화면을 바로 움직이고 사파리는 움직이지 않는다.
+      // 막대 높이가 바뀌면 스크롤 앵커링이 있는 브라우저(크롬, 사파리 27 이후)는 아래에서 위치를 잴 때 이미 화면을 움직여 두고 사파리 26 이하는 움직이지 않는다.
       // 어느 쪽이든 같게 맞추도록 누르기 전 막대 위치, 스크롤 위치, 누른 요소의 위치를 잡아 둔다
       const barTopBefore = aside?.getBoundingClientRect().top ?? 0;
       const scrollYBefore = window.scrollY;
@@ -839,7 +839,7 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
         return;
       }
       // 좁은 화면에서 막대 높이가 바뀐 뒤에도 누른 버튼이 보이게 한다(보이면 그대로).
-      // keepHidden(비유 탭·칩): 누른 버튼을 제자리에 둔다. 앵커링이 화면을 움직여 막대까지 움직였으면 그 스크롤을 되돌린다(사파리에서는 움직이지 않는다).
+      // keepHidden(비유 탭·칩): 누른 버튼을 제자리에 둔다. 앵커링이 화면을 움직여 막대까지 움직였으면 그 스크롤을 되돌린다(앵커링이 없는 브라우저에서는 움직이지 않는다).
       // 그 밖의 버튼: 본문 끝에서 위로 밀려 올라간 막대는 카드 머리가 화면 위로 숨고, 커지면 누른 버튼이 아래로 밀리며 줄면 막대 전체가 화면 위로 숨을 수 있으므로 막대 위 끝을 화면 위 끝에 맞춘다.
       // 위에 붙기 전인 막대는 아래로 커지며 마우스로 누르면 읽어 주기 도크 밑에 그려지므로 누른 버튼을 지금 보이는 도크(재생 중이면 조작 바) 위로 올린다
       const keepPressedInView = (button: HTMLElement, keepHidden = false) => {
