@@ -304,10 +304,12 @@ const jsonLd = {
     }
   }
 
-  /* 목차 열: 화면에 고정하고 길면 열 안에서 스크롤 */
+  /* 목차 열: 화면에 고정하고 길면 열 안에서 스크롤. 안에서 스크롤되므로 링크의 포커스 링이 잘리지 않게 4px 여백을 두고 그만큼 바깥으로 넓힌다 */
   .post-grid :global(.post-toc) {
     position: sticky;
-    top: 16px;
+    top: 12px;
+    margin: -4px;
+    padding: 4px;
     max-height: calc(100vh - 32px);
     overflow-y: auto;
   }

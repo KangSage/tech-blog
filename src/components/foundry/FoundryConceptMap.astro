@@ -459,6 +459,8 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
       panel!.querySelectorAll<HTMLElement>("button[data-view]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.view === view)));
       try { localStorage.setItem(VIEW_KEY, view); } catch {}
       updateFade();
+      // 펼친 막대에서는 비유 길이에 따라 막대 높이가 바뀐다
+      syncBar();
     }
     panel.querySelectorAll<HTMLElement>(".ana-tabs").forEach((el) => (el.hidden = false));
     let savedView = "dev";
@@ -993,6 +995,9 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
     .fig svg { width: 560px; max-width: none; }
     .map-scroll-hint { display: block; margin: 0 0 6px; font-size: 12px; color: var(--muted); }
   }
+  /* 노선 모드의 그림(svg.map.route)은 노선 패널과 같은 .route 테두리·여백을 받으므로 border-box로 크기를 맞춰 칸을 넘치지 않게 한다(넓은 화면 734px, 591px 이하 594px = 내용 560px) */
+  .fig svg.route { box-sizing: border-box; max-width: 734px; }
+  @media (max-width: 591px) { .fig svg.route { width: 594px; } }
   .fig figcaption { font-size: 13px; color: var(--muted); margin-top: 12px; line-height: 1.5; }
   .map-legend { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; }
   .map-legend li { display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 8px; align-items: center; }
@@ -1126,7 +1131,11 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
   .ana { display: grid; gap: 6px; }
   .ana-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
   .ana-tabs[hidden] { display: none; }
-  .ana-tabs { display: inline-flex; border: 1px solid var(--c); border-radius: 7px; overflow: hidden; background: var(--surface); }
+  /* overflow: hidden이면 키보드 포커스 윤곽선이 잘리므로 모서리는 양 끝 버튼에 둥글게 주고, 포커스된 칸은 옆 칸 바탕 위로 올린다 */
+  .ana-tabs { display: inline-flex; border: 1px solid var(--c); border-radius: 7px; background: var(--surface); }
+  .ana-tabs button:first-child { border-radius: 6px 0 0 6px; }
+  .ana-tabs button:last-child { border-radius: 0 6px 6px 0; }
+  .ana-tabs button:focus-visible { position: relative; z-index: 1; }
   .ana-tabs button { border: 0; background: none; padding: 2px 9px; font-size: 12px; cursor: pointer; color: var(--c); }
   .ana-tabs button[aria-pressed="true"] { background: var(--c); color: var(--surface); font-weight: 600; }
   .ana-kind { font-weight: 600; }
