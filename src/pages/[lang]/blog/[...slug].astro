@@ -79,7 +79,6 @@ const jsonLd = {
       <div
         class="post-body"
         data-table-hint={t("tableScrollHint", lang)}
-        data-copy={t("copyCode", lang)}
         data-copy-label={t("copyCodeLabel", lang)}
         data-copy-done={t("copyCodeDone", lang)}
         data-copy-failed={t("copyCodeFailed", lang)}
@@ -110,12 +109,20 @@ const jsonLd = {
     window.addEventListener("resize", () => updates.forEach((u) => u()));
   }
 
-  // 본문의 모든 코드 블록에 복사 버튼을 붙인다. 버튼은 가로 스크롤과 함께 밀리지 않게 pre를 감싼 상자에 두고 읽어 주기에서 건너뛴다
-  if (body?.dataset.copy) {
-    const { copy = "", copyLabel = "", copyDone = "", copyFailed = "" } = body.dataset;
+  // 본문의 모든 코드 블록에 복사 아이콘 버튼을 붙인다. 버튼은 가로 스크롤과 함께 밀리지 않게 pre를 감싼 상자에 두고 읽어 주기에서 건너뛴다.
+  // 누르면 아이콘이 체크로 바뀌고 옆에 결과 말풍선("복사됨" 등)이 잠깐 뜬다
+  if (body?.dataset.copyLabel) {
+    const { copyLabel = "", copyDone = "", copyFailed = "" } = body.dataset;
+    const icons =
+      '<svg class="icon-copy" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>' +
+      '<svg class="icon-done" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
     const writeText = async (text: string) => {
-      if (navigator.clipboard?.writeText) return navigator.clipboard.writeText(text);
-      // 클립보드 API가 없는 환경(보안 연결이 아닌 주소 등)에서는 선택 후 복사로 대신한다
+      try {
+        if (navigator.clipboard?.writeText) return await navigator.clipboard.writeText(text);
+      } catch {
+        // 권한이나 포커스 문제로 거부되면 아래 방식으로 한 번 더 시도한다
+      }
+      // 클립보드 API가 없거나 거부된 환경(보안 연결이 아닌 주소 등)에서는 선택 후 복사로 대신한다
       const area = document.createElement("textarea");
       area.value = text;
       area.setAttribute("readonly", "");
@@ -136,22 +143,33 @@ const jsonLd = {
       button.type = "button";
       button.className = "code-copy";
       button.dataset.readSkip = "";
-      button.textContent = copy;
+      button.title = copyLabel;
       button.setAttribute("aria-label", copyLabel);
-      button.setAttribute("aria-live", "polite");
+      button.innerHTML = icons;
+      const toast = document.createElement("span");
+      toast.className = "code-copy-toast";
+      toast.dataset.readSkip = "";
+      toast.setAttribute("role", "status");
+      toast.hidden = true;
       let timer = 0;
       button.addEventListener("click", async () => {
         const text = (pre.querySelector("code") ?? pre).textContent ?? "";
+        let ok = true;
         try {
           await writeText(text.replace(/\n$/, ""));
-          button.textContent = copyDone;
         } catch {
-          button.textContent = copyFailed;
+          ok = false;
         }
+        button.dataset.state = ok ? "done" : "failed";
+        toast.textContent = ok ? copyDone : copyFailed;
+        toast.hidden = false;
         window.clearTimeout(timer);
-        timer = window.setTimeout(() => { button.textContent = copy; }, 2000);
+        timer = window.setTimeout(() => {
+          delete button.dataset.state;
+          toast.hidden = true;
+        }, 2000);
       });
-      box.append(button);
+      box.append(toast, button);
     });
   }
 </script>

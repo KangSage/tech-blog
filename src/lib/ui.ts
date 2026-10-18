@@ -62,7 +62,6 @@ export const ui = {
   readFigure: { ko: "그림", ja: "図", en: "Figure" },
   tocTitle: { ko: "목차", ja: "目次", en: "Contents" },
   tableScrollHint: { ko: "표를 좌우로 밀어서 볼 수 있습니다.", ja: "表は左右にスクロールできます。", en: "Scroll the table sideways to see more." },
-  copyCode: { ko: "복사", ja: "コピー", en: "Copy" },
   copyCodeLabel: { ko: "코드 복사", ja: "コードをコピー", en: "Copy code" },
   copyCodeDone: { ko: "복사됨", ja: "コピーしました", en: "Copied" },
   copyCodeFailed: { ko: "복사 실패", ja: "コピー失敗", en: "Copy failed" },

@@ -415,38 +415,95 @@ const themeCss = `:root { ${decl(light)} }
     display: none;
   }
 
-  /* 글 본문 코드 블록의 복사 버튼 (글 페이지 스크립트가 pre를 .code-block으로 감싸고 버튼을 붙인다).
-     버튼은 hover 없이도 늘 보이고 첫 줄을 가리지 않도록 코드 위쪽에 자리를 둔다 */
+  /* 글 본문 코드 블록의 복사 아이콘 버튼 (글 페이지 스크립트가 pre를 .code-block으로 감싸고 버튼과 결과 말풍선을 붙인다).
+     마우스가 있는 화면에서는 코드 위에 올렸을 때나 키보드로 갔을 때만 보이고 터치 화면에서는 늘 보인다.
+     오른쪽 위 버튼이 코드 끝을 가리지 않도록 pre 오른쪽에 자리를 둔다 */
   .code-block {
     position: relative;
   }
 
   .code-block pre {
-    padding-top: 44px;
+    padding-right: 52px;
   }
 
   .code-copy {
     position: absolute;
     top: 8px;
     right: 8px;
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
     border: 1px solid var(--border);
     border-radius: 6px;
-    padding: 4px 10px;
     background: var(--surface);
-    color: var(--text);
-    font: inherit;
-    font-size: 0.8rem;
-    line-height: 1.4;
+    color: var(--muted);
     cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  }
+
+  .code-block:hover .code-copy,
+  .code-copy:focus-visible,
+  .code-copy[data-state] {
+    opacity: 1;
+  }
+
+  @media (hover: none) {
+    .code-copy {
+      opacity: 1;
+    }
   }
 
   .code-copy:hover {
     border-color: var(--accent);
+    color: var(--text);
   }
 
   .code-copy:focus-visible {
     outline: 2px solid var(--accent);
     outline-offset: 2px;
+  }
+
+  .code-copy svg {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .code-copy .icon-done,
+  .code-copy[data-state="done"] .icon-copy {
+    display: none;
+  }
+
+  .code-copy[data-state="done"] .icon-done {
+    display: block;
+  }
+
+  .code-copy[data-state="done"] {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .code-copy-toast {
+    position: absolute;
+    top: 12px;
+    right: 48px;
+    border-radius: 4px;
+    padding: 2px 8px;
+    background: var(--text);
+    color: var(--bg);
+    font-size: 0.75rem;
+    line-height: 1.5;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  .code-copy-toast[hidden] {
+    display: none;
   }
 
   /* 접었다 펴는 글 안의 곁다리 설명 (예: 이 글을 쓰게 된 이유) */
