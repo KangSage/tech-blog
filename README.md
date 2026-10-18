@@ -43,6 +43,8 @@ draft: false
 ---
 ```
 
+Do not add an `updatedAt` field. The updated date shown on a post is the date (Korea time) of the last git commit that changed the post file. It is hidden while the only commit is the one that added the post, and when it falls on the publish date. The deploy workflow checks out the full history (`fetch-depth: 0`) for this.
+
 Tags are what readers search and filter by on the home page (search matches title, description, and tags only).
 For Korean posts, pair each English tag with a Korean tag written without spaces, e.g. `["ontology", "온톨로지", "access-control", "접근제어"]`.
 
