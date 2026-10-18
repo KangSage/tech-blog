@@ -41,7 +41,7 @@ const mapNodes: MapNode[] = [
   { id: "transform", x: 24, y: 92, w: 200, h: 52, sub: "Code Repositories 등" },
   { id: "pb", x: 300, y: 92, w: 200, h: 52, sub: "클릭 → transform 생성" },
   { id: "builds", x: 134, y: 156, w: 114, h: 22, rx: 11, cls: "t sm", edges: "builds:transform builds:pb builds:dataset" },
-  { id: "dataset", x: 24, y: 190, w: 246, h: 52, sub: "원본·가공 결과는 각각 별도 Dataset" },
+  { id: "dataset", x: 24, y: 190, w: 246, h: 52, sub: "가져온 데이터·가공 결과는 각각 별도 Dataset" },
   { id: "stream", x: 282, y: 190, w: 92, h: 52, sub: "저지연 레코드" },
   { id: "media", x: 386, y: 190, w: 114, h: 52, sub: "파일 · 버전 이력" },
   { id: "rv", x: 156, y: 256, w: 104, h: 24, rx: 6, cls: "t sm" },
@@ -190,7 +190,7 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
         <line class="ar dash" data-edges="dc:vt" x1="152" y1="34" x2="168" y2="34" marker-end="url(#fcm-ah)"></line>
         <line class="ar" data-edges="dc:transform" x1="256" y1="78" x2="212" y2="90" marker-end="url(#fcm-ah)"></line>
         <line class="ar" data-edges="dc:pb" x1="256" y1="78" x2="318" y2="90" marker-end="url(#fcm-ah)"></line>
-        <text class="lab ae" data-edges="dc:transform dc:pb" x="206" y="86">원본 Dataset을 입력으로</text>
+        <text class="lab ae" data-edges="dc:transform dc:pb" x="206" y="86">가져온 Dataset을 입력으로</text>
         <!-- batch sync 선은 사선이 갈라지는 곳(y=78)에서 나눈다. 위쪽 구간은 transform·Pipeline Builder로 가는 길이기도 하다 -->
         <line class="ar" data-edges="dc:dataset dc:transform dc:pb" x1="256" y1="54" x2="256" y2="78"></line>
         <line class="ar" data-edges="dc:dataset" x1="256" y1="78" x2="256" y2="188" marker-end="url(#fcm-ah)"></line>
@@ -759,6 +759,27 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
       history.replaceState(null, "", `#concept-${id}`);
     }
 
+    // 좁은 화면에서 막대가 위에 붙어 있을 때 막대가 커지며 화면 좌표 top~bottom을 덮었거나 그 아래가 화면 밖으로 밀렸으면 세로로만 맞춘다
+    const keepBelowBar = (top: number, bottom = top) => {
+      if (!aside || aside.nextElementSibling !== root) return;
+      const barBottom = aside.getBoundingClientRect().bottom + 8;
+      if (top < barBottom) window.scrollBy(0, top - barBottom);
+      else if (bottom > window.innerHeight) window.scrollBy(0, Math.min(bottom - window.innerHeight, top - barBottom));
+    };
+
+    // 그림이 옆으로 밀려 있으면 브라우저는 조금만 보이는 상자에도 그대로 포커스를 둔다.
+    // 키보드로 상자에 가면 상자 전체가 보이게 그림을 가로로만 맞춘다(마우스로 누를 때는 그림을 움직이지 않는다)
+    const mapScroll = root.querySelector<HTMLElement>(".map-scroll");
+    mapScroll?.addEventListener("focusin", (event) => {
+      const node = (event.target as Element).closest(".node:not(.frame-node)");
+      if (!node || !node.matches(":focus-visible")) return;
+      const r = node.getBoundingClientRect();
+      const box = mapScroll.getBoundingClientRect();
+      if (r.width > box.width - 8) return;
+      if (r.left < box.left + 4) mapScroll.scrollLeft -= box.left + 4 - r.left;
+      else if (r.right > box.right - 4) mapScroll.scrollLeft += r.right - (box.right - 4);
+    });
+
     document.addEventListener("click", (event) => {
       const target = event.target as Element;
       // "지도에서 보기": 좁은 화면에서는 막대를 접고 그 높이만큼 비워 지도로 간다(기본 링크 이동은 막대 아래에 지도를 숨긴다)
@@ -783,6 +804,8 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
       if (routeButton && routeBox?.contains(routeButton)) {
         const rid = routeButton.dataset.route ?? "";
         setRoute(rid);
+        // 첫 단계 카드로 바뀌며 커진 막대가 누른 버튼과 질문을 덮지 않게 한다
+        if (routeBox) keepBelowBar(routeBox.getBoundingClientRect().top);
         return history.replaceState(null, "", rid ? `#route-${rid}` : location.pathname + location.search);
       }
       const chip = target.closest<HTMLElement>("[data-chip]");
@@ -799,14 +822,12 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
         pick(node.getAttribute("data-id"));
         if (aside && barBefore !== null) window.scrollBy(0, aside.offsetHeight - barBefore);
         // 막대가 위에 붙어 있으면 펼쳐진 막대에 가렸거나 화면 밖으로 밀린 경우에만 세로로 맞춘다(보이면 그대로, 그림의 가로 스크롤도 그대로).
-        // 권한 테두리는 지도 전체 크기라서 누른 이름표를 기준으로 한다
-        if (aside && aside.nextElementSibling === root) {
-          const shown = (node.classList.contains("frame-node") && node.querySelector(".box")) || node;
+        // 권한 테두리는 지도 전체 크기라서 이름표를 누르면 이름표를, 테두리 선을 누르면 누른 지점을 기준으로 한다
+        const shown = node.classList.contains("frame-node") ? target.closest(".frame-node .box, .frame-node .tab") : node;
+        if (shown) {
           const r = shown.getBoundingClientRect();
-          const top = aside.getBoundingClientRect().bottom + 8;
-          if (r.top < top) window.scrollBy(0, r.top - top);
-          else if (r.bottom > window.innerHeight) window.scrollBy(0, Math.min(r.bottom - window.innerHeight, r.top - top));
-        }
+          keepBelowBar(r.top, r.bottom);
+        } else if (event.detail) keepBelowBar((event as MouseEvent).clientY);
         return;
       }
       // 본문의 개념 링크(#concept-…)도 이동 없이 카드 전환으로 처리

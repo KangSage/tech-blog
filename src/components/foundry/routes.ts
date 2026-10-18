@@ -29,7 +29,7 @@ export const routes: Route[] = [
     question: "외부 시스템의 데이터는 어떻게 업무 앱 화면까지 오는가?",
     steps: [
       { ids: ["dc"], note: "Source로 외부 시스템에 연결하고 sync로 데이터를 Dataset으로 가져옵니다. 밖에서 미리 가공하지 않고 원본 그대로 가져오는 것이 원칙입니다." },
-      { ids: ["transform", "pb"], note: "원본 Dataset을 입력으로 읽어 가공한 Dataset을 씁니다. 코드로 작성하면 Python transform, 클릭으로 구성하면 Pipeline Builder를 씁니다." },
+      { ids: ["transform", "pb"], note: "sync로 가져온 Dataset을 입력으로 읽어 가공한 Dataset을 씁니다. 코드로 작성하면 Python transform, 클릭으로 구성하면 Pipeline Builder를 씁니다." },
       { ids: ["builds"], note: "Build가 sync와 transform job을 실행해 출력을 새로 계산하고 Schedule이 그 Build를 반복합니다." },
       { ids: ["dataset"], note: "가공한 결과는 변경이 트랜잭션 단위로 기록되는 Dataset에 저장됩니다." },
       { ids: ["funnel"], note: "Funnel이 Dataset을 객체 저장소인 Object Storage v2(OSv2)로 인덱싱합니다." },
@@ -145,7 +145,7 @@ export const routes: Route[] = [
     steps: [
       { ids: ["oma"], note: "Ontology Manager에서 Object type·Link type·Action type 같은 Ontology 리소스를 정의합니다. 보호된 리소스는 브랜치에서 수정하고 proposal을 거쳐 병합해야 합니다." },
       { ids: ["branch"], note: "Global Branching으로 파이프라인·Ontology·Workshop 같은 여러 앱의 변경을 브랜치 하나에서 테스트합니다. Proposal의 check를 모두 통과해야 Main에 병합할 수 있습니다. 검토자는 proposal 페이지나 branch taskbar에서 지정합니다. Project의 승인 정책은 Project Owner가 Branch protection 탭에서 정하고 Code Repositories와 Pipeline Builder는 리소스 안에서 승인 정책을 정합니다." },
-      { ids: ["lineage"], note: "바꿀 Object 컬럼을 쓰는 하류 Action과 Workshop 앱을 Workflow Lineage로 찾습니다. 리소스를 브랜치에서 빼 Main 버전으로 되돌리기 전에는 다른 브랜치 리소스가 그 변경에 기대고 있지 않은지 확인합니다." },
+      { ids: ["lineage"], note: "바꿀 Object 컬럼을 쓰는 하류 Action과 Workshop 앱을 Workflow Lineage로 찾습니다. 리소스를 브랜치에서 빼 Main 버전으로 되돌리기 전에는 같은 브랜치의 다른 리소스가 그 변경에 기대고 있지 않은지 확인합니다." },
       { ids: ["approvals"], note: "Ontology 변경이 있는 브랜치에서 Global Branching proposal을 만들면 Ontology proposal이 자동으로 생기고 함께 병합됩니다. 그 변경은 Ontology Manager의 Review changes 탭이나 Global Branching proposal 페이지에서 검토합니다. Approvals가 다루는 task 종류에도 Ontology proposal이 있으며 이 task는 Ontology Manager로 연결됩니다." },
       { ids: ["market"], note: "개발·테스트·운영처럼 환경이 여럿이면 리소스를 product로 묶어 환경마다 버전별로 설치하고 업그레이드할 수 있습니다. 릴리스 관리 문서는 이것이 릴리스 관리를 구현하는 한 가지 방법이며 Global Branching을 쓰는 방법도 있다고 설명합니다. Global Branching 문서는 둘을 서로 다른 문제를 푸는 보완 관계로 보고 브랜치에서 개발해 개발 환경에 병합한 뒤 릴리스 관리로 테스트·운영 환경에 배포하는 예를 듭니다." },
     ],

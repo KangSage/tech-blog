@@ -105,7 +105,9 @@ primary key는 어떤 Property security policy에도 넣을 수 없고 다른 pr
 레거시 datasource-derived 권한 모델을 쓰는 환경에서는 정책이 있어도 backing datasource의 Viewer 권한이 필요합니다.\
 Object security policy는 datasource의 필수 통제(Marking·Organization·CBAC)를 기본으로 물려받습니다.\
 여기에 필수 통제를 더하거나 더는 필요 없는 것을 뺄 수 있습니다.\
-정책 변경은 거의 즉시 반영되지만 그룹 멤버십 같은 사용자 속성의 변경은 잠시 캐시됩니다.
+정책 변경은 거의 즉시 반영되지만 그룹 멤버십 같은 사용자 속성의 변경은 잠시 캐시됩니다.\
+Object type에 Materialization이 있으면 정책에 Marking을 더하거나 빼도 Materialized Dataset에는 그 Marking이 있는 동안 Build로 커밋된 트랜잭션에만 그 Marking이 붙습니다.\
+바로 반영하려면 Materialization을 Build하고 이전 트랜잭션까지 보호하려면 Materialized Dataset이나 backing Dataset에 그 Marking을 직접 겁니다.
 
 정책을 만들고 고치려면 Object type의 Owner여야 합니다.\
 project-based 권한에서는 그 Object type이 든 Project의 Owner를 뜻하고 레거시 datasource-derived 권한 모델에서는 Ontology의 Owner를 뜻합니다.\
@@ -176,7 +178,7 @@ Platform SDK로 Dataset 같은 리소스를 읽으려면 그 리소스가 든 Pr
 Global Branching의 브랜치에서 앱을 개발해도 앱 제한은 Main을 포함한 모든 브랜치가 함께 씁니다.\
 브랜치에서는 필요한 Ontology 리소스를 resource restrictions에 넣는 것만 할 수 있고 이 변경은 Main을 포함한 모든 브랜치에서 앱이 허용받는 최대 범위에 함께 들어갑니다.\
 필요 없어진 리소스는 Main에서 Review resources로 정리합니다.\
-다른 SDK 버전이나 브랜치가 아직 쓰는 리소스를 지우면 그 브랜치의 앱이 깨질 수 있습니다.
+다른 SDK 버전이나 브랜치가 아직 쓰는 리소스를 resource restrictions에서 빼면 그 브랜치의 앱이 깨질 수 있습니다.
 
 공식 문서: [Application restrictions](https://www.palantir.com/docs/foundry/developer-console/application-restrictions) · [Developer Console 권한](https://www.palantir.com/docs/foundry/developer-console/permissions) · [Developer Console 브랜치](https://www.palantir.com/docs/foundry/developer-console/branching-integration) · [OAuth 클라이언트 작성](https://www.palantir.com/docs/foundry/platform-security-third-party/writing-oauth2-clients)
 
