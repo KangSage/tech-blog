@@ -482,6 +482,7 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
         indexToggle.setAttribute("aria-expanded", String(open));
         indexToggle.textContent = open ? "접기 ▴" : "전체 목록 ▾";
       }
+      if (open) showCurrentChip();
       updateFade();
     }
 
@@ -527,6 +528,14 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
         const br = chip.getBoundingClientRect();
         const cr = row.getBoundingClientRect();
         row.scrollLeft += br.left - cr.left - (cr.width - br.width) / 2;
+      }
+      // 화면이 낮아 펼친 목록이 세로로 스크롤되면(넓은 화면) 현재 항목이 보이게 목록의 scrollTop만 맞춘다
+      const list = panel!.querySelector<HTMLElement>(".index");
+      if (list && panel!.classList.contains("index-open") && list.scrollHeight > list.clientHeight) {
+        const br = chip.getBoundingClientRect();
+        const lr = list.getBoundingClientRect();
+        if (br.top < lr.top + 4) list.scrollTop -= lr.top + 4 - br.top;
+        else if (br.bottom > lr.bottom - 4) list.scrollTop += br.bottom - (lr.bottom - 4);
       }
     }
 
@@ -1201,6 +1210,7 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
     [data-docked].index-open .cbody { flex: none; min-height: 0; overflow: visible; }
     /* 화면이 낮으면 펼친 목록(약 600px)이 높이를 다 차지해 카드가 사라지므로, 카드 180px·버튼 줄·간격(234px)을 남기고 목록 안에서 스크롤한다.
        높이가 넉넉하면 목록은 다 보이고 지금처럼 카드만 스크롤된다. 스크롤되는 목록의 가장자리 칩도 포커스 윤곽선이 잘리지 않게 4px 여백을 둔다 */
+    [data-docked].index-open .index-toggle { position: sticky; top: 0; }
     [data-docked].index-open .index { flex-shrink: 0; min-height: 0; max-height: calc(100vh - 32px - 234px); overflow-y: auto; overscroll-behavior: contain; padding: 4px; margin: -4px; scroll-padding-block: 4px; }
     [data-docked] .nav { flex: none; }
   }
@@ -1219,6 +1229,8 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
     [data-docked].is-expanded { max-height: 65vh; overflow-y: auto; padding: 4px 4px 0; margin: -4px -4px 0; }
     /* 자세히를 연 패널은 막대 안에서 스크롤되므로 간단히·접기 버튼이 끝까지 내리지 않아도 보이게 아래에 붙인다 */
     [data-docked].is-expanded .nav { position: sticky; bottom: 0; padding: 6px 0 4px; background: var(--bg); }
+    /* 아래에 붙은 버튼 줄(약 40px) 뒤로 포커스된 링크가 숨지 않게 그만큼 비운다 */
+    [data-docked].is-expanded { scroll-padding-bottom: 48px; }
     [data-docked] .more { display: inline-flex !important; }
     [data-docked] .step { display: none; }
     [data-docked] .fold { display: inline-flex; }
