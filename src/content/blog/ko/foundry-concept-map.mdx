@@ -31,29 +31,30 @@ Palantir Foundry는 데이터 수집과 가공, 업무 모델링, 애플리케�
 
 ## 전체 흐름
 
-Foundry의 구성 요소는 크게 다섯 개의 층과 이를 감싸는 권한 체계로 나눌 수 있습니다.
+Foundry의 구성 요소는 크게 데이터·온톨로지·로직·앱의 네 층과 여러 층에 걸쳐 쓰이는 운영 도구, 이 전체를 감싸는 권한 체계로 나눌 수 있습니다.
 
 1. **데이터**: Data Connection으로 외부 시스템의 데이터를 가져오고 Python transform이나 Pipeline Builder로 가공해 Dataset에 저장합니다.\
    가공 작업은 Build로 실행되고 Schedule에 따라 반복됩니다.\
    파일은 스키마 없는 Dataset이나 Media set에 보관합니다.\
    지연이 짧아야 하는 데이터는 Dataset 대신 Stream으로 받아 Ontology에 초\~분 단위로 반영합니다.\
    외부 플랫폼의 테이블은 복사하지 않고 Virtual table로 등록해 바로 조회할 수 있습니다.\
-   머신러닝 모델은 Models로 연결하고 Modeling Objectives에서 평가해 배포합니다.
-2. **온톨로지**: Funnel이 Dataset과 Stream의 데이터를 인덱싱해 Ontology의 Object로 만듭니다.\
+   머신러닝 모델은 Models로 연결하고 Modeling Objectives에서 평가해 배포하거나 direct model deployment로 바로 배포합니다.
+2. **온톨로지**: Funnel이 Dataset·Restricted view·Stream·Virtual table 같은 datasource의 데이터를 인덱싱해 Ontology의 Object로 만듭니다.\
    Ontology는 Dataset에 업무 의미(Object, Property, Link)를 부여한 계층이며 업무용 앱은 주로 이 계층을 읽고 씁니다.\
    Object type·Link type 같은 구조는 Ontology Manager에서 정의하며 Pipeline Builder도 Object type·Link type을 출력할 수 있습니다.\
    여러 Object type이 공유하는 공통 형태는 Interface로 정의합니다.
 3. **로직**: Action은 Ontology를 수정하고 Function은 조회와 계산을 담당합니다.\
    직접 만든 컨테이너 코드는 Compute module로, 조건에 따른 자동 실행은 Automate로, LLM 기반 로직은 AIP Logic으로 만듭니다.
-4. **앱**: Workshop(노코드)이나 OSDK 기반 React 앱은 Ontology를 직접 조회하고 쓰기와 계산은 로직 계층을 호출해 처리합니다.\
-   Contour·Quiver·Object Explorer로는 코드 없이 데이터를 분석합니다.\
+4. **앱**: Workshop(노코드)이나 OSDK 기반 React 앱은 Ontology를 직접 조회하고 쓰기는 Action으로 처리하며 계산은 Function 같은 로직 계층을 호출합니다.\
+   Workshop은 연결된 Object와 집계에서 나오는 값을 Derived properties로 바로 계산하기도 합니다.\
+   Contour · Quiver · Object Explorer로는 코드 없이 데이터를 분석합니다.\
    Object Views는 Object 하나의 정보를 모아 보여 주고 외부 AI 에이전트는 Ontology MCP로 Ontology를 읽고 Action을 실행합니다.
-5. **운영**: Ontology Manager, Global Branching, Marketplace, Data Lineage·Workflow Lineage는 특정 층에 속하지 않습니다.\
+5. **운영**: Ontology Manager, Global Branching, Marketplace, Data Lineage · Workflow Lineage는 한 층에 속하지 않고 여러 층에 걸쳐 쓰이므로 지도에서는 맨 아래 운영 층에 모았습니다.\
    Ontology Manager는 Ontology를 정의하고 Global Branching과 Marketplace는 지원 범위 안에서 여러 층의 변경과 배포를 관리합니다.\
-   Data Lineage·Workflow Lineage로는 리소스 사이의 의존 관계를 확인합니다.\
+   Data Lineage · Workflow Lineage로는 리소스 사이의 의존 관계를 확인합니다.\
    Project·Marking 접근 같은 권한 요청은 Approvals에서 승인하고 브랜치의 Ontology 변경은 Global Branching proposal과 함께 생기는 Ontology proposal에서 검토합니다.
 
-이 전체를 Project·Role·Marking 권한 체계가 감쌉니다.\
+이 전체를 Project · Role · Marking 권한 체계가 감쌉니다.\
 여기에 더해 Restricted view는 Dataset의 행 단위 조회를, Object security policy와 Property security policy는 Ontology 안에서 Object·Property 단위의 조회를, OAuth는 외부 앱이 토큰을 받아 Foundry에 접근하는 과정을 담당합니다.
 
 ## 개념 지도
@@ -92,7 +93,7 @@ Action 편집은 원본(backing) Dataset에 쓰이지 않고 아래 표처럼 �
 | 저장되는 곳 | 담기는 내용 | 갱신 시점 | 만드는 주체 |
 | --- | --- | --- | --- |
 | 원본(backing) [Dataset](#concept-dataset) | 파이프라인이 만든 데이터.<br />Action 편집은 들어가지 않음 | 파이프라인의 Build | 데이터 파이프라인 |
-| [Ontology](#concept-onto) 인덱스(OSv2) | 원본과 편집을 합친 Object.<br />앱은 여기서 읽음 | 편집은 즉시 반영.<br />원본 변경은 [Funnel](#concept-funnel) 파이프라인이 실행될 때 반영 | Funnel |
+| [Ontology](#concept-onto) 인덱스(Object Storage v2, OSv2) | 원본과 편집을 합친 Object.<br />앱은 여기서 읽음 | 편집은 즉시 반영.<br />원본 변경은 [Funnel](#concept-funnel) 파이프라인이 실행될 때 반영 | Funnel |
 | Funnel이 관리하는 Dataset | 원본의 변경분을 담은 changelog Dataset과 원본·편집을 합친 merged Dataset.<br />편집은 먼저 Funnel이 관리하는 큐에 쌓임.<br />사용자는 접근할 수 없음 | 원본에 새 트랜잭션이 생길 때 또는 편집이 있었다면 6시간마다 merged Dataset을 Build | Funnel(자동) |
 | Materialized Dataset (선택) | 원본과 편집을 합친 각 Object의 최신 상태.<br />최신 스냅샷만 보장 | 편집 자동 전파(몇 분 지연) 또는 원본이 바뀔 때·6시간마다 | 사용자가 Ontology Manager에서 만듦 |
 
