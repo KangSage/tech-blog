@@ -119,11 +119,11 @@ export const routes: Route[] = [
     question: "누가 무엇을 보고 고칠 수 있는가?",
     steps: [
       { ids: ["project"], note: "Project Role이 할 수 있는 일을 정하고 Marking·Organization·CBAC 같은 필수 통제를 모두 통과해야 리소스에 접근할 수 있습니다." },
-      { ids: ["rv"], note: "Restricted view는 Dataset에서 볼 수 있는 행만 보이게 하고 그 행으로 만든 Object에도 같은 통제가 적용됩니다. 정책을 바꾸면 다시 Build해야 반영됩니다." },
+      { ids: ["rv"], note: "Restricted view는 Dataset에서 볼 수 있는 행만 보이게 하고 그 행으로 만든 Object에도 같은 통제가 적용됩니다. 정책을 바꾸면 다시 Build해야 반영되고 backing Dataset 권한은 따로 막아야 합니다." },
       { ids: ["osp"], note: "Object security policy는 Ontology 안에서 Object를 행 단위로 거르고 변경이 거의 즉시 반영됩니다. 원본 Dataset은 따로 잠가야 합니다." },
       { ids: ["action"], note: "Action을 제출하려면 Submission criteria를 통과하고 편집 대상 Object type·Link type과 그 datasource를 볼 수 있어야 합니다." },
       { ids: ["oauth"], note: "OSDK 앱이 받는 토큰은 사용자(또는 서비스 유저) 권한과 앱 제한이 모두 허용하는 리소스에만 접근합니다." },
-      { ids: ["approvals"], note: "권한이 없으면 Approvals로 Project 접근이나 Marking 접근을 요청하고 검토자가 승인하면 적용됩니다. Checkpoints는 민감한 작업 전에 사유를 기록하게 합니다." },
+      { ids: ["approvals"], note: "권한이 없으면 Approvals로 Project 접근이나 Marking 접근을 요청합니다. request의 모든 task가 승인되면 적용되고 필수 checkpoint가 남아 있으면 제출한 뒤에 적용됩니다. Checkpoints는 민감할 수 있는 작업에서 사유를 묻고 기록합니다." },
     ],
     edges: [],
     sources: [

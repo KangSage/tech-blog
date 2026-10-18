@@ -22,8 +22,8 @@ import FoundryConceptMap from "@/components/foundry/FoundryConceptMap.astro";
 </details>
 
 Foundry에서 "이 사용자가 이 데이터를 볼 수 있는가"는 한 곳에서 정해지지 않습니다.\
-리소스 전체에 걸리는 Project 권한과 Marking, Dataset의 행을 거르는 Restricted view, Ontology의 Object를 거르는 Object security policy가 각자 따로 동작합니다.\
-수정은 Action의 제출 조건이 한 번 더 거르고 외부 앱은 앱 제한이 범위를 다시 좁힙니다.
+리소스 전체에 걸리는 Project 권한과 Marking, Dataset의 행을 거르는 Restricted view, Ontology의 Object를 거르는 Object security policy가 함께 적용됩니다.\
+Action으로 하는 수정은 Submission criteria가 한 번 더 거르고 외부 앱은 요청 scope와 (제한된 앱이면) 앱 제한이 범위를 다시 좁힙니다.
 
 이 글은 [개념 지도](../foundry-concept-map/#route-access)의 권한 노선을 따라 단계마다 무엇을 막는지 설명합니다.\
 이어서 비슷해 보이는 장치 중 언제 무엇을 쓰는지와 한 곳을 막아도 열려 있는 곳을 정리합니다.
@@ -38,26 +38,28 @@ Foundry에서 "이 사용자가 이 데이터를 볼 수 있는가"는 한 곳�
 
 ## 1. Project · Role · Marking: 모든 리소스의 기본 관문
 
-Foundry의 리소스 권한은 역할 부여(discretionary) 권한과 필수 통제(mandatory control)로 나뉩니다([Project · Role · Marking](#concept-project)).\
-Project는 역할 부여의 기본 경계입니다.\
+Foundry는 필수 통제(mandatory control)와 임의 통제(discretionary control)를 함께 써서 누가 어떤 데이터를 다룰 수 있는지 정합니다([Project · Role · Marking](#concept-project)).\
+Project Role은 임의 통제이며 Project는 Role 부여의 기본 경계입니다.\
 Role은 사용자나 그룹에 부여하며 공식 문서는 Project 단위로 그룹에 부여하도록 권장합니다.\
 Project 안의 리소스는 그 Role을 물려받습니다.\
 기본 Role은 권한이 큰 순서로 Owner, Editor, Viewer, Discoverer입니다.
 
 Marking, Organization, Classification-based Access Controls(CBAC)는 필수 통제입니다.\
 필수 통제는 Role과 관계없이 자격이 없는 사용자의 접근을 막습니다.\
-Marking은 all-or-nothing이라서 파일·폴더·Project에 붙은 Marking을 모두 가진 사용자만 접근할 수 있습니다.\
+Marking 하나에 대한 접근은 all-or-nothing입니다.\
+여러 Marking은 AND 조건이라서 파일·폴더·Project에 붙은 Marking 모두의 멤버여야 접근할 수 있습니다.\
 Marking은 파일 계층과 데이터 의존 관계를 따라 상속되며 명시적으로 제거하지 않는 한 파생 리소스에도 붙습니다.\
 Marking을 제거하려면 그 Marking의 Expand Access 권한이 필요하며 Dataset의 Owner Role만으로는 제거할 수 없습니다.\
-Marking은 접근을 제한하는 장치이고 접근 권한 자체는 Project의 Role로 부여합니다.
+공식 문서는 Marking을 접근 제한에만 쓰고 접근 권한은 Project의 Role로 부여하도록 안내합니다.
 
 Object type·Link type·Action type 같은 Ontology 리소스도 Project에 저장하고 Project Role로 권한을 관리합니다.\
 이 방식은 예전의 ontology roles와 datasource-derived 권한 모델을 대체하며 새 Ontology에는 기본으로 켜져 있습니다.\
-기존 Ontology는 Ontology owner가 직접 켠 뒤 리소스를 migration해야 합니다.\
+기존 Ontology는 Ontology의 Owner가 이 기능을 직접 켜야 하고 기존 리소스는 migration이 필요합니다.\
+project-based 권한으로 migration한 리소스는 예전 권한 모델로 되돌릴 수 없습니다.\
 Object를 보려면 Object type의 View 권한과 데이터 접근 권한이 함께 필요합니다.\
-데이터 접근은 Object type 설정에 따라 Object security policy나 backing datasource의 권한으로 정해집니다.
+데이터 접근은 Object type 설정에 따라 Object security policy·Property security policy나 backing datasource의 권한으로 정해집니다.
 
-공식 문서: [Projects and roles](https://www.palantir.com/docs/foundry/security/projects-and-roles) · [Markings](https://www.palantir.com/docs/foundry/security/markings) · [Ontology permissions](https://www.palantir.com/docs/foundry/object-permissioning/ontology-permissions)
+공식 문서: [Projects and roles](https://www.palantir.com/docs/foundry/security/projects-and-roles) · [Markings](https://www.palantir.com/docs/foundry/security/markings) · [Ontology permissions](https://www.palantir.com/docs/foundry/object-permissioning/ontology-permissions) · [project-based 권한으로 migration](https://www.palantir.com/docs/foundry/ontology-manager/migrate-to-project-based-permissions)
 
 ## 2. Restricted view: Dataset의 행 단위 통제
 
@@ -73,45 +75,57 @@ Restricted view는 Dataset에만 만들 수 있고 Stream 같은 다른 datasour
 새 Dataset을 만드는 transform 같은 배치 작업의 입력으로도 쓸 수 없습니다.\
 Restricted view를 datasource로 쓰는 Object type에서는 특정 Object에 접근할 수 있는지가 그 행에 접근할 수 있는지로 정해집니다.
 
-공식 문서: [Restricted views](https://www.palantir.com/docs/foundry/security/restricted-views)
+Restricted view는 backing Dataset 자체를 잠그지 않습니다.\
+Restricted view로만 데이터를 봐야 하는 사용자에게는 backing Dataset 권한을 주지 않아야 합니다.\
+Restricted view를 backing Dataset과 같은 Project에 두면 Marking으로 backing Dataset을 보호합니다.\
+Restricted view는 backing Dataset의 Marking을 물려받으며 Marking 권한이 있으면 만들 때 물려받은 Marking을 뺄 수 있습니다.
+
+공식 문서: [Restricted views](https://www.palantir.com/docs/foundry/security/restricted-views) · [Managing object security](https://www.palantir.com/docs/foundry/object-permissioning/managing-object-security)
 
 ## 3. Object security policy: Ontology 안의 행·셀 단위 통제
 
 [Object security policy](#concept-osp)는 Object type에 설정해 사용자가 볼 수 있는 Object를 행 단위로 거릅니다.\
 Property security policy는 지정한 property만 거르는 열 단위 통제입니다.\
 Object security policy와 함께 쓰면 셀 단위까지 제어할 수 있습니다.\
-Object 정책은 통과했지만 Property 정책을 통과하지 못한 사용자에게는 그 property가 null로 보입니다.\
-Property security policy를 만들려면 Object security policy가 먼저 있어야 하고 primary key는 어떤 Property security policy에도 넣을 수 없습니다.
+Object security policy는 통과했지만 Property security policy를 통과하지 못한 사용자에게는 그 property가 null로 보입니다.\
+Property security policy를 만들려면 Object security policy가 먼저 있어야 합니다.\
+primary key는 어떤 Property security policy에도 넣을 수 없고 다른 property는 Property security policy 하나에만 들어갈 수 있습니다.
 
-정책이 있으면 backing datasource의 Viewer 권한이 없어도 Object를 볼 수 있습니다.\
+정책이 있으면 Object를 보는 데 backing datasource의 Viewer 권한은 필요하지 않습니다.\
 레거시 datasource-derived 권한 모델을 쓰는 환경에서는 정책이 있어도 backing datasource의 Viewer 권한이 필요합니다.\
-정책은 datasource의 필수 통제(Marking·Organization·CBAC)를 기본으로 물려받습니다.\
-정책에서 필수 통제를 더하거나 더는 필요 없는 것을 뺄 수 있습니다.\
+Object security policy는 datasource의 필수 통제(Marking·Organization·CBAC)를 기본으로 물려받습니다.\
+여기에 필수 통제를 더하거나 더는 필요 없는 것을 뺄 수 있습니다.\
 정책 변경은 거의 즉시 반영됩니다.
 
 정책을 만들고 고치려면 Object type의 Owner여야 합니다.\
-project-based 권한에서는 그 Object type이 든 Project의 Owner를 뜻합니다.\
+project-based 권한에서는 그 Object type이 든 Project의 Owner를 뜻하고 레거시 권한 모델에서는 Ontology의 Owner를 뜻합니다.\
 공식 문서는 정책을 설정하기 전에 project-based 권한으로 migration하도록 권장합니다.\
 그룹·Marking·Organization 멤버십에 NOT 조건을 쓰는 것은 피해야 합니다.\
 범위가 좁혀진 토큰(scoped token)에는 검사할 속성이 없을 수 있어서 조건이 통과되고 필요 이상으로 접근이 열릴 수 있기 때문입니다.
 
 공식 문서: [Object security policies](https://www.palantir.com/docs/foundry/object-permissioning/object-security-policies)
 
-## 4. Action type: 볼 수 있다고 고칠 수 있는 것은 아닙니다
+## 4. Action type: 고치려면 제출 조건도 통과해야 합니다
 
 [Action](#concept-action)을 제출하려면 Submission criteria를 통과해야 합니다.\
-Submission criteria는 사용자·그룹 ID와 파라미터 값을 조건으로 쓸 수 있습니다.\
+Submission criteria의 조건은 세 가지 틀로 만듭니다.\
+제출하는 사용자(사용자 ID, 그룹 멤버십, Multipass 속성)와 파라미터 값(Object 파라미터면 그 property 값)과 실행 맥락(Ontology Scenario 안에서 제출했는지)입니다.\
 그리고 편집 대상 Object type·Link type과 그 datasource를 볼 수 있어야 합니다.
 
 새 Object type의 기본값은 Action으로만 편집하는 방식입니다.\
-이때는 편집할 Object의 읽기 권한만 있으면 되므로 사용자가 자신이 볼 수 없는 Object를 만들 수도 있습니다.\
-Action 밖 편집(Foundry Forms, Object Explorer 직접 편집, API 호출)도 허용한 타입은 편집하는 모든 Object의 writeback Dataset에 Edit 권한이 추가로 필요합니다.\
-공식 문서는 이 설정이 워크플로에 필요한 것보다 많은 데이터를 드러내므로 권장하지 않습니다.\
-Restricted view 기반 타입이면 그 Restricted view의 edit policy도 통과해야 합니다.\
-action log를 쓰는 Action은 action log Object type에 대한 권한도 필요하며 Action이 만들거나 고치는 다른 Object type도 마찬가지입니다.\
+이 방식에서는 볼 수 있는 Object를 모두 편집할 수 있고 편집할 Object에 필요한 것은 Read 권한뿐입니다.\
+공식 문서는 그래서 사용자가 자신이 볼 수 없는 Object를 만들 수도 있다고 설명합니다.
+
+Action 밖 편집(Foundry Forms, Object Explorer 직접 편집, API 호출)도 허용한 Object type·Link type은 backing 종류에 따라 조건이 더 붙습니다.\
+Dataset 기반이면 writeback Dataset의 Edit 권한이 추가로 필요합니다.\
+Restricted view 기반이면 edit policy를 통과해야 합니다.\
+이 편집 정책은 Object Storage v1을 쓰고 Action으로만 편집하도록 설정하지 않은 Object type에서만 Ontology Manager의 Datasources 탭에서 설정할 수 있습니다.\
+Edit 권한이 있으면 writeback Dataset의 데이터를 모두 볼 수 있어서 편집에 필요한 것보다 많은 데이터가 드러날 수 있으므로 공식 문서는 Action 밖 편집을 허용하는 설정을 권장하지 않습니다.
+
+Action type에 action log가 설정되어 있으면 제출하는 사용자에게 action log Object type에 대한 권한도 필요하며 Action이 만들거나 고치는 다른 Object type도 마찬가지입니다.\
 이 권한이 없으면 제출 시점에 실패합니다.
 
-공식 문서: [Action type permissions](https://www.palantir.com/docs/foundry/action-types/permissions) · [Submission criteria](https://www.palantir.com/docs/foundry/action-types/submission-criteria)
+공식 문서: [Action type permissions](https://www.palantir.com/docs/foundry/action-types/permissions) · [Submission criteria](https://www.palantir.com/docs/foundry/action-types/submission-criteria) · [Restricted view 기반 Object type 설정](https://www.palantir.com/docs/foundry/object-permissioning/configuring-rv-access-controls)
 
 ## 5. OAuth: 외부 앱이 받는 토큰의 범위
 
@@ -125,18 +139,21 @@ Authorization code 방식은 사용자를 대신해 동작하고 Client credenti
 
 앱 제한에는 접근할 리소스를 정하는 resource restrictions와 할 수 있는 작업을 정하는 operation restrictions가 있습니다.\
 토큰을 요청할 때 좁힐 수 있는 것은 작업뿐입니다.\
-리소스 접근은 앱의 resource restrictions와 사용자 권한만으로 정해집니다.
+리소스 접근은 앱의 resource restrictions와 사용자 권한만으로 정해집니다.\
+예를 들어 사용자가 주문·고객·재고를 모두 볼 수 있어도 앱의 resource restrictions에 고객이 없으면 토큰은 고객에 접근할 수 없습니다.
 
 | 범위 | 주문 | 고객 | 재고 |
 | --- | :-: | :-: | :-: |
-| 사용자 권한 | ✓ | ✓ | ✓ |
+| 사용자(또는 서비스 유저) 권한 | ✓ | ✓ | ✓ |
 | 앱 제한 (resource restrictions) | ✓ | ✗ | ✓ |
 | **토큰 리소스 접근 범위** | **✓** | ✗ | **✓** |
 
+표는 리소스 범위만 나타냅니다.\
+제한된 앱으로 실제로 조회하려면 그 리소스가 든 Project가 resource restrictions에 있고 필요한 작업(예: `api:use-datasets-read`)도 operation restrictions에 있어야 합니다.
+
 앱은 기본적으로 제한(restricted) 상태로 만들어집니다.\
 제한 없는(unrestricted) 앱은 사용자 권한과 요청한 작업만으로 접근이 정해지므로 신뢰할 수 있는 코드에만 써야 합니다.\
-제한된 앱에서 scope를 빈 값(`[]`)으로 요청하면 앱의 operation restrictions가 적용됩니다.\
-scope 없이 요청하면 앱 제한이 허용하는 사용자 권한 전부가 적용됩니다.\
+제한된 앱에서 scope를 빈 값(`[]`)으로 요청하면 앱의 operation restrictions가 적용되고 scope 없이 요청하면 앱 제한이 허용하는 사용자 권한 전부가 적용됩니다.\
 제한 없는 앱이 Authorization code 방식을 쓰면 scope를 반드시 요청해야 합니다.\
 제한 없는 앱이 Client credentials 방식으로 scope 없이 요청하면 서비스 유저가 할 수 있는 작업이 모두 허용됩니다.
 
@@ -144,17 +161,21 @@ scope 없이 요청하면 앱 제한이 허용하는 사용자 권한 전부가 
 
 ## 6. Approvals · Checkpoints: 권한이 없을 때와 민감한 작업 전
 
-권한이 없는 사용자는 [Approvals](#concept-approvals)에 request를 올립니다.\
+어떤 변경을 할 권한이 없는 사용자는 그 변경을 request로 요청하고 request는 승인할 관리자에게 전달됩니다.\
+이 요청과 승인과 적용의 흐름을 [Approvals](#concept-approvals)에서 다룹니다.\
 request는 하나 이상의 task로 구성되고 task마다 승인할 수 있는 검토자가 정해져 있습니다.\
 task의 예로는 그룹 멤버십, Project 접근, Marking 접근, Project 참조 추가, Ontology proposal이 있습니다.\
-Project 접근은 그 Project의 Owner가 승인하고 Marking 접근은 그 Marking에 Manage permissions가 있는 관리자가 승인합니다.\
-모든 task가 승인되면 request가 적용(invoke)됩니다.
+Marking 접근은 그 Marking에 Manage permissions가 있는 관리자가 승인합니다.\
+그룹이 지정되지 않은 Project에 Project 접근을 요청하면 그 Project의 Owner가 승인합니다.\
+Foundry 안에서 관리하는 그룹에 가입하는 방식으로 요청하면 그 그룹의 관리자가 승인합니다.\
+모든 task가 승인되면 request가 적용(invoke)됩니다.\
+다만 필수 checkpoint를 아직 제출하지 않았으면 제출할 때까지 적용되지 않습니다(Action required 상태).
 
-Checkpoints는 민감한 작업 전에 사용자에게 사유를 묻는 데이터 거버넌스 도구입니다.\
-Foundry의 60개가 넘는 상호작용에 붙일 수 있습니다.\
+Checkpoints는 민감할 수 있는 작업을 멈추고 사용자에게 사유를 묻는 데이터 거버넌스 도구입니다.\
+Foundry의 60개가 넘는 상호작용에 통합되어 있습니다.\
 사유는 시각·사용자·관련 리소스와 함께 기록되고 관리자가 Checkpoints 앱에서 검토합니다.
 
-공식 문서: [Approvals](https://www.palantir.com/docs/foundry/approvals/overview) · [Checkpoints](https://www.palantir.com/docs/foundry/checkpoints/overview)
+공식 문서: [Approvals](https://www.palantir.com/docs/foundry/approvals/overview) · [Checkpoints](https://www.palantir.com/docs/foundry/checkpoints/overview) · [Projects and roles](https://www.palantir.com/docs/foundry/security/projects-and-roles)
 
 ## 언제 무엇을 쓰나
 
@@ -162,26 +183,29 @@ Foundry의 60개가 넘는 상호작용에 붙일 수 있습니다.\
 
 | 기준 | Object security policy | Restricted view |
 | --- | --- | --- |
-| 거르는 대상 | Ontology의 Object.<br />Property security policy와 함께 쓰면 셀 단위까지 | Dataset의 행 |
+| 거르는 대상 | Ontology의 Object.<br />Property security policy와 함께 쓰면 셀 단위까지 | Dataset의 행과 그 행으로 만든 Object.<br />multi-datasource object type과 함께 쓰면 셀 단위까지 |
 | 정책 변경 반영 | 거의 즉시 | 파이프라인을 다시 Build해야 반영 |
 | Stream 기반 Object type | 적용할 수 있음 | 만들 수 없음(Dataset에만) |
-| Ontology 밖(예: Code Workspaces)의 Dataset 읽기 | 보호하지 않음(Ontology 안에서만 적용) | 보호함 |
-| 파생 데이터로 전파 | 전파되지 않음 | 전파되지 않음 |
+| Ontology 밖(예: Code Workspaces)의 Dataset 읽기 | 보호하지 않음(Ontology 안에서만 적용) | Restricted view로 읽을 때 보호함.<br />원본 Dataset 권한은 주지 않아야 함 |
+| 파생 데이터로 전파 | 행·열 거르기는 전파되지 않음.<br />정책에 넣은 필수 통제는 파생 데이터에도 적용 | 행 거르기는 전파되지 않음 |
 
-공식 문서는 대부분의 경우 Object security policy와 Property security policy를 권장합니다.\
+공식 문서는 Ontology에서 Object 보안을 관리할 때 대부분의 경우 Object security policy와 Property security policy를 권장합니다.\
 Restricted view는 backing Dataset을 Ontology 밖에서도 사용자별로 행 단위 보호해야 할 때 맞습니다.\
+datasource마다 다른 resolution strategy나 build schedule 때문에 multi-datasource object type을 써야 하면 datasource 쪽 정책이 필요할 수 있습니다.\
 Stream의 Viewer 권한이 있으면 그 Stream으로 만든 Object를 모두 볼 수 있으므로 Stream 기반 Object type을 나누려면 Object security policy를 씁니다.
 
-공식 문서: [Managing object security](https://www.palantir.com/docs/foundry/object-permissioning/managing-object-security)
+공식 문서: [Managing object security](https://www.palantir.com/docs/foundry/object-permissioning/managing-object-security) · [Restricted views](https://www.palantir.com/docs/foundry/security/restricted-views)
 
 ### 권한을 줄 때와 막을 때: Role과 Marking
 
 | 기준 | Role | Marking |
 | --- | --- | --- |
-| 종류 | 역할 부여(discretionary) | 필수 통제(mandatory) |
-| 하는 일 | 할 수 있는 일을 부여 | 자격이 없는 사용자를 차단.<br />접근 권한을 주지는 않음 |
+| 종류 | 임의 통제(discretionary) | 필수 통제(mandatory) |
+| 하는 일 | 할 수 있는 일을 부여 | 자격이 없는 사용자를 차단.<br />접근 부여에는 쓰지 않도록 안내(Role로 부여) |
 | 붙는 곳 | 보통 Project 단위로 사용자나 그룹에 | 파일·폴더·Project |
 | 파생 데이터 | 따라가지 않음 | 명시적으로 제거하지 않는 한 따라감 |
+
+공식 문서: [Projects and roles](https://www.palantir.com/docs/foundry/security/projects-and-roles) · [Markings](https://www.palantir.com/docs/foundry/security/markings)
 
 ### 파생 데이터까지 막을 때: 필수 통제를 함께 겁니다
 
@@ -197,10 +221,11 @@ Project Role, Restricted view, Object security policy, Property security policy�
 - writeback (writeback 대상의 통제가 적용됨)
 - 내보내기와 다운로드
 
-반면 Marking, CBAC, Organization 같은 필수 통제는 파생과 하류 사용을 거쳐도 데이터를 따라갑니다.\
+반면 필수 통제인 Marking, CBAC, Organization은 파생과 하류 사용을 거쳐도 데이터를 따라갑니다.\
 그래서 파생 데이터·writeback·내보내기·모델 출력까지 보호해야 하면 필수 통제를 씁니다.\
-공식 문서는 Restricted view의 backing Dataset에 Marking을 함께 걸도록 권장합니다.\
-이렇게 하면 사용자별 행 거르기는 그대로 두고 원본과 파생 데이터에는 Marking이 남습니다.
+사용자별로 거르면서 하류로 흘러가는 데이터도 보호해야 하면 공식 문서는 둘을 함께 쓰도록 안내합니다.\
+Marking을 건 Dataset을 backing으로 하는 Restricted view는 사용자별 행 거르기를 하면서 원본과 파생 데이터에 Marking을 남깁니다.\
+공식 문서는 더 강하게 보호하려면 Restricted view의 backing Dataset에 Marking을 걸라고 합니다.
 
 공식 문서: [Access control propagation](https://www.palantir.com/docs/foundry/security/access-control-propagation)
 
@@ -211,24 +236,29 @@ Project Role, Restricted view, Object security policy, Property security policy�
 | 막은 곳 | 그래도 열려 있는 곳 | 따로 해야 할 일 |
 | --- | --- | --- |
 | [Object security policy](#concept-osp)로 Object를 가림 | 원본 [Dataset](#concept-dataset) | Dataset 권한을 따로 설정 |
-| [Object security policy](#concept-osp)로 media reference property를 가림 | [Media set](#concept-media)에서 파일을 직접 가져오기 | Media set 권한을 따로 설정 |
-| [Object security policy](#concept-osp)로 Object 읽기를 제한 | [Action](#concept-action)·[Function](#concept-function)이 그 Object를 읽어 만든 결과 | 필수 통제를 함께 설정<br />(Marking·<wbr />CBAC·<wbr />Organization) |
+| [Restricted view](#concept-rv)로 행을 거름 | backing [Dataset](#concept-dataset) (권한이 있으면 Restricted view를 거치지 않고 읽음) | backing Dataset 권한을 주지 않거나 Marking으로 보호 |
+| [Object security policy](#concept-osp)·Property security policy로 media reference property를 가림 | Media set 권한이 Object type과 다르면 [Media set](#concept-media)에서 파일을 직접 가져올 수 있음 | Media set 권한을 따로 설정 |
+| [Object security policy](#concept-osp)로 Object 읽기를 제한 | [Action](#concept-action)·[Function](#concept-function)이 그 Object를 읽어 만든 결과 (Function 반환값은 정책에 묶이지 않고 Action 편집에는 쓰기 대상의 통제가 적용됨) | 파생 결과까지 보호해야 하면 필수 통제를 함께 설정<br />(Marking·<wbr />CBAC·<wbr />Organization)<br />Action이 쓰는 대상의 권한도 따로 확인 |
 | [Stream](#concept-stream)으로 Object type을 만듦 | Stream의 Viewer 권한이 있는 사용자 (그 Stream의 Object를 모두 봄) | Object security policy 적용 |
-| 사용자별 권한으로 데이터를 제한 | Application permissions를 쓰는 [Compute module](#concept-cm) (호출한 사용자가 아니라 서비스 유저 권한으로 동작) | 서비스 유저에게 필요한 권한만 부여 |
+| 사용자별 권한으로 데이터를 제한 | Application permissions를 쓰는 [Compute module](#concept-cm) (호출한 사용자와 관계없이 서비스 유저 권한으로 동작) | Control Panel에서 서비스 유저의 권한을 설정<br />(예: 특정 Marking으로 제한) |
 
 </div>
 
+공식 문서: [Managing object security](https://www.palantir.com/docs/foundry/object-permissioning/managing-object-security) · [Access control propagation](https://www.palantir.com/docs/foundry/security/access-control-propagation) · [Compute module 실행 모드](https://www.palantir.com/docs/foundry/compute-modules/execution-modes)
+
 ## 정리
 
-- 리소스에 접근하려면 Project Role이 있어야 하고 Marking·Organization·CBAC 같은 필수 통제를 모두 통과해야 합니다.
-- Object의 행과 셀은 대부분 Object security policy와 Property security policy로 거르고 Ontology 밖에서도 Dataset의 행을 보호해야 하면 Restricted view를 씁니다.
+- 접근 권한은 Role로 받고 Marking·Organization·CBAC 같은 필수 통제는 Role과 함께 적용되어 자격이 없는 사용자를 막습니다.\
+  Role은 보통 Project 단위로 부여합니다.
+- 공식 문서는 Object의 행과 셀을 거를 때 대부분의 경우 Object security policy와 Property security policy를 권장합니다.\
+  Ontology 밖에서도 Dataset의 행을 보호해야 하면 Restricted view를 씁니다.
 - 행 단위 정책은 읽는 순간에만 적용됩니다.\
   파생 데이터까지 보호하려면 Marking 같은 필수 통제를 함께 겁니다.
-- 수정하려면 Submission criteria를 통과하고 편집 대상을 볼 수 있어야 합니다.\
-  외부 앱의 토큰은 사용자 권한과 앱 제한이 모두 허용하는 리소스에만 접근합니다.
+- Action으로 수정하려면 Submission criteria를 통과하고 편집 대상 Object type·Link type과 그 datasource를 볼 수 있어야 합니다.\
+  외부 앱의 토큰은 사용자(또는 서비스 유저) 권한과 앱 제한이 모두 허용하는 리소스에만 접근합니다.
 
 ---
 
-이 글의 설명은 절마다 링크한 Palantir 공식 문서를 근거로 하며 2026년 10월 18일 기준입니다.\
-Foundry는 업데이트가 잦으므로 최신 내용은 공식 문서를 확인하시기 바랍니다.\
+이 글의 설명은 본문에 링크한 Palantir 공식 문서를 근거로 하며 2026년 10월 18일 기준입니다.\
+공식 문서의 내용은 바뀔 수 있으므로 최신 내용은 공식 문서를 확인하시기 바랍니다.\
 다른 노선은 [개념 지도](../foundry-concept-map/)의 "관점으로 보기"에서 볼 수 있습니다.

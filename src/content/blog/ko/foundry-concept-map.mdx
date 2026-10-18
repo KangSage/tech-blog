@@ -70,7 +70,7 @@ Foundry의 구성 요소는 크게 다섯 개의 층과 이를 감싸는 권한 
 ## 자주 혼동하는 지점
 
 Foundry는 권한과 동작이 여러 계층에 나뉘어 있어서 비슷해 보이는 설정이 실제로는 서로 다른 곳에서 결정되는 경우가 많습니다.\
-아래는 그중 특히 혼동하기 쉬운 세 가지입니다.\
+아래는 그중 특히 혼동하기 쉬운 두 가지입니다.\
 개념 이름을 누르면 개념 카드가 해당 개념으로 바뀝니다.
 
 ### 조회 · 제출 · 저장은 서로 다른 곳에서 결정됩니다
@@ -83,39 +83,16 @@ Foundry는 권한과 동작이 여러 계층에 나뉘어 있어서 비슷해 �
 | 이 Action을 제출할 수 있는가? | [Submission criteria](#concept-action)를 통과하고 편집 대상 Object type·Link type과 그 datasource를 볼 권한이 필요.<br />Action 밖 편집도 허용한 타입은 writeback Dataset의 Edit 권한(Restricted view 기반이면 edit policy 통과)도 필요.<br />action log가 있으면 그 Object type 권한도 필요 | UPDATE 전에 실행되는 IF 검사 | 결재 조건을 통과해야 신청서를 낼 수 있음 |
 | 변경은 언제 실제로 저장되는가? | 기본 설정에서는 [Action](#concept-action)이 실행될 때만 | COMMIT.<br />[Edit function](#concept-function)은 변경할 SQL을 만드는 데까지만 관여 | 신청서가 처리되어야 반영됨.<br />계산기로 미리 계산해 둔 것만으로는 반영되지 않음 |
 
-### OSDK 토큰의 리소스 범위는 사용자 권한과 앱 제한의 교집합입니다
-
-OSDK로 만든 앱이 받는 토큰은 사용자 권한과 Developer Console에 설정한 앱 제한(application restrictions)이 모두 허용하는 리소스에만 접근할 수 있습니다.\
-앱 제한에는 접근할 리소스를 정하는 resource restrictions와 할 수 있는 작업을 정하는 operation restrictions 두 종류가 있습니다.
-
-| 범위 | 주문 | 고객 | 재고 |
-| --- | :-: | :-: | :-: |
-| 사용자 권한 | ✓ | ✓ | ✓ |
-| 앱 제한 (resource restrictions) | ✓ | ✗ | ✓ |
-| **토큰 리소스 접근 범위** | **✓** | ✗ | **✓** |
-
-앱 제한은 앱이 받을 수 있는 권한의 보장된 상한입니다.\
-요청 scope는 작업(operation) 범위만 좁힙니다([OSDK](#concept-osdk)).\
-앱이 토큰을 요청할 때 고를 수 있는 것은 `api:use-ontologies-read` 같은 작업(operation) scope뿐이며 위 표의 리소스는 scope로 좁힐 수 없습니다.\
-scope를 빈 값(`[]`)으로 요청하면 앱의 operation restrictions 전체가 적용됩니다.\
-scope 없이 토큰을 요청하면 앱 제한이 허용하는 사용자 권한 전부가 적용됩니다.
-
-### 권한이 서로 연동되지 않는 곳
+### 권한은 계층마다 따로 막아야 합니다
 
 한 곳을 막았다고 해서 관련 데이터가 모두 보호되지는 않습니다.\
-아래 경우는 각각 따로 막아야 합니다.
+[Object security policy](#concept-osp)로 Object를 가려도 원본 [Dataset](#concept-dataset)과 [Media set](#concept-media)은 각각 따로 잠가야 합니다.\
+Object security policy 같은 행 단위 정책은 읽는 순간에만 적용되므로 [Action](#concept-action)·[Function](#concept-function)이 읽어 만든 결과까지 보호하려면 Marking 같은 [필수 통제](https://www.palantir.com/docs/foundry/security/access-control-propagation)를 함께 겁니다.\
+OSDK 앱이 받는 토큰은 사용자 권한과 Developer Console의 앱 제한이 모두 허용하는 리소스에만 접근합니다([OSDK](#concept-osdk)).\
+Application permissions를 쓰는 [Compute module](#concept-cm)은 호출한 사용자가 아니라 서비스 유저 권한으로 동작합니다.\
+[Media set](#concept-media)의 파일을 같은 경로에 덮어써도 이전 파일은 기존 media reference로 계속 접근할 수 있으므로 덮어쓴 item의 보존 정책을 따로 설정합니다.
 
-<div class="nowrap-last-col">
-
-| 막은 곳 | 그래도 열려 있는 곳 | 따로 해야 할 일 |
-| --- | --- | --- |
-| [Object security policy](#concept-osp)로 Object를 가림 | 원본 [Dataset](#concept-dataset) | Dataset 권한을 따로 설정 |
-| [Object security policy](#concept-osp)로 media reference property를 가림 | [Media set](#concept-media)에서 파일을 직접 가져오기 | Media set 권한을 따로 설정 |
-| [Media set](#concept-media)의 파일을 같은 경로에 덮어써 교체 | 이전 파일 (기존 media reference로 접근 가능) | 덮어쓴 item의 보존 정책 설정 |
-| [Object security policy](#concept-osp)로 Object 읽기를 제한 | [Action](#concept-action)·[Function](#concept-function)이 그 Object를 읽어 만든 결과 (다른 Object type에 쓴 값, 함수 출력, 내보내기) | [필수 통제](https://www.palantir.com/docs/foundry/security/access-control-propagation)를 함께 설정<br />(Marking·<wbr />CBAC·<wbr />Organization)<br />필수 통제는 파생 데이터로 전파됨 |
-| 사용자별 권한으로 데이터를 제한 | Application permissions를 쓰는 [Compute module](#concept-cm) (호출한 사용자가 아니라 서비스 유저 권한으로 동작) | 서비스 유저에게 필요한 권한만 부여 |
-
-</div>
+이런 경우를 모은 표와 Restricted view·Object security policy 중 무엇을 쓸지는 [권한 노선](../foundry-access-route/) 글에 정리했습니다.
 
 ## 정리
 
