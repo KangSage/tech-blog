@@ -63,6 +63,8 @@ export const ui = {
   tocTitle: { ko: "목차", ja: "目次", en: "Contents" },
   tableScrollHint: { ko: "표를 좌우로 밀어서 볼 수 있습니다.", ja: "表は左右にスクロールできます。", en: "Scroll the table sideways to see more." },
   copyCodeLabel: { ko: "코드 복사", ja: "コードをコピー", en: "Copy code" },
+  figureViewFull: { ko: "원본 크기로 보기", ja: "元のサイズで見る", en: "View full size" },
+  figureClose: { ko: "닫기", ja: "閉じる", en: "Close" },
   copyCodeDone: { ko: "복사됨", ja: "コピーしました", en: "Copied" },
   copyCodeFailed: { ko: "복사 실패", ja: "コピー失敗", en: "Copy failed" },
   themeToDark: { ko: "다크 모드로 전환", ja: "ダークモードに切り替え", en: "Switch to dark mode" },

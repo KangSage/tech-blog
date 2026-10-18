@@ -1,9 +1,14 @@
 ---
-// 글 본문의 스크린샷: 본문 폭에 맞춘 webp를 보여 주고 누르면 원래 크기 webp를 연다.
-// 원본 파일 경로(src.src)로 링크하면 개발 서버에서는 사이트 경로 밖이라 열리지 않고 빌드에서는 원본 형식(jpg 등)이 나가므로 getImage로 만든 webp를 쓴다.
-// 설명은 slot에 한 줄로 넣는다(<br />·<em>·<code> 사용 가능). 읽어 주기는 그림을 img의 alt로 읽는다.
+// 글 본문의 스크린샷.
+// - 본문에는 본문 폭(최대 760px)에 맞춰 줄인 webp를 화면 밀도별로 만들어(srcset) 페이지를 가볍게 한다.
+// - 누르면 페이지를 떠나지 않고 같은 화면 위(라이트박스)에 원본 크기 webp를 띄운다. 닫기 버튼, Esc, 바깥 클릭, 뒤로 가기로 닫히고
+//   이미지를 누르면 화면 맞춤과 실제 크기(스크롤)를 오간다. 새 탭으로 열기(가운데·Cmd/Ctrl 클릭)는 원본 파일을 그대로 연다.
+// - 원본 파일 경로(src.src)로 링크하면 개발 서버에서는 사이트 경로 밖이라 열리지 않고 빌드에서는 원본 형식(jpg 등)이 나가므로 getImage로 만든 webp를 쓴다.
+// 설명은 slot에 한 줄로 넣는다(<br />·<em>·<code> 사용 가능). 읽어 주기는 그림을 img의 alt로 읽고 라이트박스는 읽지 않는다.
 import type { ImageMetadata } from "astro";
 import { getImage, Image } from "astro:assets";
+import type { Locale } from "@/lib/i18n";
+import { t } from "@/lib/ui";
 
 interface Props {
   src: ImageMetadata;
@@ -11,10 +16,192 @@ interface Props {
 }
 
 const { src, alt } = Astro.props;
+const lang = (Astro.currentLocale ?? "ko") as Locale;
 const full = await getImage({ src, format: "webp" });
+// 본문 칸은 최대 760px(좁은 화면은 화면 폭 - 좌우 여백 32px). 원본보다 큰 크기는 만들지 않는다
+const widths = [480, 760, 1140, 1520].filter((w) => w < src.width).concat(src.width);
 ---
 
 <figure>
-  <a href={full.src}><Image src={src} alt={alt} /></a>
+  <a
+    class="post-figure-link"
+    href={full.src}
+    title={t("figureViewFull", lang)}
+    aria-haspopup="dialog"
+    data-full-width={src.width}
+    data-full-height={src.height}
+    data-close-label={t("figureClose", lang)}
+  >
+    <Image src={src} alt={alt} widths={widths} sizes="(min-width: 808px) 760px, calc(100vw - 32px)" />
+  </a>
   <figcaption><slot /></figcaption>
 </figure>
+
+<script>
+  // 페이지의 모든 그림이 라이트박스 하나를 같이 쓴다. 열 때 기록을 하나 쌓아 뒤로 가기가 페이지 이동 대신 라이트박스를 닫게 한다
+  const links = document.querySelectorAll<HTMLAnchorElement>("a.post-figure-link");
+  if (links.length > 0) {
+    const dialog = document.createElement("dialog");
+    dialog.className = "figure-lightbox";
+    dialog.dataset.readSkip = "";
+    dialog.innerHTML =
+      '<button type="button" class="figure-lightbox-close">' +
+      '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>' +
+      '<div class="figure-lightbox-scroll"><img alt="" decoding="async" /></div>';
+    document.body.append(dialog);
+    const closeButton = dialog.querySelector<HTMLButtonElement>(".figure-lightbox-close")!;
+    const scroller = dialog.querySelector<HTMLDivElement>(".figure-lightbox-scroll")!;
+    const image = dialog.querySelector<HTMLImageElement>("img")!;
+    const isLightboxEntry = () => (history.state as { figureLightbox?: boolean } | null)?.figureLightbox === true;
+    // 라이트박스를 연 채 새로고침하면 그 기록이 남으므로 지워 둔다
+    if (isLightboxEntry()) history.replaceState(null, "");
+    let closingByHistory = false;
+
+    const open = (link: HTMLAnchorElement) => {
+      const thumb = link.querySelector("img");
+      image.src = link.href;
+      image.alt = thumb?.alt ?? "";
+      image.width = Number(link.dataset.fullWidth) || 0;
+      image.height = Number(link.dataset.fullHeight) || 0;
+      dialog.setAttribute("aria-label", image.alt);
+      closeButton.setAttribute("aria-label", link.dataset.closeLabel ?? "");
+      closeButton.title = link.dataset.closeLabel ?? "";
+      dialog.dataset.zoom = "fit";
+      dialog.showModal();
+      scroller.scrollTo(0, 0);
+      if (!isLightboxEntry()) history.pushState({ figureLightbox: true }, "");
+    };
+
+    links.forEach((link) => {
+      link.addEventListener("click", (event) => {
+        // 새 탭·새 창으로 열기는 브라우저에 맡긴다
+        if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+        event.preventDefault();
+        open(link);
+      });
+    });
+
+    // 닫기 버튼·Esc·바깥 클릭으로 닫으면 열 때 쌓은 기록을 되돌린다. 뒤로 가기로 닫히면 이미 되돌아간 상태다
+    dialog.addEventListener("close", () => {
+      image.removeAttribute("src");
+      if (closingByHistory) {
+        closingByHistory = false;
+      } else if (isLightboxEntry()) {
+        history.back();
+      }
+    });
+    window.addEventListener("popstate", () => {
+      if (dialog.open) {
+        closingByHistory = true;
+        dialog.close();
+      }
+    });
+    closeButton.addEventListener("click", () => dialog.close());
+    dialog.addEventListener("click", (event) => {
+      if (event.target === dialog || event.target === scroller) dialog.close();
+    });
+    image.addEventListener("click", () => {
+      dialog.dataset.zoom = dialog.dataset.zoom === "fit" ? "actual" : "fit";
+    });
+  }
+</script>
+
+<style is:global>
+  /* 그림 라이트박스: 색은 사이트 토큰만 쓴다(배경은 페이지 배경을 거의 불투명하게 덮는다) */
+  .figure-lightbox {
+    width: 100vw;
+    height: 100dvh;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    /* 화면 전체를 덮는 대화상자 자체에 칠한다 (::backdrop은 브라우저에 따라 사이트 색 변수를 받지 못한다).
+       원본을 자세히 보는 화면이라 뒤 페이지가 비치지 않게 불투명하게 칠한다 */
+    background: var(--bg);
+    color: var(--text);
+    overflow: hidden;
+  }
+
+  .figure-lightbox::backdrop {
+    background: transparent;
+  }
+
+  .figure-lightbox-scroll {
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    overscroll-behavior: contain;
+    padding: 64px 16px 16px;
+  }
+
+  .figure-lightbox img {
+    display: block;
+    margin: 0 auto;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--surface);
+  }
+
+  .figure-lightbox[data-zoom="fit"] .figure-lightbox-scroll {
+    display: grid;
+    place-items: center;
+  }
+
+  .figure-lightbox[data-zoom="fit"] img {
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: calc(100dvh - 80px);
+    cursor: zoom-in;
+  }
+
+  .figure-lightbox[data-zoom="actual"] img {
+    max-width: none;
+    max-height: none;
+    cursor: zoom-out;
+  }
+
+  .figure-lightbox-close {
+    position: fixed;
+    top: 12px;
+    right: 12px;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+  }
+
+  .figure-lightbox-close:hover {
+    border-color: var(--accent);
+  }
+
+  .figure-lightbox-close:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  .figure-lightbox-close svg {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+  }
+
+  /* 라이트박스가 열려 있는 동안 뒤 페이지가 스크롤되지 않게 한다 */
+  html:has(.figure-lightbox[open]) {
+    overflow: hidden;
+  }
+
+  .post-figure-link {
+    cursor: zoom-in;
+  }
+</style>
