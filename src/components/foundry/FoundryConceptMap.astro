@@ -832,10 +832,11 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
       // 좁은 화면에서 막대가 커진 뒤에도 카드 머리와 누른 버튼이 보이게 한다(보이면 그대로).
       // 본문 끝에서 밀려 올라간 막대는 위로 커져 머리가 화면 위로 숨으므로 막대 위 끝을 화면 안으로 내리고,
       // 위에 붙기 전인 막대는 아래로 커지며 마우스로 누르면 읽어 주기 도크 밑에 그려지므로 누른 버튼을 지금 보이는 도크(재생 중이면 조작 바) 위로 올린다
-      const keepPressedInView = (button: HTMLElement) => {
+      // keepHidden: 비유 탭·칩은 누르기 전에 이미 화면 위로 올라가 있던 만큼은 두고 이번에 위로 커진 만큼만 되돌려 누른 버튼을 제자리에 둔다
+      const keepPressedInView = (button: HTMLElement, keepHidden = false) => {
         if (!aside || aside.nextElementSibling !== root) return;
         const barTop = aside.getBoundingClientRect().top;
-        if (barTop < 0 && barTop < barTopBefore - 0.5) window.scrollBy(0, barTop);
+        if (barTop < 0 && barTop < barTopBefore - 0.5) window.scrollBy(0, barTop - (keepHidden ? Math.min(0, barTopBefore) : 0));
         if (aside.getBoundingClientRect().top <= 0.5) return;
         const dock = Array.from(document.querySelectorAll<HTMLElement>(".ra-dock .ra-bar, .ra-dock .ra-start")).find((el) => el.getClientRects().length > 0);
         const limit = Math.min(window.innerHeight - 4, (dock?.getBoundingClientRect().top ?? window.innerHeight) - 8);
@@ -845,10 +846,11 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
       if (more && target.closest(".more") === more) { setExpanded(!panel.classList.contains("is-expanded")); return keepPressedInView(more); }
       if (fold && target.closest(".fold") === fold) { setCollapsed(!panel.classList.contains("is-collapsed")); return keepPressedInView(fold); }
       // 접힌 카드를 탭해 열 때, 칩·비유 탭·이전/다음으로 카드가 바뀔 때도 막대 높이가 바뀌므로 같은 방식으로 보이게 한다
-      if (panel.classList.contains("is-collapsed") && target.closest(".card.is-active") && panel.contains(target)) { setCollapsed(false); return keepPressedInView(fold ?? panel); }
+      // 접힌 막대는 좁은 화면에만 있다(넓은 화면에서도 is-collapsed가 붙지만 보이지 않으므로 클릭을 가로채지 않는다)
+      if (aside?.nextElementSibling === root && panel.classList.contains("is-collapsed") && target.closest(".card.is-active") && panel.contains(target)) { setCollapsed(false); return keepPressedInView(fold ?? panel); }
       if (indexToggle && target.closest(".index-toggle") === indexToggle) return setIndexOpen(!panel.classList.contains("index-open"));
       const viewButton = target.closest<HTMLElement>("button[data-view]");
-      if (viewButton && panel.contains(viewButton)) { setView(viewButton.dataset.view ?? ""); return keepPressedInView(viewButton); }
+      if (viewButton && panel.contains(viewButton)) { setView(viewButton.dataset.view ?? ""); return keepPressedInView(viewButton, true); }
       const routeButton = target.closest<HTMLElement>("button[data-route]");
       if (routeButton && routeBox?.contains(routeButton)) {
         const rid = routeButton.dataset.route ?? "";
@@ -861,7 +863,7 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
         return history.replaceState(null, "", rid ? `#route-${rid}` : location.pathname + location.search);
       }
       const chip = target.closest<HTMLElement>("[data-chip]");
-      if (chip) { pick(chip.dataset.chip); if (panel.contains(chip)) keepPressedInView(chip); return; }
+      if (chip) { pick(chip.dataset.chip); if (panel.contains(chip)) keepPressedInView(chip, true); return; }
       const step = target.closest<HTMLElement>("[data-step]");
       if (step && panel.contains(step)) {
         pick(ids[(current + Number(step.dataset.step) + ids.length) % ids.length]);
