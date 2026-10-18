@@ -1230,11 +1230,13 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
     /* 막대(#post-aside)는 지도 바로 앞에 오며 margin-bottom 124px로 본문 끝의 읽어 주기 도크 앞에서 멈춘다. 겹쳐지는 여백이 원래의 24px가 되게 한다 */
     :global(#post-aside) + .fcm { margin-top: -100px; }
     /* 막대는 위에 붙어 있거나 키보드 포커스가 안에 있을 때만 본문 위에 그린다. 그 밖에는 다른 본문처럼 화면 아래의 읽어 주기 도크 밑으로 지나간다.
-       막대 버튼과 링크에는 본문 요소와 같은 아래 여백(재생 중 조작 바가 보이면 112px)을 줘서 도크에 가리지 않게 하고,
-       펼친 막대 안에서는 이 여백이 아래 고정 버튼 줄(약 40px)도 비켜 가게 한다. 고정 버튼 줄 자체는 제외한다(막대 안이 튄다) */
+       막대 버튼과 링크에는 본문 요소와 같은 아래 여백(재생 중 조작 바가 보이면 112px)을 줘서 도크에 가리지 않게 한다.
+       펼친 막대 안은 막대 안에서 스크롤되고 포커스가 있는 동안 막대가 도크 위에 오므로 아래 고정 버튼 줄(약 40px)만 비키면 된다.
+       도크 여백을 그대로 주면 이미 보이는 링크로 Tab할 때도 막대 안이 튀고, 고정 버튼 줄 자체에 주면 버튼 사이를 Tab할 때 튄다 */
     :global(#post-aside:not([data-stuck]):not(:has(:focus-visible))) { z-index: auto; }
-    :global(#post-aside :is(a[href], button):not(.is-expanded .nav *)) { scroll-margin-bottom: calc(64px + env(safe-area-inset-bottom, 0px)); }
-    :global(html:has(.ra-bar:not([hidden])) #post-aside :is(a[href], button):not(.is-expanded .nav *)) { scroll-margin-bottom: calc(112px + env(safe-area-inset-bottom, 0px)); }
+    :global(#post-aside :is(a[href], button):not(.is-expanded *)) { scroll-margin-bottom: calc(64px + env(safe-area-inset-bottom, 0px)); }
+    :global(html:has(.ra-bar:not([hidden])) #post-aside :is(a[href], button):not(.is-expanded *)) { scroll-margin-bottom: calc(112px + env(safe-area-inset-bottom, 0px)); }
+    :global(#post-aside .is-expanded :is(a[href], button):not(.nav *)) { scroll-margin-bottom: 48px; }
     [data-docked] { gap: 8px; }
     [data-docked] .chips { display: flex; gap: 5px; overflow-x: auto; padding: 4px; margin: -4px -4px 0; scrollbar-width: thin; }
     [data-docked] .chip-group, [data-docked] .gitems { display: contents; }
