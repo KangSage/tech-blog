@@ -85,6 +85,26 @@ const groups = layers.map(([layer, label]) => ({ layer, label, items: concepts.f
 const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
 // 노선 번호 자리: 상자의 왼쪽 위 모서리. 권한 테두리(project)는 이름표의 왼쪽 위
 const badges = [...mapNodes.map((n) => ({ id: n.id, x: n.x, y: n.y })), { id: "project", x: 18, y: 672 }];
+// 앱과 로직 사이의 공용 가로선은 세로선이 만나는 곳마다 구간으로 나눠 그린다.
+// 연결 쌍은 앱의 세로선부터 대상의 세로선까지 지나는 구간에만 실어서, 고른 연결이 지나지 않는 구간은 흐리게 남는다.
+// x는 아래 그림의 세로선 위치와 같아야 한다 (앱: 아래에서 올라오는 선, 대상: 로직 상자와 Ontology로 올라가는 선)
+const busY = 552;
+const busApps: Record<string, number> = { workshop: 98, osdk: 269, analytics: 470 };
+const busTargets: Record<string, number> = { action: 64, function: 148, cm: 244, aip: 434, onto: 494 };
+const busPairs = [
+  "workshop:action", "workshop:function", "workshop:cm", "workshop:aip", "workshop:onto",
+  "osdk:action", "osdk:function", "osdk:cm", "osdk:aip", "osdk:onto",
+  "analytics:action", "analytics:function", "analytics:onto",
+];
+const busStops = [...new Set([...Object.values(busApps), ...Object.values(busTargets)])].sort((a, b) => a - b);
+const busSegments = busStops.slice(0, -1).map((x1, i) => {
+  const x2 = busStops[i + 1];
+  const edges = busPairs.filter((pair) => {
+    const [app, target] = pair.split(":");
+    return Math.min(busApps[app], busTargets[target]) <= x1 && x2 <= Math.max(busApps[app], busTargets[target]);
+  });
+  return { x1, x2, edges: edges.join(" ") };
+});
 ---
 
 <div class="fcm" data-fcm>
@@ -186,7 +206,7 @@ const badges = [...mapNodes.map((n) => ({ id: n.id, x: n.x, y: n.y })), { id: "p
         <line class="ar" data-edges="workshop:aip osdk:aip" x1="434" y1="552" x2="434" y2="526" marker-end="url(#fcm-ah)"></line>
         <line class="ar" data-edges="workshop:onto osdk:onto analytics:onto" x1="494" y1="552" x2="494" y2="434" marker-end="url(#fcm-ah)"></line>
         <text class="lab as" data-edges="workshop:onto osdk:onto analytics:onto" x="440" y="546">직접 조회</text>
-        <line class="ar" data-edges="workshop:action workshop:function workshop:cm workshop:aip osdk:action osdk:function osdk:cm osdk:aip analytics:action analytics:function workshop:onto osdk:onto analytics:onto" x1="64" y1="552" x2="494" y2="552"></line>
+        {busSegments.map((s) => <line class="ar" data-edges={s.edges} x1={s.x1} y1={busY} x2={s.x2} y2={busY}></line>)}
         <line class="ar" data-edges="workshop:action workshop:function workshop:cm workshop:aip workshop:onto" x1="98" y1="574" x2="98" y2="554" marker-end="url(#fcm-ah)"></line>
         <line class="ar" data-edges="osdk:action osdk:function osdk:cm osdk:aip osdk:onto" x1="269" y1="574" x2="269" y2="554" marker-end="url(#fcm-ah)"></line>
         <line class="ar" data-edges="analytics:action analytics:function analytics:onto" x1="470" y1="574" x2="470" y2="554" marker-end="url(#fcm-ah)"></line>
