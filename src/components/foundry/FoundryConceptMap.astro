@@ -768,15 +768,14 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
     const initial = location.hash.replace("#concept-", "");
     focusEnabled = ids.includes(initial);
     setCollapsed(!focusEnabled);
-    render(ids.includes(initial) ? ids.indexOf(initial) : ids.indexOf("onto"));
-    // 연재 글이 route로 정한 노선은 주소에 #route-…가 없을 때만 켠다. 이때는 글 첫머리에서 시작하므로 스크롤하지 않는다
-    const propRoute = root.dataset.initialRoute;
-    if (propRoute && routeFromHash() === null) setRoute(propRoute);
-    const initialRoute = routeFromHash();
-    if (initialRoute) {
-      setRoute(initialRoute);
-      window.addEventListener("load", showRoutes, { once: true });
-    }
+    // 노선을 켠 채 열면(#route-… 또는 연재 글의 route) 카드는 그 노선의 첫 단계 개념으로 시작한다.
+    // 연재 글이 route로 정한 노선은 주소에 #route-…가 없을 때만 켜고, 글 첫머리에서 시작하므로 스크롤하지 않는다
+    const hashRoute = routeFromHash();
+    const openRoute = hashRoute ?? root.dataset.initialRoute ?? "";
+    const firstStep = words(routePanels.find((p) => p.dataset.routePanel === openRoute)?.dataset.steps)[0]?.split(":")[0] ?? "";
+    render(ids.includes(initial) ? ids.indexOf(initial) : ids.includes(firstStep) ? ids.indexOf(firstStep) : ids.indexOf("onto"));
+    if (openRoute) setRoute(openRoute);
+    if (hashRoute) window.addEventListener("load", showRoutes, { once: true });
     // #concept-… 주소로 들어오면 브라우저가 이미 옛 카드 위치로 스크롤했으므로 지도 위치로 맞춘다
     if (ids.includes(initial)) {
       window.addEventListener("load", () => {

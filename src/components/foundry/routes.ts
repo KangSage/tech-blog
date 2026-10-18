@@ -114,6 +114,7 @@ export const routes: Route[] = [
   },
   {
     id: "access",
+    article: "foundry-access-route",
     label: "권한",
     question: "누가 무엇을 보고 고칠 수 있는가?",
     steps: [
