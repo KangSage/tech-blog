@@ -133,7 +133,14 @@ const categoryCounts = categories.map((category) => ({
       } else {
         return;
       }
+      // "필터 지우기"는 지우고 나면 숨으므로 포커스가 그 버튼에 있었다면 방금 선택된 '전체' 칩으로 옮긴다
+      const refocus = document.activeElement === clear;
       apply();
+      if (refocus && clear.hidden) {
+        const all = finder!.querySelector<HTMLElement>('[data-filter-category=""]');
+        all?.focus({ preventScroll: true });
+        all?.scrollIntoView({ block: "nearest", inline: "nearest" });
+      }
     });
     apply();
   }
