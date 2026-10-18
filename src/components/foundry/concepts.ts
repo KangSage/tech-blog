@@ -361,9 +361,9 @@ export const concepts: Concept[] = [
     points: [
       "조건: 시간 기반(예: 매주 월요일 오전 9시), Ontology 데이터 기반(예: 우선순위가 높은 Alert Object 추가), 둘의 조합, Dataset 갱신(예: Dataset이 갱신되면 실행)",
       "Stream도 초당 200건을 넘지 않으면 직접 감시할 수 있습니다.",
-      "효과: Action 제출, AIP Logic 함수 실행, Function 실행(Function effect, 베타), 플랫폼·이메일 알림. Function effect는 Function이 돌려준 Ontology 편집을 적용하지 않으므로 편집하려면 Function-backed action을 씁니다.",
+      "효과: Action 제출(Action effect), AIP Logic 함수 실행(Logic effect), Function 실행(Function effect, 베타), 플랫폼·이메일 알림. Function effect는 Function이 돌려준 Ontology 편집을 적용하지 않으므로 편집하려면 Function-backed action을 씁니다.",
       "조건은 계속 감시하거나 일정에 맞춰 확인합니다.",
-      "조건 평가와 Action·Logic·Function 효과는 자동화 소유자(owner)의 권한으로 실행됩니다. Action의 Submission criteria도 소유자 기준으로 평가되고 편집 이력의 Edited by에는 소유자가 남습니다.",
+      "조건 평가와 Action·Logic·Function effect는 자동화 소유자(owner)의 권한으로 실행됩니다. Action의 Submission criteria도 소유자 기준으로 평가되고 편집 이력의 Edited by에는 소유자가 남습니다.",
     ],
     doc: D + "automate/overview",
     related: [
@@ -388,7 +388,7 @@ export const concepts: Concept[] = [
       "AIP Chatbot Studio의 예전 이름은 AIP Agent Studio입니다. 챗봇은 앱에 통합해 읽기·쓰기 워크플로를 처리합니다.",
       "AIP Evals는 AIP Logic 함수·챗봇 함수·코드 함수를 test case와 evaluation function으로 평가하는 테스트 환경입니다. LLM 결과가 실행마다 달라지는 점을 감안해 이전 버전이나 다른 모델과 결과를 비교하고 실행 간 편차를 확인합니다.",
     ],
-    warn: "Restricted view·Object security policy 같은 행·열 통제는 모델이 읽는 데이터만 거르며 모델의 출력이나 모델이 만든 Ontology 편집으로 전파되지 않습니다. project-scoped 실행 모드에서는 모델이 실행한 사용자가 아니라 Logic 함수가 든 Project의 권한으로 읽습니다. 하류까지 보호하려면 Marking이나 Classification-based Access Controls(CBAC)를 함께 겁니다. 다만 Action이 쓴 결과에는 Marking도 저절로 따라가지 않습니다(Action type 카드 참고).",
+    warn: "Restricted view·Object security policy 같은 행·열 통제는 모델이 읽는 데이터만 거르며 모델의 출력이나 모델이 만든 Ontology 편집으로 전파되지 않습니다. project-scoped 실행 모드에서는 실행한 사용자의 권한이 아니라 Logic 함수가 든 Project의 권한으로 모델이 데이터를 읽습니다. 하류까지 보호하려면 Marking이나 Classification-based Access Controls(CBAC)를 함께 겁니다. 다만 Action이 쓴 결과에는 Marking도 저절로 따라가지 않습니다(Action type 카드 참고).",
     doc: [
       { label: "AIP Logic", href: D + "logic/overview" },
       { label: "AIP Chatbot Studio", href: D + "chatbot-studio/overview" },
@@ -409,12 +409,12 @@ export const concepts: Concept[] = [
     analogy: "Retool과 비슷합니다. Layout = JSX 구조, Widget = 컴포넌트, Variable = useState, Event = 이벤트 핸들러입니다.",
     everyday: "파워포인트에서 도형을 끌어다 놓듯 표·차트·버튼을 배치해 업무 화면을 만드는 도구입니다. 버튼을 누르면 신청서(Action)가 제출되는 식으로 연결됩니다.",
     points: [
-      "쓰기는 Action, 복잡한 계산은 Function에 연결합니다. Derived properties로 연결된 Object의 집계와 property 사이의 계산을 Ontology를 바꾸지 않고 Workshop 안에서 바로 할 수도 있습니다.",
+      "쓰기는 Action, 복잡한 계산은 Function에 연결합니다. 링크로 연결된 Object의 집계와 property 사이의 계산은 Derived properties로 Workshop 안에서 바로 할 수도 있으며 Ontology는 바꾸지 않습니다.",
       "기본 위젯으로 부족하면 Custom widget으로 직접 작성한 프론트엔드 코드를 넣을 수 있습니다.",
       "기본 도구를 넘어서는 완전한 맞춤 화면이 필요하면 OSDK React 앱을 만듭니다.",
       "OSDK로 만든 React 앱은 Iframe 위젯으로, Quiver 대시보드는 그대로 Workshop 안에 넣을 수 있습니다.",
       "Carbon은 Workshop 모듈·Action·Quiver 분석 같은 앱과 리소스를 묶어 사용자 그룹별 작업 공간(workspace)을 만듭니다. 작업 공간 밖으로 이동하는 것을 막을 수도 있습니다.",
-      "Pilot은 자연어 설명으로 Object type·Action type 같은 Ontology 요소와 OSDK React 앱 또는 Workshop에 넣을 Custom widget을 만듭니다. Pilot이 켜진 환경에서만 쓸 수 있습니다.",
+      "Pilot은 자연어 설명으로 Object type·Action type 같은 Ontology 요소를 만듭니다. 화면은 독립된 OSDK React 앱으로 만들거나 Workshop에 넣을 Custom widget으로 만듭니다. Pilot이 켜진 환경에서만 쓸 수 있습니다.",
       "Slate는 드래그 앤 드롭으로 앱과 대시보드를 만드는 또 다른 도구로 CSS로 화면의 모든 스타일을 바꿀 수 있습니다. Object 데이터·Function·Action과 함께 Foundry 외부의 데이터베이스·API 데이터도 쓸 수 있습니다.",
     ],
     doc: D + "workshop/overview",

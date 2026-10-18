@@ -437,9 +437,10 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
     // 카드 id는 JS가 없을 때의 앵커용. 켜진 뒤에는 지워서 #concept-… 해시로 브라우저가 스크롤하지 않게 한다
     cards.forEach((card) => card.removeAttribute("id"));
     const scroller = aside ?? panel;
-    // 지도 위에 붙은 막대의 높이를 지도에 알려 둔다. 키보드로 상자에 포커스가 가면 이 높이만큼 비워 막대 아래에 보이게 한다(넓은 화면은 0).
+    // 지도 위에 붙은 막대의 높이를 지도와 그 뒤 본문에 알려 둔다. 키보드로 상자나 링크에 포커스가 가면 이 높이만큼 비워 막대 아래에 보이게 한다(넓은 화면은 0).
     // 막대 높이를 바꾸는 곳(접기·자세히·카드 전환·화면 폭 변화)에서 부른다
-    const syncBar = () => root.style.setProperty("--fcm-bar", `${aside && aside.nextElementSibling === root ? aside.offsetHeight : 0}px`);
+    const barHost = root.closest<HTMLElement>(".post-body") ?? root;
+    const syncBar = () => barHost.style.setProperty("--fcm-bar", `${aside && aside.nextElementSibling === root ? aside.offsetHeight : 0}px`);
     window.addEventListener("resize", syncBar);
     // 그림 상자는 SVG <a href="#concept-…">라서 원래부터 Tab으로 이동하고 Enter로 누를 수 있다.
     // 스크립트가 없으면 카드 앵커로 이동하고, 켜진 뒤에는 아래 클릭 처리에서 이동 없이 카드만 바꾼다
@@ -794,6 +795,8 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
         const barBefore = aside && aside.nextElementSibling === root && aside.getBoundingClientRect().top > 0.5 ? aside.offsetHeight : null;
         pick(node.getAttribute("data-id"));
         if (aside && barBefore !== null) window.scrollBy(0, aside.offsetHeight - barBefore);
+        // 막대가 이미 위에 붙어 있었다면 펼쳐진 막대가 누른 상자를 덮을 수 있으므로 막대 아래로 보이게 한다(보이면 그대로)
+        if (aside && aside.nextElementSibling === root) node.scrollIntoView({ block: "nearest" });
         return;
       }
       // 본문의 개념 링크(#concept-…)도 이동 없이 카드 전환으로 처리
@@ -851,6 +854,10 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
       edgeEls.forEach((el) => pairsOf(el).flat().forEach((pid) => {
         if (!ids.includes(pid)) warnings.push(`연결 쌍에 없는 개념: "${pid}" (${el.getAttribute("data-edges")})`);
       }));
+      // 선 없는 관계(EXTRA_EDGES)의 id 오타는 강조만 조용히 빠지므로 함께 검사한다
+      EXTRA_EDGES.flat().forEach((pid) => {
+        if (!ids.includes(pid)) warnings.push(`EXTRA_EDGES에 없는 개념: "${pid}"`);
+      });
       // 노선의 선은 그림에 그려진 선의 data-edges와 방향까지 같아야 강조된다 (그림에 없는 관계는 노선 선으로 쓰지 않는다)
       routePanels.forEach((p) => words(p.dataset.routeEdges).forEach((pair) => {
         if (!edgeEls.some((el) => words(el.dataset.edges).includes(pair))) warnings.push(`노선 ${p.dataset.routePanel}의 선이 그림에 없거나 방향이 다름: ${pair}`);
@@ -1015,7 +1022,7 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
   .map.focus .lab.rel-on, .map.focus .rel-on .lab { fill: var(--text); }
   /* 노선 강조: 노선에 없는 상자·선은 흐리게, 노선의 선과 라벨은 진하게, 단계 번호를 상자 모서리에 */
   .map.route .node:not(.route-on):not(:focus-visible), .map.route [data-edges]:not(.node):not(.route-on) { opacity: 0.2; }
-  .map.route .node.route-on:not(.link) .box { stroke-width: 2; }
+  .map.route .node.route-on:not(.link):not(:focus-visible) .box { stroke-width: 2; }
   .map.route .ar.route-on, .map.route .node.link.route-on .ar { stroke: var(--text); stroke-width: 1.6; }
   .map.route .lab.route-on, .map.route .node.link.route-on .lab { fill: var(--text); }
   .map .badge { display: none; pointer-events: none; }
@@ -1025,8 +1032,10 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
   .map .hit { fill: transparent; }
   /* Materialization·media ref 화살표는 상자가 없으므로 포커스를 받으면 누르는 영역 둘레를 강조한다 */
   .node.link:focus-visible .hit { stroke: var(--accent); stroke-width: 2; }
-  /* 좁은 화면에서 위에 붙은 막대(--fcm-bar) 아래로 포커스된 상자나 단계 이름이 숨지 않게 한다 */
-  .map .node, .step-name { scroll-margin-top: calc(var(--fcm-bar, 0px) + 8px); }
+  /* 좁은 화면에서 위에 붙은 막대(--fcm-bar) 아래로 포커스된 버튼·상자·링크가 숨지 않게 한다.
+     막대는 본문 끝까지 붙어 있으므로 지도 뒤 본문의 링크·버튼에도 같은 여백을 준다(아래에 붙는 읽어 주기 막대는 제외) */
+  .fcm :is(a[href], button) { scroll-margin-top: calc(var(--fcm-bar, 0px) + 8px); }
+  :global(.post-body > [data-fcm] ~ :not(.ra-dock) :is(a[href], button, summary)) { scroll-margin-top: calc(var(--fcm-bar, 0px) + 8px); }
   /* Materialization이 만드는 출력 Dataset: 개념 상자와 구별되게 옅은 테두리와 회색 글자 */
   .map .out { fill: var(--surface); stroke: var(--border); stroke-width: 1.2; }
   .map .out-t { font-size: 11px; fill: var(--muted); }
@@ -1040,7 +1049,9 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
   .node.sel .box { fill: var(--s); stroke-width: 2.4; }
   /* 고른 상자의 바탕(--s)에서는 회색 부제가 WCAG AA에 못 미치므로 본문 글자색으로 바꾼다 */
   .node.sel .s { fill: var(--text); }
-  .node:focus-visible .box { stroke: var(--accent); stroke-width: 2.6; }
+  /* 층 색과 accent의 명도가 거의 같아 테두리 색만 바꾸면 포커스가 보이지 않으므로 상자 바깥에 윤곽선을 두고 테두리는 글자색으로 바꾼다 */
+  .node:focus-visible .box { stroke: var(--text); stroke-width: 2.6; }
+  .map .node:not(.link):not(.frame-node):focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   /* 권한 테두리는 이름표가 지도 맨 아래에 있어 화면 밖일 수 있으므로 테두리 전체로 포커스를 보인다 */
   .node.frame-node:focus-visible .frame { stroke: var(--accent); stroke-width: 2.4; }
   .node.link:hover .lab, .node.link.sel .lab, .node.link:focus-visible .lab { fill: var(--c); font-weight: 600; }
