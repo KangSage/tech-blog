@@ -3,6 +3,7 @@
 // 카드는 모두 빌드 시 HTML로 렌더링되고(JS 없이도 전부 보임), 스크립트가 켜지면 카드 패널을
 // 글 페이지의 #post-aside(넓은 화면은 오른쪽 사이드, 좁은 화면은 상단 고정)로 옮겨 하나씩 전환한다.
 import { concepts, layerLabels, type Layer } from "./concepts";
+import { routes } from "./routes";
 
 const layers = Object.entries(layerLabels) as [Layer, string][];
 // 개념 지도 상자의 배치 (viewBox 좌표). 이름은 넣지 않는다: concepts.ts의 short/mapLines를 쓴다.
@@ -57,6 +58,16 @@ const byId = Object.fromEntries(concepts.map((c) => [c.id, c]));
     ...concepts
       .filter((c) => (typeof c.doc === "string" ? c.title.includes(" · ") : c.doc.map((d) => d.label).join(" · ") !== c.title))
       .map((c) => `공식 문서 버튼이 title의 기능과 맞지 않는 개념: ${c.id}`),
+    // 관점(노선): 단계는 있는 개념만, 한 노선에서 개념은 한 번만, 강조할 선은 양 끝이 모두 단계에 있어야 한다
+    ...routes.flatMap((r) => {
+      const stepIds = r.steps.flatMap((s) => s.ids);
+      return [
+        ...stepIds.filter((id) => !byId[id]).map((id) => `노선 ${r.id}에 없는 개념: ${id}`),
+        ...stepIds.filter((id, i) => stepIds.indexOf(id) !== i).map((id) => `노선 ${r.id}에 두 번 나오는 개념: ${id}`),
+        ...r.edges.filter(([a, b]) => !stepIds.includes(a) || !stepIds.includes(b)).map(([a, b]) => `노선 ${r.id}의 선 양 끝이 단계에 없음: ${a}:${b}`),
+        ...(r.sources.length ? [] : [`근거 문서가 없는 노선: ${r.id}`]),
+      ];
+    }),
   ];
   if (problems.length) throw new Error(`[FoundryConceptMap] ${problems.join("; ")}`);
 }
@@ -72,12 +83,26 @@ const bands: { layer: Layer; top: number; bottom: number }[] = [
 const groups = layers.map(([layer, label]) => ({ layer, label, items: concepts.filter((c) => c.layer === layer) }));
 // 마침표 등으로 끝나는 문장마다 줄을 바꿔 보여준다
 const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
+// 노선 번호 자리: 상자의 왼쪽 위 모서리. 권한 테두리(project)는 이름표의 왼쪽 위
+const badges = [...mapNodes.map((n) => ({ id: n.id, x: n.x, y: n.y })), { id: "project", x: 18, y: 672 }];
 ---
 
 <div class="fcm" data-fcm>
   <ul class="legend" aria-label="색 구분" data-read-skip>
     {layers.map(([layer, label]) => <li class={`l-${layer}`}><i></i>{label}</li>)}
   </ul>
+
+  <!-- 관점(노선) 보기: 스크립트가 켜져야 동작하므로 처음에는 숨긴다. 화면 조작용이라 읽어 주기에서 뺀다 -->
+  <div class="routes" data-routes hidden data-read-skip>
+    <div class="route-tabs" role="group" aria-label="관점으로 보기">
+      <span class="route-label">관점으로 보기</span>
+      <button type="button" data-route="" aria-pressed="true">전체</button>
+      {routes.map((r) => <button type="button" data-route={r.id} aria-pressed="false">{r.label}</button>)}
+    </div>
+    <!-- 질문은 지도 위에, 단계 설명과 근거 문서는 지도 바로 아래(route-details)에 둬서 고르자마자 지도가 보이게 한다 -->
+    {routes.map((r) => <p class="route-q" data-route-q={r.id} hidden>{r.question}</p>)}
+    <p class="route-hint">{sentences('번호는 질문을 따라 읽는 순서이고 "/"로 나뉜 개념은 그중 하나를 쓰는 갈래입니다. 관점을 고른 동안 개념을 누르면 카드만 바뀌고 "전체"를 누르면 개념별 연결 강조로 돌아갑니다.').map((t, k) => <>{k > 0 && <br />}{t}</>)}</p>
+  </div>
 
   <div class="explore">
     <p class="map-scroll-hint" data-read-skip>그림을 좌우로 밀어서 볼 수 있습니다.</p>
@@ -190,6 +215,15 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
             </a>
           );
         })}
+        <!-- 노선 번호: 관점을 고르면 그 노선의 개념에만 순서 번호를 띄운다. 상자 위에 그리도록 상자 뒤에 둔다 -->
+        <g class="badges" aria-hidden="true">
+          {badges.map((b) => (
+            <g class="badge" data-badge={b.id} transform={`translate(${b.x} ${b.y})`}>
+              <circle r="8"></circle>
+              <text y="3.5"></text>
+            </g>
+          ))}
+        </g>
       </svg>
       <figcaption>
         <ul class="map-legend">
@@ -202,6 +236,35 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
         <p class="map-hint">개념을 고르면 그 개념과 연결된 상자와 화살표만 진하게 표시됩니다.</p>
       </figcaption>
     </figure>
+
+    <div class="route-details" data-read-skip>
+      {routes.map((r) => (
+        <div
+          class="route"
+          data-route-panel={r.id}
+          data-steps={r.steps.flatMap((s, i) => s.ids.map((id) => `${id}:${i + 1}`)).join(" ")}
+          data-route-edges={r.edges.map(([a, b]) => `${a}:${b}`).join(" ")}
+          hidden
+        >
+          <ol class="route-steps" aria-label={r.question}>
+            {r.steps.map((s, i) => (
+              <li>
+                <span class="step-no">{i + 1}</span>
+                <span class="step-body">
+                  <span class="step-names">
+                    {s.ids.map((id, j) => (
+                      <>{j > 0 && <span class="step-or">/</span>}<button type="button" class={`step-name l-${byId[id].layer}`} data-chip={id}><i></i>{byId[id].short}</button></>
+                    ))}
+                  </span>
+                  <span class="step-note">{sentences(s.note).map((t, k) => <>{k > 0 && <br />}{t}</>)}</span>
+                </span>
+              </li>
+            ))}
+          </ol>
+          <p class="route-src"><span class="route-src-label">근거 문서</span>{r.sources.map((s) => <a href={s.href} target="_blank" rel="noopener noreferrer">{s.label} ↗</a>)}</p>
+        </div>
+      ))}
+    </div>
 
     <section class="panel" aria-label="개념 카드">
       <div class="index" hidden>
@@ -439,9 +502,11 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
       (el.dataset.edges ?? "").split(" ").filter(Boolean).map((pair) => pair.split(":") as [string, string]);
     // 처음 열었을 때는 지도 전체를 보여 주고, 사용자가 개념을 고른 뒤부터 강조한다
     let focusEnabled = false;
+    // 관점(노선)을 고른 동안에는 개념별 연결 강조 대신 노선 강조를 보여 준다
+    let activeRoute = "";
     function focusRelations(id: string) {
       if (!map) return;
-      const focus = focusEnabled && !CROSS_CUTTING.has(id);
+      const focus = focusEnabled && !activeRoute && !CROSS_CUTTING.has(id);
       map.classList.toggle("focus", focus);
       const related = new Set([id]);
       const addPartner = ([a, b]: [string, string]) => {
@@ -468,11 +533,49 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
       });
     }
 
+    // 관점(노선) 보기: 노선 패널의 data-steps("개념:번호")와 data-route-edges("a:b")로 지도를 강조한다.
+    // 상자는 단계에 든 개념만, 선은 노선의 연결 쌍을 하나라도 실은 선만 진하게 한다.
+    // Materialization·media ref처럼 상자에 딸린 화살표는 실은 쌍이 모두 노선에 있을 때만 강조한다
+    const routeBox = root.querySelector<HTMLElement>("[data-routes]");
+    const routePanels = Array.from(root.querySelectorAll<HTMLElement>("[data-route-panel]"));
+    const badgeEls = Array.from(root.querySelectorAll<SVGGElement>(".map [data-badge]"));
+    const words = (value: string | undefined) => (value ?? "").split(" ").filter(Boolean);
+    function setRoute(rid: string) {
+      const routePanel = routePanels.find((p) => p.dataset.routePanel === rid);
+      activeRoute = routePanel ? rid : "";
+      // 노선을 보는 동안에는 선 종류 범례 대신 노선 안내를 보여 준다
+      root!.classList.toggle("route-mode", !!routePanel);
+      routeBox?.querySelectorAll<HTMLElement>("button[data-route]").forEach((b) => b.setAttribute("aria-pressed", String((b.dataset.route ?? "") === activeRoute)));
+      routeBox?.querySelectorAll<HTMLElement>("[data-route-q]").forEach((q) => (q.hidden = q.dataset.routeQ !== activeRoute));
+      routePanels.forEach((p) => (p.hidden = p !== routePanel));
+      const steps = new Map(words(routePanel?.dataset.steps).map((s) => s.split(":") as [string, string]));
+      const edges = new Set(words(routePanel?.dataset.routeEdges));
+      // 방향까지 비교한다: Dataset → Funnel(인덱싱)과 Funnel → Dataset(Materialization)은 다른 선이다
+      const inRoute = ([a, b]: [string, string]) => edges.has(`${a}:${b}`);
+      map?.classList.toggle("route", !!routePanel);
+      nodeEls.forEach((node) => {
+        const on = node.classList.contains("link") ? pairsOf(node).every(inRoute) : steps.has(node.dataset.id ?? "");
+        node.classList.toggle("route-on", on);
+      });
+      edgeEls.forEach((el) => {
+        if (!el.classList.contains("node")) el.classList.toggle("route-on", pairsOf(el).some(inRoute));
+      });
+      badgeEls.forEach((badge) => {
+        const n = steps.get(badge.dataset.badge ?? "");
+        badge.classList.toggle("on", !!n);
+        const label = badge.querySelector("text");
+        if (label) label.textContent = n ?? "";
+      });
+      focusRelations(ids[current]);
+    }
+    if (routeBox) routeBox.hidden = false;
+
     function render(index: number) {
       current = index;
       const id = ids[index];
       cards.forEach((card, i) => card.classList.toggle("is-active", i === index));
       root!.querySelectorAll(".map [data-id]").forEach((node) => node.classList.toggle("sel", node.getAttribute("data-id") === id));
+      root!.querySelectorAll<HTMLElement>(".step-name").forEach((name) => name.classList.toggle("is-current", name.dataset.chip === id));
       focusRelations(id);
       panel!.querySelectorAll<HTMLElement>(".chip-group").forEach((group) => {
         group.classList.toggle("is-current", !!group.querySelector(`[data-chip="${id}"]`));
@@ -515,6 +618,12 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
       if (indexToggle && target.closest(".index-toggle") === indexToggle) return setIndexOpen(!panel.classList.contains("index-open"));
       const viewButton = target.closest<HTMLElement>("button[data-view]");
       if (viewButton && panel.contains(viewButton)) return setView(viewButton.dataset.view ?? "");
+      const routeButton = target.closest<HTMLElement>("button[data-route]");
+      if (routeButton && routeBox?.contains(routeButton)) {
+        const rid = routeButton.dataset.route ?? "";
+        setRoute(rid);
+        return history.replaceState(null, "", rid ? `#route-${rid}` : location.pathname + location.search);
+      }
       const chip = target.closest<HTMLElement>("[data-chip]");
       if (chip) return pick(chip.dataset.chip);
       const step = target.closest<HTMLElement>("[data-step]");
@@ -581,16 +690,37 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
       edgeEls.forEach((el) => pairsOf(el).flat().forEach((pid) => {
         if (!ids.includes(pid)) warnings.push(`연결 쌍에 없는 개념: "${pid}" (${el.getAttribute("data-edges")})`);
       }));
+      // 노선의 선은 그림에 그려진 선의 data-edges와 방향까지 같아야 강조된다 (그림에 없는 관계는 노선 선으로 쓰지 않는다)
+      routePanels.forEach((p) => words(p.dataset.routeEdges).forEach((pair) => {
+        if (!edgeEls.some((el) => words(el.dataset.edges).includes(pair))) warnings.push(`노선 ${p.dataset.routePanel}의 선이 그림에 없거나 방향이 다름: ${pair}`);
+      }));
       if (warnings.length) console.warn(`[concept-map] 배치 점검 ${warnings.length}건\n- ${warnings.join("\n- ")}`);
       else console.info("[concept-map] 배치 점검 통과");
     }
 
-    window.addEventListener("hashchange", () => pick(location.hash.replace("#concept-", "")));
+    // #route-… 주소는 그 관점을 켠 채로 연다 (연재 글에서 허브 지도의 노선으로 바로 보내는 용도)
+    const routeFromHash = () => (location.hash.startsWith("#route-") ? location.hash.slice("#route-".length) : null);
+    // 지도 첫머리(관점 선택)로 스크롤한다. 좁은 화면에서는 지도 바로 위에 붙는 카드 막대 높이만큼 비워 둔다
+    const showRoutes = () => {
+      const bar = aside && aside.nextElementSibling === root ? aside.getBoundingClientRect().height : 0;
+      window.scrollTo({ top: root.getBoundingClientRect().top + window.scrollY - bar - 8 });
+    };
+    window.addEventListener("hashchange", () => {
+      const rid = routeFromHash();
+      if (rid === null) return pick(location.hash.replace("#concept-", ""));
+      setRoute(rid);
+      showRoutes();
+    });
 
     const initial = location.hash.replace("#concept-", "");
     focusEnabled = ids.includes(initial);
     setCollapsed(!focusEnabled);
     render(ids.includes(initial) ? ids.indexOf(initial) : ids.indexOf("onto"));
+    const initialRoute = routeFromHash();
+    if (initialRoute) {
+      setRoute(initialRoute);
+      window.addEventListener("load", showRoutes, { once: true });
+    }
     // #concept-… 주소로 들어오면 브라우저가 이미 옛 카드 위치로 스크롤했으므로 지도 위치로 맞춘다
     if (ids.includes(initial)) {
       window.addEventListener("load", () => {
@@ -662,6 +792,36 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
   .lg-extra { fill: var(--surface); stroke: var(--muted); stroke-width: 1.4; stroke-dasharray: 3 2; }
   .map-hint { margin: 6px 0 0; }
 
+  /* 관점(노선) 보기: 질문 하나를 고르면 그 노선의 단계와 근거 문서를 보여 준다 */
+  .routes[hidden], .route[hidden], .route-q[hidden] { display: none; }
+  .routes { display: grid; gap: 8px; margin-top: 14px; }
+  /* 한국어 질문과 단계 설명은 낱말 단위로 줄을 바꾼다 */
+  .route-q, .route-hint, .step-note { word-break: keep-all; }
+  .route-mode .fig figcaption { display: none; }
+  /* 단계 설명 묶음은 .explore 격자의 줄을 차지하지 않게 해서 노선을 안 고르면 빈 간격이 생기지 않게 한다 */
+  .route-details { display: contents; }
+  .route-tabs { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+  .route-label { margin-right: 4px; font-size: 13px; font-weight: 700; color: var(--muted); }
+  .route-tabs button { height: 30px; padding: 0 11px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface); font-size: 13px; cursor: pointer; }
+  .route-tabs button[aria-pressed="true"] { background: var(--text); border-color: var(--text); color: var(--bg); font-weight: 600; }
+  .route { display: grid; gap: 10px; padding: 14px 16px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+  .route-q { margin: 4px 0 0; font-size: 16px; font-weight: 700; line-height: 1.45; }
+  .route-steps { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+  .route-steps li { display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: 10px; align-items: start; }
+  .step-no { width: 20px; height: 20px; margin-top: 1px; border-radius: 50%; background: var(--text); color: var(--bg); font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; }
+  .step-body { display: grid; gap: 2px; min-width: 0; }
+  .step-names { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 6px; }
+  .step-or { color: var(--muted); }
+  .step-name { display: inline-flex; align-items: center; gap: 5px; padding: 0 4px; margin: 0 -4px; border: 0; border-radius: 5px; background: none; font-size: 14px; font-weight: 700; cursor: pointer; text-decoration: underline; text-decoration-color: var(--border); text-underline-offset: 3px; }
+  .step-name i { width: 7px; height: 7px; border-radius: 50%; background: var(--c); }
+  .step-name:hover { text-decoration-color: currentColor; }
+  .step-name.is-current { background: var(--s); text-decoration: none; }
+  .step-note { font-size: 14px; line-height: 1.55; }
+  .route-src { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 0; font-size: 12px; }
+  .route-src-label { color: var(--muted); }
+  .route-hint { display: none; margin: 0; font-size: 12px; color: var(--muted); }
+  .route-mode .route-hint { display: block; }
+
   .map text { fill: var(--text); font-family: inherit; text-anchor: middle; }
   .map .t { font-size: 12px; font-weight: 600; }
   .map .tb { font-size: 13px; font-weight: 700; }
@@ -682,6 +842,15 @@ const sentences = (text: string) => text.split(/(?<=[.!?])\s+/);
   .node.rel-extra .box { stroke-dasharray: 4 3; stroke-width: 1.8; }
   .map.focus .ar.rel-on, .map.focus .rel-on .ar { stroke: var(--text); stroke-width: 1.6; }
   .map.focus .lab.rel-on, .map.focus .rel-on .lab { fill: var(--text); }
+  /* 노선 강조: 노선에 없는 상자·선은 흐리게, 노선의 선과 라벨은 진하게, 단계 번호를 상자 모서리에 */
+  .map.route .node:not(.route-on), .map.route [data-edges]:not(.node):not(.route-on) { opacity: 0.2; }
+  .map.route .node.route-on:not(.link) .box { stroke-width: 2; }
+  .map.route .ar.route-on, .map.route .node.link.route-on .ar { stroke: var(--text); stroke-width: 1.6; }
+  .map.route .lab.route-on, .map.route .node.link.route-on .lab { fill: var(--text); }
+  .map .badge { display: none; pointer-events: none; }
+  .map.route .badge.on { display: inline; }
+  .map .badge circle { fill: var(--text); stroke: var(--bg); stroke-width: 1.5; }
+  .map .badge text { fill: var(--bg); font-size: 10px; font-weight: 700; }
   .map .hit { fill: transparent; }
   .map .band-bar { fill: var(--c); opacity: 0.7; }
   .map .band-label { font-size: 12px; font-weight: 700; fill: var(--c); text-anchor: start; }
