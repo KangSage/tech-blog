@@ -445,6 +445,13 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
     const barHost = root.closest<HTMLElement>(".post-body") ?? root;
     const syncBar = () => barHost.style.setProperty("--fcm-bar", `${aside && aside.nextElementSibling === root ? aside.offsetHeight : 0}px`);
     window.addEventListener("resize", syncBar);
+    // 좁은 화면에서 막대가 위에 붙어 있는지 표시한다. 붙어 있을 때만 본문 위 층에 그린다(CSS의 [data-stuck])
+    const updateStuck = () => aside?.toggleAttribute("data-stuck", aside.nextElementSibling === root && aside.getBoundingClientRect().top <= 0.5);
+    if (aside) {
+      window.addEventListener("scroll", updateStuck, { passive: true });
+      window.addEventListener("resize", updateStuck);
+      updateStuck();
+    }
     // 그림 상자는 SVG <a href="#concept-…">라서 원래부터 Tab으로 이동하고 Enter로 누를 수 있다.
     // 스크립트가 없으면 카드 앵커로 이동하고, 켜진 뒤에는 아래 클릭 처리에서 이동 없이 카드만 바꾼다
     root.dataset.enhanced = "";
@@ -1099,7 +1106,9 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
   /* 좁은 화면에서 위에 붙은 막대(--fcm-bar) 아래로 포커스된 버튼·상자·링크가 숨지 않게 한다.
      막대는 본문 끝까지 붙어 있으므로 지도 뒤 본문의 링크·버튼에도 같은 여백을 준다(아래에 붙는 읽어 주기 막대는 제외) */
   .fcm :is(a[href], button) { scroll-margin-top: calc(var(--fcm-bar, 0px) + 8px); }
-  :global(.post-body > [data-fcm] ~ :not(.ra-dock) :is(a[href], button, summary)) { scroll-margin-top: calc(var(--fcm-bar, 0px) + 8px); }
+  /* 대상 종류는 ReadAloud.astro의 scroll-margin-bottom 선택자와 같게 둔다. 표처럼 .post-body의 직속 자식인 대상은 뒤 줄이 맞춘다 */
+  :global(.post-body > [data-fcm] ~ :not(.ra-dock) :is(a[href], button, summary, input, select, textarea, iframe, video[controls], audio[controls], [contenteditable], [tabindex], table, pre)) { scroll-margin-top: calc(var(--fcm-bar, 0px) + 8px); }
+  :global(.post-body > [data-fcm] ~ :is(a[href], button, summary, input, select, textarea, iframe, video[controls], audio[controls], [contenteditable], [tabindex], table, pre):not(.ra-dock)) { scroll-margin-top: calc(var(--fcm-bar, 0px) + 8px); }
   /* Materialization이 만드는 출력 Dataset: 개념 상자와 구별되게 옅은 테두리와 회색 글자 */
   .map .out { fill: var(--surface); stroke: var(--border); stroke-width: 1.2; }
   .map .out-t { font-size: 11px; fill: var(--muted); }
@@ -1220,6 +1229,10 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
   @media (max-width: 1179px) {
     /* 막대(#post-aside)는 지도 바로 앞에 오며 margin-bottom 124px로 본문 끝의 읽어 주기 도크 앞에서 멈춘다. 겹쳐지는 여백이 원래의 24px가 되게 한다 */
     :global(#post-aside) + .fcm { margin-top: -100px; }
+    /* 막대는 위에 붙어 있을 때만 본문 위에 그린다. 붙기 전에는 다른 본문처럼 화면 아래의 읽어 주기 도크 밑으로 지나가므로
+       그동안 키보드로 간 막대 버튼이 도크에 가리지 않게 여백을 준다(펼친 막대의 아래 고정 버튼 줄은 제외: 막대 안이 튄다) */
+    :global(#post-aside:not([data-stuck])) { z-index: auto; }
+    :global(#post-aside :is(a[href], button):not(.is-expanded .nav *)) { scroll-margin-bottom: calc(64px + env(safe-area-inset-bottom, 0px)); }
     [data-docked] { gap: 8px; }
     [data-docked] .chips { display: flex; gap: 5px; overflow-x: auto; padding: 4px; margin: -4px -4px 0; scrollbar-width: thin; }
     [data-docked] .chip-group, [data-docked] .gitems { display: contents; }
