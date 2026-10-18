@@ -81,6 +81,7 @@ export const concepts: Concept[] = [
     everyday: "블록을 끼워 맞추듯 '거르기 → 합치기 → 묶기' 같은 단계를 화면에서 이어 붙이는 도구입니다. 단계를 다 이으면 그 작업을 실제로 수행하는 프로그램이 자동으로 만들어집니다.",
     points: [
       "Expression은 컬럼을 받아 컬럼 하나를 내고 Transform은 테이블 전체를 받아 테이블을 냅니다.",
+      "trained model node로 Foundry 안팎에서 학습한 모델의 추론을 Spark 배치·Flink 스트리밍 파이프라인 안에서 코드 없이 실행할 수 있습니다. 입력과 출력이 표 하나씩인 모델만 지원합니다.",
       "실행 엔진으로 Spark와 Flink를 쓰며 DataFusion 기반의 Faster pipelines로 배치·증분 파이프라인을 더 빠르게 실행할 수 있습니다.",
       "출력 검사를 통과하지 못하면 Build를 막아 하류 파이프라인이 깨지는 것을 방지합니다.",
       "출력으로 Dataset, Media set, 파일, Virtual table(베타), Object type·Link type, time series, geotemporal series 등을 지원하고 스트리밍 파이프라인으로는 Stream을 만듭니다. Faster pipelines는 2026년 10월부터 Foundry Iceberg table도 읽고 씁니다. Ontology에 바로 쓰는 direct datasource(베타)의 writer는 지금 Pipeline Builder뿐입니다.",
@@ -145,17 +146,17 @@ export const concepts: Concept[] = [
     analogy: "Kafka의 changelog 토픽에 가깝습니다. 배치로 다시 계산하는 Dataset과 달리 레코드가 들어온 순서대로 흐르고 Object에는 같은 키의 가장 최근 레코드가 반영됩니다.",
     everyday: "하루치를 모아 정리하는 장부(Dataset)와 달리 소식이 들어오는 즉시 한 줄씩 띄우는 실시간 전광판과 같습니다. 같은 항목의 새 소식이 오면 전광판에는 가장 최근 소식이 표시됩니다.",
     points: [
-      "레코드는 Data Connection의 streaming sync로 가져오거나 REST API로 직접 보내며(push) Pipeline Builder의 스트리밍 파이프라인으로 Stream을 만들 수도 있습니다. API(publishRecords)는 레코드를 Stream 스키마로 검증하고 하나라도 맞지 않으면 묶음 전체를 거부합니다. OAuth 앱으로 보내려면 api:streams-write scope를 요청해야 합니다.",
+      "레코드는 Data Connection의 streaming sync로 가져오거나 REST API로 직접 보냅니다(push). Pipeline Builder의 스트리밍 파이프라인으로 Stream을 만들 수도 있습니다. API(publishRecords)는 레코드를 Stream 스키마로 검증하고 하나라도 맞지 않으면 묶음 전체를 거부합니다. OAuth 앱으로 보내려면 api:streams-write scope를 요청해야 합니다.",
       "Stream 기반 Object type은 Pipeline Builder나 Ontology Manager에서 설정합니다. Funnel은 레코드가 쓰인 순서대로 인덱싱하므로 Stream을 primary key로 나누고(partition) 이벤트 시각 순으로 정렬해 두어야 하며 이 작업은 상류 Pipeline Builder 파이프라인에서 할 수 있습니다.",
       "같은 primary key는 가장 최근 업데이트가 이깁니다(most recent update wins). 레코드는 1MB를 넘을 수 없고 Object type의 property는 250개를 넘을 수 없습니다.",
       "Object security policy 없이 datasource 권한으로 접근을 정하는 Object type에서는 Stream의 Viewer 권한이 있으면 그 Stream으로 만든 Object를 모두 볼 수 있습니다. 행·열 단위로 나누려면 Object security policy를 적용합니다. Restricted view는 Stream에 만들 수 없습니다.",
       "관계형 DB의 변경 데이터 캡처(CDC) 피드도 받을 수 있습니다. 스키마에 changelog 메타데이터를 설정하면 Data Connection·Stream·Pipeline Builder·Ontology가 이를 변경 이력으로 처리합니다.",
       "Stream의 데이터는 몇 분마다 cold storage로 archive되어 일반 Dataset처럼 다른 Foundry 앱에서도 쓸 수 있습니다. 같은 primary key의 최신 레코드만 남는 것은 Object 쪽 규칙입니다.",
     ],
-    warn: "Stream 기반 Object type은 사용자 편집과 multi-datasource object type(MDO)을 지원하지 않습니다. 편집이 필요하면 direct datasource를 쓸 수 있지만 베타 단계라 환경(enrollment)에 따라 제공되지 않을 수 있고 지금은 Pipeline Builder만 쓰기 앱으로 지원합니다. Workshop 밖의 Foundry 앱은 화면을 실시간으로 갱신하지 않으므로 새 데이터를 보려면 새로고침해야 합니다.",
+    warn: "Stream 기반 Object type은 사용자 편집과 multi-datasource Object type(MDO)을 지원하지 않습니다. 편집이 필요하면 direct datasource를 쓸 수 있지만 베타 단계라 환경(enrollment)에 따라 제공되지 않을 수 있고 지금은 Pipeline Builder만 쓰기 앱으로 지원합니다. Workshop 밖의 Foundry 앱은 화면을 실시간으로 갱신하지 않으므로 새 데이터를 보려면 새로고침해야 합니다.",
     doc: D + "data-integration/streams",
     related: [
-      { label: "Streaming Funnel", href: D + "object-indexing/funnel-streaming-pipelines" },
+      { label: "Funnel streaming pipelines", href: D + "object-indexing/funnel-streaming-pipelines" },
       { label: "Direct datasource", href: D + "object-indexing/direct-datasources" },
       { label: "Push 수집", href: D + "data-connection/push-based-ingestion" },
       { label: "레코드 보내기 API", href: D + "api/streams-v2-resources/streams/publish-records-to-stream" },
@@ -172,7 +173,7 @@ export const concepts: Concept[] = [
       "같은 경로에 다시 업로드하면 경고 없이 새 media item으로 덮어씁니다. 기존 reference는 계속 이전 파일을 가리킵니다.",
       "덮어써진 item은 기본적으로 삭제되지 않고 버전 이력에 남으며 Build에서도 처리될 수 있습니다. 정리하려면 '덮어쓰거나 삭제된 뒤 N일 후 영구 삭제' 보존 정책을 설정합니다.",
       "Object type의 Capabilities 탭에서 media source를 지정해야 연결됩니다.",
-      "reference는 Pipeline Builder의 Convert media set to table rows transform이나 Python transform으로 만들 수 있고 Action으로 media reference property에 파일을 올려 만들 수도 있습니다. 일반 Dataset 파일의 reference는 Pipeline Builder의 Get media references (datasets) transform으로 만듭니다.",
+      "reference는 Pipeline Builder의 Convert media set to table rows transform이나 Python transform으로 만들 수 있고 Action으로 media reference property에 파일을 올려 만들 수도 있습니다. 일반 Dataset 파일의 reference는 Pipeline Builder의 Get media references (datasets) transform으로 만들며 이 reference는 Pipeline Builder의 미디어 transform·expression 입력으로는 쓸 수 없습니다.",
       "미디어는 Data Connection의 media sync로 가져오고 Code Repositories나 Pipeline Builder로 변환할 수 있습니다. virtual media set은 지원되는 외부 source의 파일을 Foundry 저장소에 복사하지 않고 직접 읽습니다.",
       "media reference property가 있는 Object type도 backing Dataset이 받칩니다. 그 Dataset에 media reference 컬럼이 있어야 하며 파일은 Media set에 그대로 있고 Object는 그 파일을 가리키기만 합니다.",
     ],
@@ -214,7 +215,7 @@ export const concepts: Concept[] = [
       "Foundry에서 학습한 모델, 밖에서 학습해 파일로 올린 모델, 밖에서 만든 컨테이너, 밖에서 호스팅하는 모델을 모두 연결할 수 있습니다.",
       "모델은 파일·가중치 같은 model artifact와 그것을 불러와 추론하는 방법을 정한 model adapter로 구성됩니다.",
       "Modeling Objective에 모델을 제출하면 변경할 수 없는 사본(submission)이 만들어지고 Objective에 정한 metric으로 다른 모델과 비교됩니다. 채택한 모델은 Staging·Production 같은 환경 태그가 붙은 release가 됩니다.",
-      "batch deployment는 입력 Dataset으로 추론해 출력 Dataset에 쓰며 보통 Build Schedule로 관리합니다. live deployment는 바로 호출할 수 있는 REST API endpoint를 제공합니다. Modeling Objective를 거치지 않고 모델에서 바로 live endpoint인 direct deployment를 만들 수도 있습니다.",
+      "batch deployment는 입력 Dataset으로 추론해 출력 Dataset에 쓰며 보통 Build Schedule로 관리합니다. live deployment는 바로 호출할 수 있는 REST API endpoint를 제공합니다. Modeling Objective를 거치지 않고 모델에서 바로 live endpoint인 direct model deployment를 만들 수도 있습니다.",
       "live deployment는 model function으로 감싸 TypeScript·Python Function에서 query function처럼 호출할 수 있습니다. 2026년 2월부터 새로 만드는 model function은 Ontology에 묶입니다.",
     ],
     warn: "deployment는 환경 태그가 붙은 최신 release를 가져가도록 설정할 수 있습니다. 이렇게 설정한 Production deployment에 새 모델을 반영하려면 그 모델의 release에 Production 태그를 붙입니다.",
@@ -224,12 +225,12 @@ export const concepts: Concept[] = [
     ],
     related: [
       { label: "Functions on models", href: D + "functions/functions-on-models" },
-      { label: "Direct deployment", href: D + "manage-models/create-a-model-deployment" },
+      { label: "Direct model deployment", href: D + "manage-models/create-a-model-deployment" },
     ],
   },
   {
     id: "funnel", short: "Funnel", layer: "onto", title: "Funnel · Materialization",
-    lead: "Funnel은 Dataset·Restricted view·Stream 같은 datasource를 객체 저장소(Object Storage v2, OSv2)로 인덱싱합니다. Action으로 만든 편집은 인덱스에 즉시 반영됩니다.",
+    lead: "Funnel은 Dataset·Restricted view·Stream·Virtual table 같은 datasource를 객체 저장소인 Object Storage v2(OSv2)로 인덱싱합니다. Action으로 만든 편집은 인덱스에 즉시 반영됩니다.",
     analogy: "MySQL 원본을 검색용 Elasticsearch 인덱스로 동기화하고 앱은 인덱스만 조회하는 구조와 비슷합니다. Materialization은 원본과 편집을 합쳐 다시 테이블로 저장하는 materialized view에 해당합니다.",
     everyday: "도서관 책으로 검색용 목록(색인)을 만들어 두고 사람들은 그 목록으로 책을 찾는 것과 같습니다. Materialization은 목록에 반영된 수정 사항까지 합쳐 책을 새로 인쇄해 두는 것에 해당합니다.",
     points: [
@@ -247,6 +248,7 @@ export const concepts: Concept[] = [
       { label: "Restricted view", href: D + "security/restricted-views" },
       { label: "Funnel streaming pipelines", href: D + "object-indexing/funnel-streaming-pipelines" },
       { label: "Funnel batch pipelines", href: D + "object-indexing/funnel-batch-pipelines" },
+      { label: "Virtual table 기반 Object", href: D + "data-integration/virtual-tables" },
     ],
   },
   {
@@ -255,7 +257,7 @@ export const concepts: Concept[] = [
     analogy: "ORM 모델 계층에 해당합니다. Object type = 테이블, Object = 행, Property = 컬럼, Link type = 조인/FK, Object set = WHERE 결과입니다. 다만 ORM처럼 조회할 때마다 원본 테이블을 읽지 않고 인덱싱해 둔 전용 데이터베이스를 조회합니다. Object Storage v2(OSv2)에서는 이 인덱싱을 Funnel이 맡습니다.",
     everyday: "엑셀 표를 '고객', '주문'처럼 실제 업무에서 쓰는 말로 정리한 명부와 같습니다. 한 줄은 고객 한 명, 칸은 이름·연락처 같은 항목이고 Link는 '이 고객의 주문 목록' 같은 연결입니다.",
     points: [
-      "Object의 값은 datasource(Dataset·Stream·Restricted view 등)의 데이터와 사용자 편집을 합친 것입니다. 사용자 편집은 보통 Action으로 만들며 Action으로만 채우는 Object type처럼 datasource가 없는 경우도 있습니다. 다만 Stream 기반 Object type은 사용자 편집을 지원하지 않습니다.",
+      "Object의 값은 datasource(Dataset·Stream·Restricted view 등)의 데이터와 사용자 편집을 합친 것입니다. 사용자 편집은 보통 Action으로 만듭니다. Action으로만 채우는 Object type처럼 datasource가 없는 경우도 있습니다. 다만 Stream 기반 Object type은 사용자 편집을 지원하지 않습니다.",
       "Link type은 1:1, 1:N, N:1, N:M 관계를 표현합니다. N:M 관계는 조인 테이블 Dataset으로 연결합니다.",
       "Object set의 예: 상태가 '지연'인 항공편 전체",
       "Shared property는 여러 Object type이 함께 쓰는 property입니다. 메타데이터는 한곳에서 관리하지만 값은 Object마다 따로 가집니다.",
@@ -280,11 +282,11 @@ export const concepts: Concept[] = [
     analogy: "TypeScript의 interface와 같습니다. Facility interface를 Airport와 Manufacturing Plant가 구현하면 Facility를 받는 코드는 두 타입을 모두 처리합니다.",
     everyday: "'시설'이라는 공통 양식과 같습니다. 공항·공장·정비고는 각자 칸이 다르지만 '시설 이름·위치'라는 공통 칸이 있어서 시설 목록 하나로 함께 관리할 수 있습니다.",
     points: [
-      "Interface는 interface property, Link type 제약, Action type 제약(베타), 메타데이터로 구성됩니다.",
-      "하나의 interface를 여러 Object type이 구현할 수 있습니다. 새 Object type이 구현하면 기존 워크플로가 수정 없이 바로 호환됩니다.",
-      "interface를 확장(extend)해 속성을 물려받는 하위 interface를 만들 수 있습니다.",
+      "Interface는 Interface property, Link type 제약, Action type 제약(베타), 메타데이터로 구성됩니다.",
+      "하나의 Interface를 여러 Object type이 구현할 수 있습니다. 새 Object type이 구현하면 기존 워크플로가 수정 없이 바로 호환됩니다.",
+      "Interface를 확장(extend)해 속성을 물려받는 하위 Interface를 만들 수 있습니다.",
     ],
-    warn: "플랫폼 기능마다 interface 지원 수준이 다르므로 쓰기 전에 지원 범위를 확인해야 합니다.",
+    warn: "플랫폼 기능마다 Interface 지원 수준이 다르므로 쓰기 전에 지원 범위를 확인해야 합니다.",
     doc: D + "interfaces/interface-overview",
     related: [],
   },
@@ -357,7 +359,7 @@ export const concepts: Concept[] = [
     points: [
       "조건: 시간 기반(예: 매주 월요일 오전 9시), Ontology 데이터 기반(예: 우선순위가 높은 Alert Object 추가), 둘의 조합, Dataset 갱신(예: Dataset이 갱신되면 실행)",
       "streaming dataset도 초당 200건을 넘지 않으면 직접 감시할 수 있습니다.",
-      "효과: Action 제출, AIP Logic 함수 실행, Function 실행(베타), 플랫폼·이메일 알림. Function effect는 Function이 돌려준 Ontology 편집을 적용하지 않으므로 편집하려면 Function-backed action을 씁니다.",
+      "효과: Action 제출, AIP Logic 함수 실행, Function 실행(Function effect, 베타), 플랫폼·이메일 알림. Function effect는 Function이 돌려준 Ontology 편집을 적용하지 않으므로 편집하려면 Function-backed action을 씁니다.",
       "조건은 계속 감시하거나 일정에 맞춰 확인합니다.",
       "조건 평가와 Action·Logic·Function 효과는 자동화 소유자(owner)의 권한으로 실행됩니다. Action의 Submission criteria도 소유자 기준으로 평가되고 편집 이력의 Edited by에는 소유자가 남습니다.",
     ],
@@ -372,8 +374,8 @@ export const concepts: Concept[] = [
   {
     id: "aip", short: "AIP Logic", layer: "logic", title: "AIP Logic · AIP Chatbot Studio",
     lead: "AIP Logic은 LLM과 Ontology를 활용하는 AI 함수를 만드는 도구이고 AIP Chatbot Studio는 LLM·Ontology·문서·도구로 동작하는 챗봇을 만드는 도구입니다.",
-    analogy: "AIP Logic은 LLM 호출을 조합해 만드는 서버 함수와 같습니다. Object나 텍스트를 입력받아 결과를 돌려주거나 Ontology 편집을 만듭니다. Chatbot Studio는 앱에 붙이는 LLM 챗봇 빌더입니다.",
-    everyday: "AIP Logic은 서류를 읽고 판단해 처리안을 내는 AI 실무자, Chatbot Studio는 회사 자료를 알고 질문에 답하거나 업무를 대신 처리하는 AI 상담 창구와 같습니다.",
+    analogy: "AIP Logic은 LLM 호출을 조합해 만드는 서버 함수와 같습니다. Object나 텍스트를 입력받아 결과를 돌려주거나 Ontology 편집을 만듭니다. AIP Chatbot Studio는 앱에 붙이는 LLM 챗봇 빌더입니다.",
+    everyday: "AIP Logic은 서류를 읽고 판단해 처리안을 내는 AI 실무자, AIP Chatbot Studio는 회사 자료를 알고 질문에 답하거나 업무를 대신 처리하는 AI 상담 창구와 같습니다.",
     points: [
       "Logic 함수는 Object나 문자열을 입력받아 Object·문자열을 돌려주거나 Ontology 편집을 만듭니다.",
       "Logic 문서는 Ontology를 편집하려면 Logic 함수를 게시하고 Action에서 호출해야 한다고 설명합니다. 예외는 아래 Automate의 Logic effect입니다.",
@@ -384,7 +386,7 @@ export const concepts: Concept[] = [
       "AIP Chatbot Studio의 예전 이름은 AIP Agent Studio입니다. 챗봇은 앱에 통합해 읽기·쓰기 워크플로를 처리합니다.",
       "AIP Evals는 AIP Logic 함수·챗봇 함수·코드 함수를 test case와 evaluation function으로 평가하는 테스트 환경입니다. LLM 결과가 실행마다 달라지는 점을 감안해 이전 버전이나 다른 모델과 결과를 비교하고 실행 간 편차를 확인합니다.",
     ],
-    warn: "Restricted view·Object security policy 같은 행·열 통제는 모델이 사용자 대신 읽는 데이터만 거르며 모델의 출력이나 모델이 만든 Ontology 편집으로 전파되지 않습니다. 하류까지 보호하려면 Marking이나 CBAC를 함께 겁니다.",
+    warn: "Restricted view·Object security policy 같은 행·열 통제는 모델이 사용자 대신 읽는 데이터만 거르며 모델의 출력이나 모델이 만든 Ontology 편집으로 전파되지 않습니다. 하류까지 보호하려면 Marking이나 Classification-based Access Controls(CBAC)를 함께 겁니다.",
     doc: [
       { label: "AIP Logic", href: D + "logic/overview" },
       { label: "AIP Chatbot Studio", href: D + "chatbot-studio/overview" },
@@ -405,7 +407,7 @@ export const concepts: Concept[] = [
     analogy: "Retool과 비슷합니다. Layout = JSX 구조, Widget = 컴포넌트, Variable = useState, Event = 이벤트 핸들러입니다.",
     everyday: "파워포인트에서 도형을 끌어다 놓듯 표·차트·버튼을 배치해 업무 화면을 만드는 도구입니다. 버튼을 누르면 신청서(Action)가 제출되는 식으로 연결됩니다.",
     points: [
-      "쓰기는 Action, 복잡한 계산은 Function에 연결합니다. 연결된 Object와 집계에서 나오는 값은 Derived properties로 화면에서 바로 계산할 수도 있습니다.",
+      "쓰기는 Action, 복잡한 계산은 Function에 연결합니다. Derived properties로 연결된 Object의 집계와 property 사이의 계산을 Ontology를 바꾸지 않고 Workshop 안에서 바로 할 수도 있습니다.",
       "기본 위젯으로 부족하면 Custom widget으로 직접 작성한 프론트엔드 코드를 넣을 수 있습니다.",
       "기본 도구를 넘어서는 완전한 맞춤 화면이 필요하면 OSDK React 앱을 만듭니다.",
       "OSDK로 만든 React 앱은 Iframe 위젯으로, Quiver 대시보드는 그대로 Workshop 안에 넣을 수 있습니다.",
@@ -422,6 +424,7 @@ export const concepts: Concept[] = [
       { label: "Slate", href: D + "slate/overview" },
       { label: "Carbon", href: D + "carbon/overview" },
       { label: "Pilot", href: D + "pilot/overview" },
+      { label: "Derived properties", href: D + "workshop/derived-properties" },
     ],
   },
   {
@@ -496,7 +499,7 @@ export const concepts: Concept[] = [
     points: [
       "앱에 포함한 Object type은 SQL 도구로 읽고 Action type과 query function은 각각 별도 도구로 호출합니다. AIP Logic이나 AIP 챗봇으로 만든 로직도 함수로 저장해 도구로 공개할 수 있습니다.",
       "인증은 그 Developer Console 앱의 OAuth 2.0 설정을 그대로 씁니다. MCP용 인증 체계가 따로 없고 앱 제한과 권한이 MCP 요청에도 똑같이 적용됩니다.",
-      "에이전트가 실행할 수 있는 Action은 Developer Console 앱의 application restrictions로 제한합니다.",
+      "에이전트가 실행할 수 있는 Action은 Developer Console 앱의 앱 제한(application restrictions)으로 제한합니다.",
       "Microsoft Copilot Studio·Google Gemini Enterprise 같은 외부 AI 앱은 별도 코드 없이 연결하고 LangChain 같은 프레임워크로 만든 에이전트도 연결할 수 있습니다.",
       "Palantir MCP는 목적이 다릅니다. Ontology를 만드는 개발자용으로 AI IDE·에이전트가 Object type·Link type·Action type 같은 구조를 만들고 고치게 하며 Ontology 데이터에 기록(write)하지는 못합니다. 다만 Object와 Dataset을 조회하는 도구가 있고 로컬 AI 도구에서 쓰면 도구 출력이 그 도구의 LLM 제공자에게 전송됩니다(예: Claude Code는 Anthropic). 로컬 사용은 기본으로 꺼져 있고 Control Panel에서 켭니다.",
     ],
@@ -521,8 +524,9 @@ export const concepts: Concept[] = [
       "Marking은 all-or-nothing입니다. 하나라도 통과하지 못하면 Role과 관계없이 접근할 수 없습니다.",
       "Marking은 명시적으로 제거하지 않는 한 파생 데이터에도 전파됩니다. 다만 Action은 쓰는 데이터의 보안을 로직이 정하므로 Action이 쓴 결과에는 Marking이 따라가지 않을 수 있습니다(Action type 카드 참고).",
       "Marking은 접근을 막는 장치입니다. 공식 문서는 Marking을 접근 권한 부여에 쓰지 말고 Project의 Role로 부여하도록 안내합니다.",
+      "하나의 작업 범위라도 부분마다 따로 권한이 필요하면 공식 문서는 여러 Project로 나누는 것을 고려하라고 안내합니다.",
       "Marking 외에 Organization과 CBAC도 필수 통제로 함께 적용됩니다.",
-      "Object type 같은 Ontology 리소스도 Project에 저장해 Project Role로 권한을 관리합니다. 이 방식은 이전 모델인 ontology roles와 datasource-derived 권한을 대체하며 새 Ontology에는 기본으로 켜져 있고 기존 Ontology는 Ontology의 Owner가 직접 켜야 하고 기존 리소스는 migration이 필요합니다.",
+      "Object type 같은 Ontology 리소스도 Project에 저장해 Project Role로 권한을 관리합니다. 이 방식은 레거시 모델인 ontology roles와 datasource-derived 권한 모델을 대체하며 새 Ontology에는 기본으로 켜져 있고 기존 Ontology는 Ontology의 Owner가 직접 켜야 하고 기존 리소스는 migration이 필요합니다.",
       "Compass는 Foundry의 파일 시스템으로 Project·폴더·리소스를 정리하고 관리하며 Quicksearch는 앱·Object·Dataset 같은 리소스를 찾는 검색 도구입니다. Quicksearch는 기존 권한을 그대로 따르므로 접근 권한이 없는 콘텐츠는 결과에 보이지 않고 Discover 권한이 있는 콘텐츠는 Request access 안내로 열립니다.",
     ],
     warn: "Editor Role이 있어도 PII Marking의 멤버가 아니면 해당 데이터에 접근할 수 없습니다.",
@@ -533,6 +537,7 @@ export const concepts: Concept[] = [
     related: [
       { label: "Ontology 권한", href: D + "object-permissioning/ontology-permissions" },
       { label: "권한 전파", href: D + "security/access-control-propagation" },
+      { label: "Project 구조", href: D + "building-pipelines/recommended-project-structure" },
       { label: "Compass", href: D + "compass/overview" },
       { label: "Quicksearch", href: D + "getting-started/quicksearch" },
     ],
@@ -540,15 +545,15 @@ export const concepts: Concept[] = [
   {
     id: "osp", short: "Object security policy", layer: "sec", title: "Object security policy",
     lead: "Object의 행 단위 조회 권한입니다. Property security policy와 함께 쓰면 셀 단위까지 제어할 수 있습니다.",
-    analogy: "Postgres RLS에 해당합니다. 모든 SELECT에 DB가 자동으로 WHERE 조건을 붙이는 것과 같습니다.",
+    analogy: "Postgres의 행 단위 보안(Row-Level Security, RLS)에 해당합니다. 모든 SELECT에 DB가 자동으로 WHERE 조건을 붙이는 것과 같습니다.",
     everyday: "같은 명부를 열어도 사람마다 자기 담당 고객의 줄만 보이도록 나머지를 자동으로 가려 주는 것과 같습니다.",
     points: [
       "조건은 granular policy로 작성합니다. 사용자 속성(그룹 ID 등)과 property 값을 비교하며 이름이 아니라 ID를 씁니다. 그룹·Marking·Organization 멤버십에 NOT 조건을 쓰는 것은 피해야 합니다.",
       "Dataset 권한과는 분리됩니다. 정책이 있으면 backing Dataset의 Viewer 권한 없이도 Object를 볼 수 있습니다.",
-      "원본의 필수 통제(Marking·Organization·CBAC)를 기본으로 물려받으며 정책에서 필수 통제를 더하거나 필요 없는 것을 제거할 수 있습니다.",
+      "원본의 Marking·Organization·Classification-based Access Controls(CBAC) 같은 필수 통제를 기본으로 물려받으며 정책에서 필수 통제를 더하거나 필요 없는 것을 제거할 수 있습니다.",
       "변경은 거의 즉시 반영되지만 그룹 멤버십 같은 사용자 속성의 변경은 잠시 캐시됩니다. 반면 Restricted view(Dataset용 RLS)는 정책을 바꾼 뒤 파이프라인을 다시 Build해야 반영됩니다.",
     ],
-    warn: "Ontology 안에서만 적용되므로 원본 Dataset은 따로 잠가야 합니다. 이전 datasource-derived 권한 모델을 쓰는 환경에서는 Dataset 권한도 여전히 필요합니다.",
+    warn: "Ontology 안에서만 적용되므로 원본 Dataset은 따로 잠가야 합니다. 레거시 datasource-derived 권한 모델을 쓰는 환경에서는 Dataset 권한도 여전히 필요합니다.",
     doc: D + "object-permissioning/object-security-policies",
     related: [
       { label: "Restricted view", href: D + "security/restricted-views" },
@@ -559,7 +564,7 @@ export const concepts: Concept[] = [
   {
     id: "rv", short: "Restricted view", layer: "sec", title: "Restricted view",
     lead: "Restricted view는 backing Dataset 하류에 따로 만드는 리소스로 사용자가 볼 권한이 있는 행만 보이게 합니다. 그 행으로 만든 Object에도 같은 행 단위 통제가 적용됩니다.",
-    analogy: "원본 테이블로 만든 materialized view에 Postgres RLS를 건 것과 비슷합니다. 원본이 바뀌면 view가 자동으로 다시 계산(Build)되지만 정책을 바꾼 뒤에도 다시 Build해야 새 정책이 적용됩니다.",
+    analogy: "원본 테이블로 만든 materialized view에 Postgres의 행 단위 보안(RLS)을 건 것과 비슷합니다. 원본이 바뀌면 view가 자동으로 다시 계산(Build)되지만 정책을 바꾼 뒤에도 다시 Build해야 새 정책이 적용됩니다.",
     everyday: "원본 장부 앞에 둔 열람 창구와 같습니다. 창구는 찾아온 사람의 소속을 확인해 볼 수 있는 줄만 보여 주고 열람 규칙을 바꾸면 창구의 열람본을 다시 만들어야 새 규칙이 적용됩니다.",
     points: [
       "정책은 granular policy로 작성합니다. 사용자 속성, backing Dataset의 컬럼, 특정 값(문자열·Boolean·숫자·배열)을 비교해 조건을 만들며 사용자별로 거르려면 사용자 속성과 비교하는 항이 하나 이상 있어야 합니다. 그룹·Marking·Organization 멤버십에 NOT 조건을 쓰는 것은 피해야 합니다.",
@@ -641,21 +646,21 @@ export const concepts: Concept[] = [
   },
   {
     id: "branch", short: "Global Branching", layer: "ops", title: "Global Branching",
-    lead: "여러 앱에 걸친 변경을 브랜치 하나로 묶어 테스트한 뒤 Main에 병합합니다. 2026년 5월에 GA가 되었습니다.",
+    lead: "여러 앱에 걸친 변경을 브랜치 하나로 묶어 테스트한 뒤 Main에 병합합니다. 2026년 5월에 정식 출시(GA)되었습니다.",
     analogy: "Git feature branch와 PR에 해당합니다. 다만 코드뿐 아니라 파이프라인·Ontology·화면까지 함께 다룹니다.",
     everyday: "원본을 바로 고치지 않고 사본에서 먼저 고쳐 본 뒤 검토를 받아 원본에 반영하는 방식입니다. 구글 문서의 '제안 모드'와 비슷합니다.",
     points: [
-      "지원 대상: Code Repositories, Pipeline Builder, Ontology(Action·Materialization 포함), Workshop, AIP Logic, Automate, Object Views, Restricted view, TypeScript·Python function, Developer Console 등. 모델은 direct model deployment만 표에 있고 Modeling Objectives와 AIP Chatbot Studio는 표에 없습니다.",
+      "지원 대상: Code Repositories, Pipeline Builder, Ontology(Action·Materialization 포함), Workshop, AIP Logic, Automate, Object Views, Restricted view, TypeScript·Python function, Developer Console 등. 공식 지원 범위 문서의 목록에는 direct model deployment가 있지만 Modeling Objectives와 AIP Chatbot Studio는 없으며 문서는 지원 리소스를 늘려 가는 중이라고 설명합니다.",
       "TypeScript v2(TS v2)·Python function은 저장소 템플릿을 지원 버전 이상으로 올리고 로컬 OSDK를 켜면 브랜치에서 개발하고 브랜치 전용 버전을 게시할 수 있습니다(2026년 10월 GA). 로컬 OSDK가 없는 TS v2·Python 저장소는 브랜치에서 특정 버전을 참조할 수만 있고 브랜치 스키마로 코드를 고칠 수는 없습니다.",
       "Developer Console은 npm으로 설치한 TypeScript SDK와 Vite 6~8 앱에 한해 브랜치에서 SDK를 생성하고 브랜치 데이터로 테스트할 수 있습니다(2026년 10월부터). 브랜치에서는 릴리스 태그와 운영 웹사이트 게시가 막힙니다.",
       "Proposal이 PR 역할을 합니다. Proposal을 만들면 리소스마다 check(main과의 충돌, 필요한 승인 등)가 실행되고 모든 check를 통과해야 Merge할 수 있습니다. 일부 리소스만 실패한 병합은 지금은 되돌릴 수 없습니다.",
       "브랜치에서 리소스를 만들거나 지우면 Main에도 반영됩니다. Ontology 리소스는 예외로 브랜치에서 만들고 지워도 Main에 영향을 주지 않습니다.",
       "병합할 때 Build 범위를 고릅니다. 영향받는 리소스 전부, 브랜치에서 바꾼 리소스만, Build 안 함 중 하나이며 Build 안 함을 고르면 병합 뒤 직접 Build해야 합니다.",
-      "Branch protection은 리소스의 Owner가 켜거나 끕니다. Project의 Branch protection 탭에서 새 파일을 자동으로 보호하도록 설정할 수도 있습니다. Ontology 리소스는 먼저 project permissions로 migration해야 보호할 수 있습니다.",
+      "Branch protection은 리소스의 Owner가 켜거나 끕니다. Project의 Branch protection 탭에서 새 파일을 자동으로 보호하도록 설정할 수도 있습니다. Ontology 리소스는 먼저 project-based 권한으로 migration해야 보호할 수 있습니다.",
       "기본값으로 35일 동안 쓰지 않은 브랜치는 비활성화되고 그 7일 뒤 브랜치 데이터가 삭제됩니다.",
       "브랜치에 들어가려면 브랜치에 지정된 Organization 중 하나 이상의 멤버여야 합니다. 브랜치 Role은 브랜치 관리 작업만 정하며 브랜치의 리소스를 고치려면 Project나 리소스 수준의 권한이 필요합니다.",
     ],
-    warn: "브랜치에서 Action으로 만든 편집은 테스트용이며 Main에 병합되지 않습니다. 브랜치가 모든 것을 격리하지는 않습니다. Developer Console의 앱 제한(OAuth 제한)은 Main을 포함한 모든 브랜치가 함께 씁니다. 브랜치에서는 필요한 Ontology 리소스를 resource restrictions에 넣는 것만 할 수 있고 지울 수는 없으며 이렇게 넣은 리소스는 Main의 앱도 접근할 수 있게 됩니다. Workshop의 Iframe 위젯에 넣은 OSDK 앱이 브랜치 연동 요건을 갖추지 않으면 경고 없이 Main의 데이터를 보여 주고 Action도 Main에 적용합니다. 브랜치에서 Restricted view backing Dataset의 Marking이 Main과 다르면 Main에서 막혀 있던 데이터가 보일 수 있습니다. webhook은 기본으로 브랜치에서 실행되지 않지만 실행을 켜면 Main에서와 똑같이 외부 시스템을 호출합니다. pro-code agent(베타)의 OSDK·Ontology MCP 호출은 브랜치를 대상으로 하지만 스키마는 Main의 것을 씁니다.",
+    warn: "브랜치에서 Action으로 만든 편집은 테스트용이며 Main에 병합되지 않습니다. 브랜치가 모든 것을 격리하지는 않습니다. Developer Console의 앱 제한(application restrictions)은 Main을 포함한 모든 브랜치가 함께 씁니다. 브랜치에서는 필요한 Ontology 리소스를 resource restrictions에 넣는 것만 할 수 있고 지울 수는 없으며 이 변경은 Main을 포함한 모든 브랜치에서 앱이 허용받는 최대 범위에 함께 들어갑니다. 필요 없어진 리소스는 Main에서 Review resources로 정리하며 다른 SDK 버전이나 브랜치가 아직 쓰는 리소스를 지우면 그 브랜치의 앱이 깨질 수 있습니다. 저장소 설정을 마치지 않은 OSDK 앱은 브랜치가 아니라 Main이나 다른 브랜치의 데이터를 읽고 Action도 그곳에 적용할 수 있습니다. 특히 Workshop의 Iframe 위젯에 넣은 앱이 브랜치 연동 요건을 갖추지 않으면 경고 없이 Main의 데이터를 보여 주고 Action도 Main에 적용합니다. 브랜치에서 Restricted view backing Dataset의 Marking이 Main과 다르면 Main에서 막혀 있던 데이터가 보일 수 있습니다. webhook은 기본으로 브랜치에서 실행되지 않지만 실행을 켜면 Main에서와 똑같이 외부 시스템을 호출합니다. pro-code agent(베타)의 OSDK·Ontology MCP 호출은 브랜치를 대상으로 하지만 스키마는 Main의 것을 씁니다.",
     doc: D + "global-branching/core-concepts",
     related: [
       { label: "지원 범위", href: D + "global-branching/integrations" },
@@ -706,7 +711,7 @@ export const concepts: Concept[] = [
     everyday: "Data Lineage는 원재료가 어느 공정을 거쳐 제품이 되었는지 보여 주는 생산 이력표와 같습니다. Workflow Lineage는 매장에 놓인 상품(앱)이 어떤 부품과 양식으로 조립되었는지 보여 주는 조립도에 가깝습니다.",
     points: [
       "Data Lineage는 원천부터 Ontology와 워크플로까지 전 구간을 보여 주고 Workflow Lineage는 Ontology 위의 워크플로를 관리합니다. Workflow Lineage에서 Object type을 Data Lineage로 열면 그 Object type으로 들어오는 데이터의 Schedule을 확인할 수 있습니다.",
-      "Data Lineage에서는 Schedule을 관리하고 Build timeline으로 Build 이력을 봅니다. Dataset을 이전 트랜잭션으로 롤백하는 곳도 Data Lineage입니다. 보관(archive)되었거나 비활성 상태인 브랜치에서는 Build가 자동으로 실패하므로 그 브랜치의 리소스를 Build하는 Schedule이 반복된 실패로 멈출 수 있습니다. 이때는 브랜치를 다시 활성화한 뒤 Build Schedules 앱이나 Data Lineage에서 Schedule을 직접 다시 시작합니다.",
+      "Data Lineage에서는 Schedule을 관리하고 Build timeline으로 Build 이력을 봅니다. Dataset을 이전 트랜잭션으로 롤백하는 곳도 Data Lineage입니다. 보관(archive)되었거나 비활성 상태인 브랜치에서는 Build가 자동으로 실패하므로 그 브랜치의 리소스를 Build하는 Schedule이 반복된 실패로 멈출 수 있습니다. 이때는 브랜치를 다시 활성화(보관된 브랜치는 복원)한 뒤 필요하면 Build Schedules 앱이나 Data Lineage에서 Schedule을 직접 다시 시작합니다.",
       "Workflow Lineage는 Object·Action·Function·Interface·Custom widget·앱·모델 등의 API 이름·입력·Ontology 편집·Submission criteria를 보여 줍니다. Object의 특정 컬럼을 쓰는 하류 Action과 Workshop 앱을 모두 찾을 수 있습니다.",
       "Workflow Lineage에서는 권한·사용량·마지막 재인덱싱 상태를 색으로 보고 Action 버전 일괄 변경이나 Submission criteria 직접 수정 같은 작업도 합니다.",
       "둘 다 Global Branching을 지원합니다. 브랜치에서 리소스를 제거하면 그 리소스는 Main의 버전으로 돌아가므로 브랜치 상태가 깨질 수 있습니다. 제거하기 전에 lineage로 다른 브랜치 리소스가 그 변경에 기대고 있지 않은지 확인해야 합니다.",
