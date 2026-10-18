@@ -6,7 +6,7 @@ import ReadAloud from "@/components/ReadAloud.astro";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { categoryLabels } from "@/lib/categories";
 import { absoluteUrl, assertLocale, blogPath, categoryPath, href, tagPath, type Locale } from "@/lib/i18n";
-import { formatDate, getAlternates, getPublishedPosts, localeFromId, slugFromId } from "@/lib/posts";
+import { formatDate, getAlternates, getPublishedPosts, getUpdatedAt, localeFromId, slugFromId } from "@/lib/posts";
 import { t } from "@/lib/ui";
 
 export async function getStaticPaths() {
@@ -25,6 +25,7 @@ const { post } = Astro.props;
 const slug = slugFromId(post.id);
 const { Content, headings } = await render(post);
 const alternates = await getAlternates(post.data.translationKey);
+const updatedAt = getUpdatedAt(post);
 const canonicalPath = blogPath(lang, slug);
 const jsonLd = {
   "@context": "https://schema.org",
@@ -32,7 +33,7 @@ const jsonLd = {
   headline: post.data.title,
   description: post.data.description,
   datePublished: post.data.publishedAt.toISOString(),
-  dateModified: (post.data.updatedAt ?? post.data.publishedAt).toISOString(),
+  dateModified: (updatedAt ?? post.data.publishedAt).toISOString(),
   inLanguage: lang,
   url: absoluteUrl(canonicalPath),
   author: {
@@ -62,7 +63,7 @@ const jsonLd = {
       <h1>{post.data.title}</h1>
       <p class="meta">
         <time datetime={post.data.publishedAt.toISOString()}>{formatDate(post.data.publishedAt)}</time>
-        {post.data.updatedAt && <> · {t("updated", lang)} <time datetime={post.data.updatedAt.toISOString()}>{formatDate(post.data.updatedAt)}</time></>}
+        {updatedAt && <> · {t("updated", lang)} <time datetime={updatedAt.toISOString()}>{formatDate(updatedAt)}</time></>}
       </p>
       {post.data.tags.length > 0 && (
         <ul class="tag-list">
