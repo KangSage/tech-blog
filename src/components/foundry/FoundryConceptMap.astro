@@ -441,7 +441,7 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
     cards.forEach((card) => card.removeAttribute("id"));
     const scroller = aside ?? panel;
     // 지도 위에 붙은 막대의 높이를 지도와 그 뒤 본문에 알려 둔다. 키보드로 상자나 링크에 포커스가 가면 이 높이만큼 비워 막대 아래에 보이게 한다(넓은 화면은 0).
-    // 막대 높이를 바꾸는 곳(접기·자세히·카드 전환·화면 폭 변화)에서 부른다
+    // 막대 높이를 바꾸는 곳(접기·자세히·카드 전환·비유 탭 전환·화면 폭 변화)에서 부른다
     const barHost = root.closest<HTMLElement>(".post-body") ?? root;
     const syncBar = () => barHost.style.setProperty("--fcm-bar", `${aside && aside.nextElementSibling === root ? aside.offsetHeight : 0}px`);
     window.addEventListener("resize", syncBar);
@@ -782,6 +782,16 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
       else if (r.right > box.right - 4) mapScroll.scrollLeft += r.right - (box.right - 4);
     });
 
+    // 좁은 화면의 칩 줄도 가로로 스크롤되므로 키보드로 간 칩이 다 보이게 줄을 가로로만 맞춘다
+    chips?.addEventListener("focusin", (event) => {
+      const chip = (event.target as Element).closest<HTMLElement>("[data-chip]");
+      if (!chip || !chip.matches(":focus-visible") || chips.scrollWidth <= chips.clientWidth) return;
+      const r = chip.getBoundingClientRect();
+      const box = chips.getBoundingClientRect();
+      if (r.left < box.left + 4) chips.scrollLeft -= box.left + 4 - r.left;
+      else if (r.right > box.right - 4) chips.scrollLeft += r.right - (box.right - 4);
+    });
+
     document.addEventListener("click", (event) => {
       const target = event.target as Element;
       // "지도에서 보기": 좁은 화면에서는 막대를 접고 그 높이만큼 비워 지도로 간다(기본 링크 이동은 막대 아래에 지도를 숨긴다)
@@ -1103,6 +1113,8 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
   .node.link.sel .ar { stroke: var(--c); stroke-width: 1.8; }
 
   .panel { display: grid; gap: 12px; min-width: 0; }
+  /* 안에서 스크롤되는 곳은 포커스된 요소를 가장자리에 딱 붙여 보여 주므로 포커스 윤곽선이 들어갈 4px를 남긴다 */
+  [data-docked] .card, [data-docked] .cbody, [data-docked].is-expanded { scroll-padding-block: 4px; }
   .cards { display: grid; gap: 16px; }
   [data-enhanced] .card:not(.is-active) { display: none; }
 
