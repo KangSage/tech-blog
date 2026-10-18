@@ -18,6 +18,8 @@ export interface Route {
   /** 지도에서 진하게 표시할 선. 그림에 그려진 선의 data-edges 쌍을 순서까지 그대로 쓰고 양 끝이 모두 steps에 있어야 한다(빌드·개발 서버에서 검사) */
   edges: [string, string][];
   sources: { label: string; href: string }[];
+  /** 이 노선을 자세히 다룬 연재 글의 한국어 slug (예: "foundry-access-route"). 글이 게시된 뒤에만 적는다(게시되지 않은 글이면 빌드가 멈춘다) */
+  article?: string;
 }
 
 export const routes: Route[] = [

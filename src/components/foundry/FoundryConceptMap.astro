@@ -2,8 +2,32 @@
 // Foundry 개념 지도: 위→아래 데이터 흐름 그림 + 개념 카드.
 // 카드는 모두 빌드 시 HTML로 렌더링되고(JS 없이도 전부 보임), 스크립트가 켜지면 카드 패널을
 // 글 페이지의 #post-aside(넓은 화면은 오른쪽 사이드, 좁은 화면은 상단 고정)로 옮겨 하나씩 전환한다.
+// 연재 글에서는 route로 노선 하나를 켠 채 연다: <FoundryConceptMap route="access" />
 import { concepts, layerLabels, type Layer } from "./concepts";
 import { routes } from "./routes";
+import { blogPath, withBase } from "@/lib/i18n";
+import { getPublishedPosts, localeFromId, slugFromId } from "@/lib/posts";
+
+interface Props {
+  /** 처음부터 켜 둘 노선 id (routes.ts). 주소의 #route-…가 있으면 그쪽이 우선한다 */
+  route?: string;
+}
+const { route: initialRoute } = Astro.props;
+if (initialRoute && !routes.some((r) => r.id === initialRoute)) throw new Error(`[FoundryConceptMap] 없는 노선: ${initialRoute}`);
+
+// 노선별 "자세히 다룬 글" 링크: routes.ts의 article(한국어 글 slug)이 게시된 글이어야 한다.
+// 지금 보고 있는 글이 그 노선의 글이면 자기 자신으로 가는 링크는 보여 주지 않는다
+const publishedKo = new Map(
+  (await getPublishedPosts()).filter((p) => localeFromId(p.id) === "ko").map((p) => [slugFromId(p.id), p.data.title]),
+);
+const routeArticles = Object.fromEntries(
+  routes.filter((r) => r.article).map((r) => {
+    const title = publishedKo.get(r.article!);
+    if (!title) throw new Error(`[FoundryConceptMap] 노선 ${r.id}의 article이 게시된 한국어 글이 아님: ${r.article}`);
+    const href = withBase(blogPath("ko", r.article!));
+    return [r.id, href.replace(/\/$/, "") === Astro.url.pathname.replace(/\/$/, "") ? null : { href, title }];
+  }),
+);
 
 const layers = Object.entries(layerLabels) as [Layer, string][];
 // 개념 지도 상자의 배치 (viewBox 좌표). 이름은 넣지 않는다: concepts.ts의 short/mapLines를 쓴다.
@@ -107,7 +131,7 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
 });
 ---
 
-<div class="fcm" data-fcm>
+<div class="fcm" data-fcm data-initial-route={initialRoute}>
   <ul class="legend" aria-label="색 구분" data-read-skip>
     {layers.map(([layer, label]) => <li class={`l-${layer}`}><i></i>{label}</li>)}
   </ul>
@@ -285,6 +309,9 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
             </li>
           ))}
         </ol>
+        {routeArticles[r.id] && (
+          <p class="route-more">이 노선을 자세히 다룬 글: <a href={routeArticles[r.id]!.href}>{routeArticles[r.id]!.title}</a></p>
+        )}
         <div class="route-src">
           <p class="route-src-label">근거 문서</p>
           <ul>{r.sources.map((s) => <li><a href={s.href} target="_blank" rel="noopener noreferrer">{s.label} ↗</a></li>)}</ul>
@@ -742,6 +769,9 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
     focusEnabled = ids.includes(initial);
     setCollapsed(!focusEnabled);
     render(ids.includes(initial) ? ids.indexOf(initial) : ids.indexOf("onto"));
+    // 연재 글이 route로 정한 노선은 주소에 #route-…가 없을 때만 켠다. 이때는 글 첫머리에서 시작하므로 스크롤하지 않는다
+    const propRoute = root.dataset.initialRoute;
+    if (propRoute && routeFromHash() === null) setRoute(propRoute);
     const initialRoute = routeFromHash();
     if (initialRoute) {
       setRoute(initialRoute);
@@ -842,6 +872,7 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
   .step-name:hover { text-decoration-color: currentColor; }
   .step-name.is-current { background: var(--s); text-decoration: none; }
   .step-note { font-size: 14px; line-height: 1.55; }
+  .route-more { margin: 0; padding-top: 10px; border-top: 1px solid var(--border); font-size: 14px; font-weight: 600; word-break: keep-all; }
   /* 근거 문서는 목록으로 둬서 읽어 주기가 문서 이름을 하나씩 끊어 읽게 한다 */
   .route-src { display: flex; gap: 4px 12px; align-items: baseline; font-size: 12px; }
   .route-src-label { flex: none; margin: 0; color: var(--muted); }
