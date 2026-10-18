@@ -787,8 +787,10 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
       if (back && panel.contains(back)) {
         event.preventDefault();
         const fig = root.querySelector<HTMLElement>(".fig") ?? root;
+        // 좁은 화면에서는 그림 위의 "좌우로 밀어서" 안내까지 막대 아래에 보이게 한다
+        const hint = root.querySelector<HTMLElement>(".map-scroll-hint");
         if (aside && aside.nextElementSibling === root) setCollapsed(true);
-        scrollBelowBar(fig);
+        scrollBelowBar(hint?.offsetHeight ? hint : fig);
         // 기본 링크 이동을 막았으므로 키보드 시작점도 지도로 옮긴다(다음 Tab이 지도의 첫 상자로 가게)
         fig.setAttribute("tabindex", "-1");
         fig.focus({ preventScroll: true });
@@ -1051,7 +1053,7 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
   /* 연결 강조: 개념을 고르면 연결되지 않은 상자·화살표를 흐리게 */
   .map [data-edges], .map .node { transition: opacity 0.15s; }
   /* 흐리게 한 상자라도 키보드 포커스를 받으면 포커스 표시가 보이도록 흐리게 하지 않는다 */
-  .map.focus [data-edges]:not(.rel-on):not(:focus-visible), .map.focus .node:not(.rel-on):not(.rel-extra):not(.frame-node):not(:focus-visible) { opacity: 0.25; }
+  .map.focus [data-edges]:not(.rel-on):not(.rel-extra):not(:focus-visible), .map.focus .node:not(.rel-on):not(.rel-extra):not(.frame-node):not(:focus-visible) { opacity: 0.25; }
   /* 선 없는 관계는 층 색 대신 회색 점선으로 그려 호박색 권한 테두리와 헷갈리지 않게 한다 */
   .node.rel-extra .box { stroke: var(--muted); stroke-dasharray: 4 3; stroke-width: 1.8; }
   .map.focus .ar.rel-on, .map.focus .rel-on .ar { stroke: var(--text); stroke-width: 1.6; }
@@ -1181,7 +1183,7 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
   /* 좁은 화면에서 상단에 고정된 패널: 제목·요약만 보이고 '자세히'로 펼침 */
   @media (max-width: 1179px) {
     [data-docked] { gap: 8px; }
-    [data-docked] .chips { display: flex; gap: 5px; overflow-x: auto; padding: 0 4px 4px; margin: 0 -4px; scrollbar-width: thin; }
+    [data-docked] .chips { display: flex; gap: 5px; overflow-x: auto; padding: 4px; margin: -4px -4px 0; scrollbar-width: thin; }
     [data-docked] .chip-group, [data-docked] .gitems { display: contents; }
     [data-docked] .glabel { display: none; }
     [data-docked] .card { padding: 10px 14px 12px; gap: 8px; border-radius: 10px; }
