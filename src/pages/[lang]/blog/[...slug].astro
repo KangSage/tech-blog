@@ -132,10 +132,13 @@ const jsonLd = {
       area.setAttribute("readonly", "");
       area.style.position = "fixed";
       area.style.opacity = "0";
+      // 선택하려면 포커스가 임시 칸으로 옮겨 가므로 지운 뒤 원래 자리(키보드로 누른 복사 버튼)로 되돌린다
+      const focused = document.activeElement;
       document.body.append(area);
       area.select();
       const ok = document.execCommand("copy");
       area.remove();
+      if (focused instanceof HTMLElement && focused !== document.body) focused.focus({ preventScroll: true });
       if (!ok) throw new Error("copy failed");
     };
     body.querySelectorAll("pre").forEach((pre) => {
