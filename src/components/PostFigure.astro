@@ -1,0 +1,20 @@
+---
+// 글 본문의 스크린샷: 본문 폭에 맞춘 webp를 보여 주고 누르면 원래 크기 webp를 연다.
+// 원본 파일 경로(src.src)로 링크하면 개발 서버에서는 사이트 경로 밖이라 열리지 않고 빌드에서는 원본 형식(jpg 등)이 나가므로 getImage로 만든 webp를 쓴다.
+// 설명은 slot에 한 줄로 넣는다(<br />·<em>·<code> 사용 가능). 읽어 주기는 그림을 img의 alt로 읽는다.
+import type { ImageMetadata } from "astro";
+import { getImage, Image } from "astro:assets";
+
+interface Props {
+  src: ImageMetadata;
+  alt: string;
+}
+
+const { src, alt } = Astro.props;
+const full = await getImage({ src, format: "webp" });
+---
+
+<figure>
+  <a href={full.src}><Image src={src} alt={alt} /></a>
+  <figcaption><slot /></figcaption>
+</figure>
