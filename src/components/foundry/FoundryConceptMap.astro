@@ -197,10 +197,14 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
         <line class="ar" data-edges="dataset:funnel" x1="266" y1="242" x2="266" y2="290" marker-end="url(#fcm-ah)"></line>
         <line class="ar" data-edges="stream:funnel" x1="296" y1="242" x2="296" y2="290" marker-end="url(#fcm-ah)"></line>
         <line class="ar" data-edges="funnel:onto" x1="230" y1="316" x2="230" y2="334" marker-end="url(#fcm-ah)"></line>
-        <a class="node link l-onto" href="#concept-funnel" data-id="funnel" data-edges="funnel:onto funnel:dataset" aria-label="Materialization">
-          <rect class="hit" x="50" y="246" width="104" height="88"></rect>
-          <line class="ar dash" x1="60" y1="336" x2="60" y2="244" marker-end="url(#fcm-ah)"></line>
-          <text class="lab as" x="66" y="278">Materialization</text>
+        <!-- Materialization은 원본 Dataset으로 돌아가지 않는다. Ontology의 최신 상태(원본 + 편집)를 담는 선택 출력 Dataset이라서
+             원본 Dataset 상자가 아니라 따로 그린 흐린 상자를 가리킨다. 개념이 아니라 Funnel 카드에 딸린 출력이므로 data-id는 funnel이다 -->
+        <a class="node link l-onto" href="#concept-funnel" data-id="funnel" data-edges="onto:funnel" aria-label="Materialization: 원본과 편집을 합친 별도 출력 Dataset">
+          <rect class="hit" x="18" y="250" width="128" height="86"></rect>
+          <rect class="out" x="18" y="254" width="126" height="22" rx="6"></rect>
+          <text class="out-t" x="81" y="269">Materialized Dataset</text>
+          <line class="ar dash" x1="60" y1="336" x2="60" y2="278" marker-end="url(#fcm-ah)"></line>
+          <text class="lab as" x="66" y="322">Materialization</text>
         </a>
         <a class="node link l-data" href="#concept-media" data-id="media" data-edges="media:onto" aria-label="media reference">
           <rect class="hit" x="412" y="246" width="60" height="88"></rect>
@@ -273,7 +277,8 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
       <figcaption>
         <ul class="map-legend">
           <li><svg viewBox="0 0 30 10" aria-hidden="true"><line class="lg-line" x1="1" y1="5" x2="23" y2="5"></line><path class="lg-head" d="M22,1 L29,5 L22,9 z"></path></svg>실선: 데이터가 흐르는 방향 또는 아래 층이 위 층을 호출·읽기·쓰기를 하는 방향</li>
-          <li><svg viewBox="0 0 30 10" aria-hidden="true"><line class="lg-line lg-dash" x1="1" y1="5" x2="23" y2="5"></line><path class="lg-head" d="M22,1 L29,5 L22,9 z"></path></svg>점선: 역방향 저장(Materialization), 파일 참조(media ref), 서비스 유저 권한으로 접근</li>
+          <li><svg viewBox="0 0 30 10" aria-hidden="true"><line class="lg-line lg-dash" x1="1" y1="5" x2="23" y2="5"></line><path class="lg-head" d="M22,1 L29,5 L22,9 z"></path></svg>점선: Materialization(원본과 편집을 합친 별도 출력 Dataset을 만듦), 파일 참조(media ref), 서비스 유저 권한으로 접근</li>
+          <li><svg viewBox="0 0 30 10" aria-hidden="true"><rect class="lg-out" x="1" y="1" width="28" height="8" rx="3"></rect></svg>흐린 상자: 개념이 아니라 Materialization이 만드는 선택 출력 Dataset (원본 Dataset으로 돌아가지 않음)</li>
           <li><svg viewBox="0 0 30 10" aria-hidden="true"><path class="lg-line" d="M1,9 H29 M8,9 V2 M22,9 V2" fill="none"></path></svg>공용선(앱과 로직 사이의 가로선): 앱마다 실제로 호출하는 대상은 다르며 개념을 누르면 실제 연결만 강조됩니다</li>
           <li><svg viewBox="0 0 30 10" aria-hidden="true"><rect class="lg-extra" x="1" y="1" width="28" height="8" rx="3"></rect></svg>점선 테두리 상자: 개념을 골랐을 때 그림에 선은 없지만 함께 동작하는 개념 (예: Automate가 실행하는 Action)</li>
           <li><svg viewBox="0 0 30 10" aria-hidden="true"><rect class="lg-frame" x="1" y="1" width="28" height="8" rx="3"></rect></svg>호박색 점선 테두리: Project · Role · Marking 권한이 데이터부터 앱까지의 리소스를 감쌈 (운영 도구도 같은 권한 체계를 따름)</li>
@@ -603,7 +608,7 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
       routePanels.forEach((p) => (p.hidden = p !== routePanel));
       const steps = new Map(words(routePanel?.dataset.steps).map((s) => s.split(":") as [string, string]));
       const edges = new Set(words(routePanel?.dataset.routeEdges));
-      // 방향까지 비교한다: Dataset → Funnel(인덱싱)과 Funnel → Dataset(Materialization)은 다른 선이다
+      // 방향까지 비교한다: Funnel → Ontology(인덱싱)와 Ontology → Funnel 출력(Materialization)은 다른 선이다
       const inRoute = ([a, b]: [string, string]) => edges.has(`${a}:${b}`);
       map?.classList.toggle("route", !!routePanel);
       nodeEls.forEach((node) => {
@@ -845,6 +850,7 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
   .lg-head { fill: var(--muted); }
   .lg-frame { fill: none; stroke: var(--c-sec); stroke-width: 1.4; stroke-dasharray: 4 3; }
   .lg-extra { fill: var(--surface); stroke: var(--muted); stroke-width: 1.4; stroke-dasharray: 3 2; }
+  .lg-out { fill: var(--surface); stroke: var(--border); stroke-width: 1.4; }
   .map-hint { margin: 6px 0 0; }
 
   /* 관점(노선) 보기: 질문 하나를 고르면 그 노선의 단계와 근거 문서를 보여 준다 */
@@ -909,6 +915,9 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
   .map .badge circle { fill: var(--text); stroke: var(--bg); stroke-width: 1.5; }
   .map .badge text { fill: var(--bg); font-size: 10px; font-weight: 700; }
   .map .hit { fill: transparent; }
+  /* Materialization이 만드는 출력 Dataset: 개념 상자와 구별되게 흐린 테두리와 회색 글자 */
+  .map .out { fill: var(--surface); stroke: var(--border); stroke-width: 1.2; }
+  .map .out-t { font-size: 11px; fill: var(--muted); }
   .map .band-bar { fill: var(--c); opacity: 0.7; }
   .map .band-label { font-size: 12px; font-weight: 700; fill: var(--c); text-anchor: start; }
   .map .band-sep { stroke: var(--border); stroke-width: 1; stroke-dasharray: 3 4; }

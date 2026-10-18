@@ -67,15 +67,14 @@ export const routes: Route[] = [
       { ids: ["action"], note: "Submission criteria를 통과해야 제출되며 Action 한 번이 트랜잭션 하나입니다." },
       { ids: ["function", "aip"], note: "Function-backed action이면 Edit function이나 AIP Logic 함수가 편집 내용을 계산합니다. 계산만으로는 저장되지 않고 Action을 거쳐야 저장됩니다." },
       { ids: ["onto"], note: "Object의 값은 원본 데이터와 Action 편집을 합친 것이 됩니다." },
-      { ids: ["funnel"], note: "편집은 원본 Dataset이 아니라 Funnel이 관리하는 Dataset에 저장되고 인덱스에는 즉시 반영됩니다." },
-      { ids: ["dataset"], note: "Materialization을 만들면 원본과 편집을 합친 각 Object의 최신 상태가 Dataset으로 저장됩니다. OSv2에서는 선택 사항이며 하류 파이프라인이나 대량 다운로드에 씁니다." },
+      { ids: ["funnel"], note: "편집은 원본 Dataset이 아니라 Funnel이 관리하는 Dataset에 저장되고 인덱스에는 즉시 반영됩니다. Materialization을 만들면 원본과 편집을 합친 각 Object의 최신 상태가 별도 출력 Dataset으로 저장되며 OSv2에서는 선택 사항입니다." },
     ],
     edges: [
       ["workshop", "action"],
       ["osdk", "action"],
       ["action", "onto"],
       ["funnel", "onto"],
-      ["funnel", "dataset"],
+      ["onto", "funnel"],
     ],
     sources: [
       { label: "Action type", href: D + "action-types/overview" },

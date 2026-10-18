@@ -70,7 +70,7 @@ Foundry의 구성 요소는 크게 다섯 개의 층과 이를 감싸는 권한 
 ## 자주 혼동하는 지점
 
 Foundry는 권한과 동작이 여러 계층에 나뉘어 있어서 비슷해 보이는 설정이 실제로는 서로 다른 곳에서 결정되는 경우가 많습니다.\
-아래는 그중 특히 혼동하기 쉬운 두 가지입니다.\
+아래는 그중 특히 혼동하기 쉬운 세 가지입니다.\
 개념 이름을 누르면 개념 카드가 해당 개념으로 바뀝니다.
 
 ### 조회 · 제출 · 저장은 서로 다른 곳에서 결정됩니다
@@ -82,6 +82,25 @@ Foundry는 권한과 동작이 여러 계층에 나뉘어 있어서 비슷해 �
 | 누가 어떤 Object를 볼 수 있는가? | Object type Viewer 권한이 있고 [Object security policy](#concept-osp)와 필수 통제(Marking, Organization, CBAC)를 모두 통과해야 함.<br />레거시 datasource-derived 모델에서는 backing datasource의 Viewer 권한도 필요.<br />Restricted view 기반 Object type은 Restricted view가 결정 | 모든 SELECT에 자동으로 붙는 WHERE | 같은 명부를 열어도 내 담당 줄만 보임 |
 | 이 Action을 제출할 수 있는가? | [Submission criteria](#concept-action)를 통과하고 편집 대상 Object type·Link type과 그 datasource를 볼 권한이 필요.<br />Action 밖 편집도 허용한 타입은 writeback Dataset의 Edit 권한(Restricted view 기반이면 edit policy 통과)도 필요.<br />action log가 있으면 그 Object type 권한도 필요 | UPDATE 전에 실행되는 IF 검사 | 결재 조건을 통과해야 신청서를 낼 수 있음 |
 | 변경은 언제 실제로 저장되는가? | 기본 설정에서는 [Action](#concept-action)이 실행될 때만 | COMMIT.<br />[Edit function](#concept-function)은 변경할 SQL을 만드는 데까지만 관여 | 신청서가 처리되어야 반영됨.<br />계산기로 미리 계산해 둔 것만으로는 반영되지 않음 |
+
+### 편집은 원본 Dataset으로 돌아가지 않습니다
+
+지도의 Materialization 점선은 원본 Dataset과 Object type 사이의 양방향 동기화가 아닙니다.\
+Action 편집은 원본(backing) Dataset에 쓰이지 않고 아래 표처럼 따로 저장됩니다.
+
+| 저장되는 곳 | 담기는 내용 | 갱신 시점 | 만드는 주체 |
+| --- | --- | --- | --- |
+| 원본(backing) [Dataset](#concept-dataset) | 파이프라인이 만든 데이터.<br />Action 편집은 들어가지 않음 | 파이프라인의 Build | 데이터 파이프라인 |
+| [Ontology](#concept-onto) 인덱스(OSv2) | 원본과 편집을 합친 Object.<br />앱은 여기서 읽음 | 편집은 즉시 반영.<br />원본 변경은 [Funnel](#concept-funnel) 파이프라인이 실행될 때 반영 | Funnel |
+| Funnel이 관리하는 Dataset | 편집 기록과 원본·편집을 합친 merged Dataset | 큐에 쌓인 편집을 주기적으로 저장 | Funnel(자동) |
+| Materialized Dataset (선택) | 원본과 편집을 합친 각 Object의 최신 상태.<br />최신 스냅샷만 보장 | 편집 자동 전파(몇 분 지연) 또는 원본이 바뀔 때·6시간마다 | 사용자가 Ontology Manager에서 만듦 |
+
+기본 설정에서는 편집한 property가 이후 원본이 바뀌어도 편집 값을 유지합니다(Apply user edits).\
+예전 Object Storage v1에서는 편집하려면 writeback Dataset이 필요했습니다.\
+OSv2에서 Materialization은 하류 파이프라인이나 대량 다운로드에 필요할 때만 만드는 선택 사항입니다.\
+Materialized Dataset은 지난 트랜잭션이 계속 지워지므로 이력이 필요하면 하류 transform으로 따로 남깁니다.
+
+공식 문서: [How user edits are applied](https://www.palantir.com/docs/foundry/object-edits/how-edits-applied) · [Materializations](https://www.palantir.com/docs/foundry/object-edits/materializations) · [Funnel batch pipelines](https://www.palantir.com/docs/foundry/object-indexing/funnel-batch-pipelines)
 
 ### 권한은 계층마다 따로 막아야 합니다
 
