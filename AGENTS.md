@@ -247,6 +247,16 @@ Execute `omx setup` to install all components. Execute `omx doctor` to verify in
 - Use one name per concept everywhere (card title, index, map, body text). Escape `~` as `\~` in MDX, since GFM turns `~a~` into strikethrough.
 - Tags: pair each English tag with a Korean tag written without spaces (e.g. `ontology`, `온톨로지`).
 - After writing, grep the prose for `[가-힣] ?(고|며|지만|면|므로|서|거나|듯|뒤|때|뿐|와|과|도|달리|처럼|아니라), ` to catch leftover connective commas (the optional space catches forms like "할 뿐," and "과 달리,"), then review each hit by hand.
+- Bold that ends in a quote or a parenthesis right before Korean text (`**"…"**는`, `**…(…)**로`) does not render in MDX; write `<strong>…</strong>` there and check the rendered page for leftover `**`.
+
+### Hands-on (실습) posts — format for posts readers can follow in their own environment
+- Right under the "이 글을 쓰게 된 이유" `<details class="post-note">`, add a second collapsed `<details class="post-note">` with an example prompt for a coding AI (e.g. `<summary>따라 해 보려는 분들을 위한 코딩 AI 예제 프롬프트</summary>`). Being a closed `<details>`, read-aloud skips it.
+- Address the coding AI in general terms, not one product: for Foundry posts, the AI in the terminal of a VS Code workspace opened on the repo (that environment had Codex and opencode installed; cite the official doc or announcement for anything stated about it).
+- Before the prompt, say in a few sentences where to run it, that the prompt is an example built from the post and was not tested as is (unless it was), to replace the `<...>` placeholders, and to review the AI's plan and changes.
+- Put the prompt in a ```` ```text ```` block wrapped in `<div class="prompt-block">` (blank lines around the fence) so it wraps instead of scrolling sideways.
+- Prompt structure: what the repo is and the goal; read the repo and show a plan before changing code; list the steps the reader must do by hand in Foundry UIs; no commit, tag or push without the reader's confirmation; mark uncertainty instead of guessing and name the official doc pages. Then `[현재 환경]`, `[목표]`, `[진행 순서와 주의할 점]` (the post's pitfalls turned into instructions or questions).
+- Use placeholders, never real names, IDs, hosts or paths from the author's environment, and keep every statement in the prompt consistent with the post body.
+- Screenshots: commit only masked copies under `src/assets/blog/<slug>/` and insert them with `src/components/PostFigure.astro` (page shows webp, click opens the full-size webp; `sharp` is a direct dependency for this).
 
 ### Concept map posts (`src/components/foundry/`) — checklist for adding or renaming a concept
 Recurring mistakes here were names drifting between the card, the index chip, and the map box, and map text/labels overlapping after layout changes.
