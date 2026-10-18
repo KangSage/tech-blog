@@ -842,10 +842,11 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
       };
       if (more && target.closest(".more") === more) { setExpanded(!panel.classList.contains("is-expanded")); return keepPressedInView(more); }
       if (fold && target.closest(".fold") === fold) { setCollapsed(!panel.classList.contains("is-collapsed")); return keepPressedInView(fold); }
-      if (panel.classList.contains("is-collapsed") && target.closest(".card.is-active") && panel.contains(target)) return setCollapsed(false);
+      // 접힌 카드를 탭해 열 때, 칩·비유 탭·이전/다음으로 카드가 바뀔 때도 막대 높이가 바뀌므로 같은 방식으로 보이게 한다
+      if (panel.classList.contains("is-collapsed") && target.closest(".card.is-active") && panel.contains(target)) { setCollapsed(false); return keepPressedInView(fold ?? panel); }
       if (indexToggle && target.closest(".index-toggle") === indexToggle) return setIndexOpen(!panel.classList.contains("index-open"));
       const viewButton = target.closest<HTMLElement>("button[data-view]");
-      if (viewButton && panel.contains(viewButton)) return setView(viewButton.dataset.view ?? "");
+      if (viewButton && panel.contains(viewButton)) { setView(viewButton.dataset.view ?? ""); return keepPressedInView(viewButton); }
       const routeButton = target.closest<HTMLElement>("button[data-route]");
       if (routeButton && routeBox?.contains(routeButton)) {
         const rid = routeButton.dataset.route ?? "";
@@ -855,10 +856,11 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
         return history.replaceState(null, "", rid ? `#route-${rid}` : location.pathname + location.search);
       }
       const chip = target.closest<HTMLElement>("[data-chip]");
-      if (chip) return pick(chip.dataset.chip);
+      if (chip) { pick(chip.dataset.chip); if (panel.contains(chip)) keepPressedInView(chip); return; }
       const step = target.closest<HTMLElement>("[data-step]");
       if (step && panel.contains(step)) {
-        return pick(ids[(current + Number(step.dataset.step) + ids.length) % ids.length]);
+        pick(ids[(current + Number(step.dataset.step) + ids.length) % ids.length]);
+        return keepPressedInView(step);
       }
       const node = target.closest(".map [data-id]");
       if (node) {
