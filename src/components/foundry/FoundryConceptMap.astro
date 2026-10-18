@@ -1199,6 +1199,9 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
        본문은 줄이지 않고 펼쳐 두어 스크롤 영역이 두 겹이 되지 않게 한다 */
     [data-docked].index-open .card.is-active { overflow-y: auto; overscroll-behavior: contain; }
     [data-docked].index-open .cbody { flex: none; min-height: 0; overflow: visible; }
+    /* 화면이 낮으면 펼친 목록(약 600px)이 높이를 다 차지해 카드가 사라지므로, 카드 180px·버튼 줄·간격(234px)을 남기고 목록 안에서 스크롤한다.
+       높이가 넉넉하면 목록은 다 보이고 지금처럼 카드만 스크롤된다. 스크롤되는 목록의 가장자리 칩도 포커스 윤곽선이 잘리지 않게 4px 여백을 둔다 */
+    [data-docked].index-open .index { flex-shrink: 0; min-height: 0; max-height: calc(100vh - 32px - 234px); overflow-y: auto; overscroll-behavior: contain; padding: 4px; margin: -4px; scroll-padding-block: 4px; }
     [data-docked] .nav { flex: none; }
   }
 

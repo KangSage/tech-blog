@@ -334,6 +334,10 @@ const labels = {
 
 <style>
   /* 본문 끝의 sticky 도크: 본문을 보는 동안 화면 하단에 붙는다. 도크 자체는 클릭을 통과시켜 뒤의 글을 가리는 면적을 버튼만큼으로 줄인다 */
+  /* 화면 아래 끝에 걸친 요소에 키보드 포커스가 가면 브라우저가 아래 끝에 붙여 보여 주므로 도크(읽어 주기 버튼)에 가리지 않게 그만큼 비운다 */
+  :global(html) {
+    scroll-padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+  }
   .ra-dock {
     position: sticky;
     bottom: calc(12px + env(safe-area-inset-bottom, 0px));
