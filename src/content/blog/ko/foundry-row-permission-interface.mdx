@@ -31,6 +31,49 @@ import devConsoleSdkResources from "@/assets/blog/foundry-row-permission-interfa
 
 </details>
 
+<details class="post-note">
+<summary>따라 해 보려는 분들을 위한 코딩 AI 예제 프롬프트</summary>
+
+이 글의 작업을 자기 환경에서 따라 해 보려면 Foundry의 [VS Code 워크스페이스](https://www.palantir.com/docs/foundry/vs-code/overview)에서 함수 레포를 열고 터미널의 코딩 AI에게 아래 프롬프트를 줄 수 있습니다.\
+Foundry 공지는 VS Code 워크스페이스 터미널의 Codex 지원을 소개하고 있고([2026년 9월 공지](https://www.palantir.com/docs/foundry/announcements/2026-09)) 이 환경의 터미널에는 Codex와 opencode가 설치되어 있었습니다.\
+아래 프롬프트는 이 글의 내용을 바탕으로 만든 예시이며 코딩 AI에서 그대로 시험해 본 것은 아닙니다.\
+`<...>` 부분을 자기 환경에 맞게 바꿔 붙여 넣고 AI가 제안한 계획과 코드 변경은 직접 검토하시기 바랍니다.
+
+<div class="prompt-block">
+
+```text
+이 레포는 Palantir Foundry TypeScript Functions(v2) 레포입니다.
+여러 오브젝트 타입의 행 권한 속성을 Ontology Interface 하나로 묶으려고 합니다.
+코드를 바꾸기 전에 먼저 레포를 읽고 단계별 계획을 보여 주세요.
+Ontology Manager나 Developer Console에서 해야 하는 일은 제가 할 단계로 따로 적어 주세요.
+커밋과 태그와 푸시는 제가 확인한 뒤에만 해 주세요.
+확실하지 않은 부분은 추측하지 말고 확인이 필요하다고 표시해 주시고 근거가 되는 공식 문서 페이지도 함께 알려 주세요.
+
+[현재 환경]
+- 행 권한 대상 오브젝트 타입: <타입 A>, <타입 B>, <타입 C> (총 <N>개)
+- 각 타입은 그룹 ID 목록 속성 <viewerGroupIds>를 가지며 이 속성은 Edit-only 속성입니다.
+- Object Security Policy는 사용자 그룹과 <viewerGroupIds>가 겹치거나 사용자가 <관리자 그룹>에 속하면 행을 보여 줍니다.
+- 권한 값은 함수 기반 Action(부여·회수·백필)이 타입별 Edits.Object로 씁니다. 관련 코드는 <경로>에 있습니다.
+- Ontology 변경은 Global Branch에서 하고 Proposal로 Main에 병합합니다.
+
+[목표]
+1. Interface <InterfaceName>에 속성 <viewerGroupIds>를 두고 위 타입들이 기존 속성으로 구현하게 합니다. (Ontology Manager 작업은 제가 합니다.)
+2. 점검 함수: client(<InterfaceName>).asyncIter()로 타입별 객체 수와 권한 값이 비어 있는 객체 수를 셉니다.
+3. 쓰기: 권한 값 갱신을 Edits.Interface 편집으로 바꿉니다. 누가 볼 수 있는지 계산하는 규칙은 타입별로 유지합니다.
+
+[진행 순서와 주의할 점]
+- 1단계에서는 Interface 정의와 구현과 점검 함수만 넣고 쓰기는 타입별 편집을 유지합니다. 브랜치에서 새로 만든 Interface로 편집하는 함수는 CI 함수 탐색과 브랜치 미리보기 실행에서 실패할 수 있습니다.
+- 로컬 rune discover 통과만 믿지 말고 build/entityMetadataMapping.json으로 CI와 같은 함수 탐색을 돌리는 방법을 알려 주세요.
+- 2단계에서는 Interface가 Main에 병합된 뒤 쓰기를 Edits.Interface로 바꾸고 단위 테스트에서 편집 형식이 updateObjectForInterface인지 확인합니다.
+- 구현 타입마다 Enable interface actions 설정과 브랜치 인덱싱이 필요할 수 있으니 제가 확인할 항목으로 적어 주세요.
+- Action의 함수 버전과 Auto upgrade 설정이 병합 직후 Main 동작에 주는 영향을 확인하는 방법도 알려 주세요.
+- 편집이 0건인 실행으로는 설정 누락이 드러나지 않을 수 있으니 실제로 값이 바뀌는 테스트 시나리오를 제안해 주세요.
+```
+
+</div>
+
+</details>
+
 Foundry에서 행 단위 권한(Row-level Security)을 적용하다 보면 권한 제어용 속성을 가진 오브젝트 타입이 금세 여러 개로 늘어납니다.\
 제가 구성한 환경에서도 6개의 오브젝트 타입이 저마다 `viewerGroupIds`라는 동일한 이름의 권한 속성을 가지고 있었고 이 값을 점검하거나 수정하는 코드 역시 타입별로 중복해서 작성해야 했습니다.\
 이 글에서는 **흩어져 있던 권한 속성을 하나의 Ontology Interface로 묶어 한 곳에서 읽고 쓸 수 있게 리팩터링한 과정**을 공유합니다.
@@ -448,47 +491,6 @@ Developer Console의 앱은 Global Branch 바깥에 있기 때문에 아직 브�
 11. **Main 환경 최종 확인**: Main 브랜치에서 모든 구현 타입의 인덱싱 완료 여부와 *Enable interface actions* 활성화 상태와 Action의 함수 버전을 확인한 뒤 통합 점검 쿼리를 실행합니다.\
     (Main 인덱싱이 끝나기 전에 권한 부여·회수를 실행하는 시나리오는 검증하지 않았으므로 인덱싱 완료를 확인한 뒤 실행하는 것이 안전합니다.)
 
-<details class="post-note">
-<summary>따라 해 보려는 분들을 위한 AIP Assist 예제 프롬프트</summary>
-
-[AIP Assist](https://www.palantir.com/docs/foundry/assist/overview)는 Foundry 사용을 돕는 LLM 기반 도우미입니다.\
-작업 공간 내비게이션 바 아래쪽에서 열거나 macOS에서 Cmd+Shift+U로 열 수 있고 플랫폼 관리자가 AIP를 켜 둔 환경에서만 쓸 수 있습니다.\
-아래 프롬프트는 이 글의 내용을 바탕으로 만든 예시이며 AIP Assist에서 직접 시험해 본 것은 아닙니다.\
-`<...>` 부분을 자기 환경에 맞게 바꿔 붙여 넣고 답변은 공식 문서와 대조해 확인하시기 바랍니다.
-
-<div class="prompt-block">
-
-```text
-Palantir Foundry에서 여러 오브젝트 타입의 행 권한 속성을 Ontology Interface 하나로 묶으려고 합니다.
-아래 환경과 목표를 보고 단계별 진행 방법을 알려 주세요.
-확실하지 않은 부분은 추측하지 말고 확인이 필요하다고 표시해 주시고 근거가 되는 공식 문서 페이지도 함께 알려 주세요.
-
-[현재 환경]
-- 행 권한 대상 오브젝트 타입: <타입 A>, <타입 B>, <타입 C> (총 <N>개)
-- 각 타입은 그룹 ID 목록 속성 <viewerGroupIds>를 가지며 이 속성은 Edit-only 속성입니다.
-- Object Security Policy는 사용자 그룹과 <viewerGroupIds>가 겹치거나 사용자가 <관리자 그룹>에 속하면 행을 보여 줍니다.
-- 권한 값은 TypeScript Functions v2 함수 기반 Action(부여·회수·백필)이 타입별 Edits.Object로 씁니다.
-- Ontology 변경은 Global Branch에서 하고 Proposal로 Main에 병합합니다.
-- 웹 앱은 Developer Console에 등록한 리소스 제한 모드 앱입니다.
-
-[목표]
-1. Interface <InterfaceName>에 속성 <viewerGroupIds>를 두고 위 타입들이 기존 속성으로 구현하게 합니다.
-2. 점검: Interface 조회 한 번으로 타입별 객체 수와 권한 값이 비어 있는 객체 수를 셉니다.
-3. 쓰기: 권한 값 갱신을 Edits.Interface 편집으로 바꿉니다. 누가 볼 수 있는지 계산하는 규칙은 타입별로 유지합니다.
-
-[함께 확인하고 싶은 점]
-- 브랜치에서 새로 만든 Interface를 같은 브랜치의 함수에서 Edits.Interface로 편집할 수 있는지와 안 된다면 병합을 어떤 순서로 나눠야 하는지
-- 구현 오브젝트 타입의 Interfaces 탭에 있는 Enable interface actions 설정이 함수 기반 Action의 Interface 편집에도 필요한지
-- 설정을 바꾼 뒤 브랜치 인덱싱이 필요한 타입과 그 확인 방법
-- Action의 함수 버전과 Auto upgrade 설정이 병합 직후 Main 동작에 주는 영향
-- 리소스 제한 모드 앱에 Interface와 Action을 추가할 수 있는 시점
-- 편집이 0건인 실행으로는 드러나지 않는 문제가 있는지와 그에 맞는 테스트 시나리오
-```
-
-</div>
-
-</details>
-
 ## 마무리
 
 Ontology Interface는 <strong>"여러 오브젝트 타입이 동일한 의미와 형태의 속성을 공유한다"</strong>는 사실을 플랫폼 수준에서 선언하는 도구입니다.\
@@ -512,6 +514,7 @@ Ontology Interface는 <strong>"여러 오브젝트 타입이 동일한 의미와
 - [Function-backed actions • Getting started](https://www.palantir.com/docs/foundry/action-types/function-actions-getting-started)
 - [Developer Console • Application restrictions](https://www.palantir.com/docs/foundry/developer-console/application-restrictions)
 - [Ontologies API v2 • Apply Action](https://www.palantir.com/docs/foundry/api/ontologies-v2-resources/actions/apply-action)
-- [AIP Assist • Overview](https://www.palantir.com/docs/foundry/assist/overview)
+- [VS Code workspaces • Overview](https://www.palantir.com/docs/foundry/vs-code/overview)
+- [Announcements • September 2026](https://www.palantir.com/docs/foundry/announcements/2026-09)
 
 *(본문의 함정 1·2 원인 분석과 실행 수치는 공식 문서에 명시된 사양이 아니라 검증 환경에서 직접 관찰하고 테스트한 결과입니다.)*
