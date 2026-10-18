@@ -5,7 +5,7 @@ export const giscus = {
   repo: "KangSage/tech-blog",
   repoId: "R_kgDOS9d-JA",
   category: "Announcements",
-  categoryId: "",
+  categoryId: "DIC_kwDOS9d-JM4DI1zd",
 };
 
 export const commentsEnabled = Boolean(giscus.repoId && giscus.categoryId);
