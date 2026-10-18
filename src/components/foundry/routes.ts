@@ -94,8 +94,8 @@ export const routes: Route[] = [
       { ids: ["osdk"], note: "Developer Console에 앱을 등록하고 앱 제한으로 접근할 리소스와 작업의 상한을 정합니다. OSDK는 Ontology에서 생성되는 타입 있는 클라이언트입니다." },
       { ids: ["oauth"], note: "앱은 OAuth로 토큰을 받습니다. Authorization code 방식은 사용자를 대신해 동작하고 Client credentials 방식은 서비스 유저로 동작합니다." },
       { ids: ["onto"], note: "토큰은 사용자(또는 서비스 유저) 권한과 앱 제한이 모두 허용하는 리소스에만 접근합니다." },
-      { ids: ["action", "function"], note: "쓰기는 Action, 조회와 계산은 Function을 호출해 처리합니다." },
-      { ids: ["omcp"], note: "외부 AI 에이전트는 Ontology MCP로 Developer Console 앱의 Object를 읽고 Action과 query function을 도구로 호출합니다. 에이전트가 실행할 수 있는 Action은 앱 제한으로 정합니다." },
+      { ids: ["action", "function"], note: "Object 조회는 Function 없이 OSDK로 바로 할 수 있습니다. 쓰기는 Action을 호출하고 계산 로직이 필요하면 Function을 호출합니다." },
+      { ids: ["omcp"], note: "외부 AI 에이전트는 Ontology MCP로 Developer Console 앱의 Object를 읽고 Action과 query function을 도구로 호출합니다. MCP client도 같은 앱의 OAuth 설정으로 인증하며 에이전트가 실행할 수 있는 Action은 앱 제한으로 정합니다." },
     ],
     edges: [
       ["osdk", "oauth"],
@@ -109,6 +109,7 @@ export const routes: Route[] = [
       { label: "OSDK", href: D + "ontology-sdk/overview" },
       { label: "OAuth 클라이언트", href: D + "platform-security-third-party/writing-oauth2-clients" },
       { label: "Ontology MCP", href: D + "ontology-mcp/overview" },
+      { label: "Ontology MCP 인증", href: D + "ontology-mcp/authentication-and-authorization" },
     ],
   },
   {
@@ -144,7 +145,7 @@ export const routes: Route[] = [
       { ids: ["oma"], note: "Ontology Manager에서 Object type·Link type·Action type 같은 Ontology 리소스를 정의합니다. 보호된 리소스는 브랜치에서 수정하고 proposal을 거쳐 병합해야 합니다." },
       { ids: ["branch"], note: "Global Branching으로 파이프라인·Ontology·Workshop 같은 여러 앱의 변경을 브랜치 하나에서 테스트합니다. Proposal의 check를 모두 통과해야 Main에 병합할 수 있습니다." },
       { ids: ["lineage"], note: "Workflow Lineage로 바꿀 Object 컬럼을 쓰는 하류 Action과 Workshop 앱을 찾습니다. 브랜치에서 리소스를 지우기 전에는 다른 리소스가 그 리소스에 기대고 있지 않은지 확인합니다." },
-      { ids: ["approvals"], note: "Global Branching proposal을 만들면 Ontology proposal이 자동으로 생기고 Global Branching proposal을 병합할 때 함께 병합됩니다. Ontology proposal은 Approvals의 task로도 다뤄집니다." },
+      { ids: ["approvals"], note: "브랜치 변경의 검토자는 proposal 페이지나 branch taskbar에서 지정합니다. Project의 승인 정책은 Project Owner가 Branch protection 탭에서 정하고 Code Repositories와 Pipeline Builder는 리소스 안에서 승인 정책을 정합니다. Global Branching proposal을 만들면 Ontology proposal이 자동으로 생기고 함께 병합되며 Approvals가 다루는 task에도 Ontology proposal이 있습니다." },
       { ids: ["market"], note: "개발·테스트·운영처럼 환경이 여럿이면 리소스를 product로 묶어 버전별로 설치하고 업그레이드합니다." },
     ],
     edges: [],

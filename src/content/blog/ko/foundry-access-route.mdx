@@ -235,7 +235,7 @@ Marking을 건 Dataset을 backing으로 하는 Restricted view는 사용자별 �
 
 | 막은 곳 | 그래도 열려 있는 곳 | 따로 해야 할 일 |
 | --- | --- | --- |
-| [Object security policy](#concept-osp)로 Object를 가림 | 원본 [Dataset](#concept-dataset) | Dataset 권한을 따로 설정 |
+| [Object security policy](#concept-osp)로 Object를 가림 | 원본 [Dataset](#concept-dataset) ([Contour](#concept-analytics)·Code Workspaces처럼 Dataset을 직접 읽는 도구) | Dataset 권한을 따로 설정 |
 | [Restricted view](#concept-rv)로 행을 거름 | backing [Dataset](#concept-dataset) (권한이 있으면 Restricted view를 거치지 않고 읽음) | backing Dataset 권한을 주지 않거나 Marking으로 보호 |
 | [Object security policy](#concept-osp)·Property security policy로 media reference property를 가림 | Media set 권한이 Object type과 다르면 [Media set](#concept-media)에서 파일을 직접 가져올 수 있음 | Media set 권한을 따로 설정 |
 | [Object security policy](#concept-osp)로 Object 읽기를 제한 | [Action](#concept-action)·[Function](#concept-function)이 그 Object를 읽어 만든 결과 (Function 반환값은 정책에 묶이지 않고 Action 편집에는 쓰기 대상의 통제가 적용됨) | 파생 결과까지 보호해야 하면 필수 통제를 함께 설정<br />(Marking·<wbr />CBAC·<wbr />Organization)<br />Action이 쓰는 대상의 권한도 따로 확인 |

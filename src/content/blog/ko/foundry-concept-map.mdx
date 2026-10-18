@@ -106,6 +106,7 @@ Materialized Dataset은 지난 트랜잭션이 계속 지워지므로 이력이 
 
 한 곳을 막았다고 해서 관련 데이터가 모두 보호되지는 않습니다.\
 [Object security policy](#concept-osp)로 Object를 가려도 원본 [Dataset](#concept-dataset)과 [Media set](#concept-media)은 각각 따로 잠가야 합니다.\
+Object security policy는 Ontology 밖에서 Dataset을 읽는 것을 막지 않으므로 Object가 아니라 Dataset을 분석하는 [Contour](#concept-analytics) 같은 도구는 Dataset 쪽 권한으로 따로 막아야 합니다.\
 Object security policy 같은 행 단위 정책은 읽는 순간에만 적용되므로 [Action](#concept-action)·[Function](#concept-function)이 읽어 만든 결과까지 보호하려면 Marking 같은 [필수 통제](https://www.palantir.com/docs/foundry/security/access-control-propagation)를 함께 겁니다.\
 OSDK 앱이 받는 토큰은 사용자 권한과 Developer Console의 앱 제한이 모두 허용하는 리소스에만 접근합니다([OSDK](#concept-osdk)).\
 Application permissions를 쓰는 [Compute module](#concept-cm)은 호출한 사용자가 아니라 서비스 유저 권한으로 동작합니다.\
