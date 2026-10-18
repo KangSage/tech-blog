@@ -263,14 +263,17 @@ const labels = {
       toggle.classList.toggle("is-paused", !on);
     }
 
+    // 포커스가 있던 버튼을 숨기면 포커스가 문서 처음으로 떨어지므로 시작·정지할 때 보이는 쪽 버튼으로 옮긴다(도크는 늘 보이므로 스크롤하지 않는다)
     function stop() {
       run++;
       playing = false;
       speech.cancel();
       utterance = null;
       mark(null);
+      const refocus = bar.contains(document.activeElement);
       bar.hidden = true;
       idle.hidden = false;
+      if (refocus) start.focus({ preventScroll: true });
       status.textContent = "";
     }
 
@@ -283,8 +286,10 @@ const labels = {
       ({ items, sections } = collect());
       if (!items.length) return;
       notice.textContent = "";
+      const refocus = document.activeElement === start;
       idle.hidden = true;
       bar.hidden = false;
+      if (refocus) toggle.focus({ preventScroll: true });
       setPlaying(true);
       speak(0);
     });
