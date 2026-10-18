@@ -349,7 +349,8 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
       </div>
 
       <div class="nav" hidden>
-        <a class="back" href="#concept-map">↑ 지도</a>
+        <!-- 지도는 카드보다 위(좁은 화면의 상단 막대)에도 옆(넓은 화면)에도 있으므로 방향 화살표를 붙이지 않는다 -->
+        <a class="back" href="#concept-map">지도에서 보기</a>
         <button type="button" class="more" aria-expanded="false">자세히 ▾</button>
         <button type="button" class="fold" aria-expanded="false">펼치기 ▾</button>
         <button type="button" class="step" data-step="-1">이전</button>
@@ -387,7 +388,8 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
         else if (home && aside.parentElement !== home) home.insertBefore(aside, homeNext);
       };
       place();
-      narrow.addEventListener("change", place);
+      // 목록 모양이 바뀌므로(넓은 화면의 층별 줄 ↔ 좁은 화면의 가로 스크롤 줄) 현재 항목이 보이게 다시 맞춘다
+      narrow.addEventListener("change", () => { place(); showCurrentChip(); });
     }
     // 카드 id는 JS가 없을 때의 앵커용. 켜진 뒤에는 지워서 #concept-… 해시로 브라우저가 스크롤하지 않게 한다
     cards.forEach((card) => card.removeAttribute("id"));
@@ -443,17 +445,33 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
     function setCollapsed(collapsed: boolean) {
       panel!.classList.toggle("is-collapsed", collapsed);
       if (collapsed) setExpanded(false);
+      // 접힌 동안에는 목록이 숨어 폭이 0이라 맞출 수 없었으므로, 펼쳐서 목록이 보인 다음에 현재 항목으로 옮긴다
+      else showCurrentChip();
       if (fold) {
         fold.setAttribute("aria-expanded", String(!collapsed));
         fold.textContent = collapsed ? "펼치기 ▾" : "접기 ▴";
       }
     }
 
+    // 자세히는 카드 본문만 여닫는다. 막대 전체를 접는 버튼(접기 ▴)과 함께 보이므로 닫는 문구를 다르게 둔다
     function setExpanded(open: boolean) {
       panel!.classList.toggle("is-expanded", open);
       if (more) {
         more.setAttribute("aria-expanded", String(open));
-        more.textContent = open ? "접기 ▴" : "자세히 ▾";
+        more.textContent = open ? "간단히 ▴" : "자세히 ▾";
+      }
+    }
+
+    // 가로로 스크롤되는 목록(좁은 화면의 전체 줄, 넓은 화면의 접힌 층 줄)에서 현재 항목을 가운데로.
+    // 목록의 scrollLeft만 바꿔서 페이지는 세로로 움직이지 않는다
+    function showCurrentChip() {
+      const chip = panel!.querySelector<HTMLElement>(`[data-chip="${ids[current]}"]`);
+      if (!chip) return;
+      for (const row of [chips, chip.closest<HTMLElement>(".gitems")]) {
+        if (!row || row.scrollWidth <= row.clientWidth) continue;
+        const br = chip.getBoundingClientRect();
+        const cr = row.getBoundingClientRect();
+        row.scrollLeft += br.left - cr.left - (cr.width - br.width) / 2;
       }
     }
 
@@ -606,18 +624,8 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
       panel!.querySelectorAll<HTMLElement>(".chip-group").forEach((group) => {
         group.classList.toggle("is-current", !!group.querySelector(`[data-chip="${id}"]`));
       });
-      panel!.querySelectorAll<HTMLElement>("[data-chip]").forEach((chip) => {
-        const on = chip.dataset.chip === id;
-        chip.setAttribute("aria-pressed", String(on));
-        if (!on) return;
-        // 가로로 스크롤되는 목록(좁은 화면의 전체 줄, 넓은 화면의 접힌 층 줄)에서 선택 항목을 가운데로
-        for (const row of [chips, chip.closest<HTMLElement>(".gitems")]) {
-          if (!row || row.scrollWidth <= row.clientWidth) continue;
-          const br = chip.getBoundingClientRect();
-          const cr = row.getBoundingClientRect();
-          row.scrollLeft += br.left - cr.left - (cr.width - br.width) / 2;
-        }
-      });
+      panel!.querySelectorAll<HTMLElement>("[data-chip]").forEach((chip) => chip.setAttribute("aria-pressed", String(chip.dataset.chip === id)));
+      showCurrentChip();
       const body = cards[index].querySelector<HTMLElement>(".cbody");
       if (body) body.scrollTop = 0;
       cards[index].scrollTop = 0;
@@ -940,7 +948,8 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
   .doc { display: inline-flex; align-items: center; padding: 7px 12px; border-radius: 9px; background: var(--text); color: var(--surface); text-decoration: none; font-weight: 600; }
 
   .nav { display: flex; gap: 6px; justify-content: flex-end; }
-  .nav button, .back { height: 34px; padding: 0 12px; border-radius: 9px; border: 1px solid var(--border); background: var(--surface); cursor: pointer; font-size: 13px; display: inline-flex; align-items: center; text-decoration: none; color: var(--text); }
+  /* 지도 링크(a)도 버튼과 같은 높이가 되게 테두리를 높이 안에 넣는다 */
+  .nav button, .back { box-sizing: border-box; height: 34px; padding: 0 12px; border-radius: 9px; border: 1px solid var(--border); background: var(--surface); cursor: pointer; font-size: 13px; display: inline-flex; align-items: center; text-decoration: none; color: var(--text); }
   .back { margin-right: auto; }
   .more { display: none !important; }
   /* 접기 버튼은 좁은 화면(상단 고정 패널)에서만 보인다. .nav button보다 우선하도록 .nav를 붙인다 */
@@ -985,15 +994,17 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
     [data-docked] .lead { font-size: 14px; }
     [data-docked]:not(.is-expanded) .detail { display: none; }
     [data-docked].is-expanded { max-height: 65vh; overflow-y: auto; }
+    /* 자세히를 연 패널은 막대 안에서 스크롤되므로 간단히·접기 버튼이 끝까지 내리지 않아도 보이게 아래에 붙인다 */
+    [data-docked].is-expanded .nav { position: sticky; bottom: 0; padding-top: 6px; background: var(--bg); }
     [data-docked] .more { display: inline-flex !important; }
     [data-docked] .step { display: none; }
     [data-docked] .fold { display: inline-flex; }
-    /* 접힌 패널: 현재 개념 이름 한 줄과 펼치기 버튼만 */
+    /* 접힌 패널: 펼친 카드와 같은 상자·층 배지·제목을 한 줄(배지 | 제목)로 두고 펼치기 버튼만 옆에 남긴다.
+       요약·목록·자세히는 펼쳤을 때만 보인다. 두 줄로 두면 막대가 본문을 20px 넘게 더 가리므로 한 줄로 둔다 */
     [data-docked].is-collapsed { grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
-    [data-docked].is-collapsed .index { display: none; }
-    [data-docked].is-collapsed .card { padding: 6px 12px; cursor: pointer; }
-    [data-docked].is-collapsed .card > :not(.ct) { display: none; }
-    [data-docked].is-collapsed .ct { font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    [data-docked].is-collapsed .index, [data-docked].is-collapsed .lead { display: none; }
+    [data-docked].is-collapsed .card { grid-template-columns: auto minmax(0, 1fr); align-items: center; cursor: pointer; }
+    [data-docked].is-collapsed .ct { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     [data-docked].is-collapsed .nav > :not(.fold) { display: none !important; }
     [data-docked] .nav button, [data-docked] .back { height: 30px; }
   }
