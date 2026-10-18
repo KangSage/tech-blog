@@ -827,8 +827,19 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
         fig.focus({ preventScroll: true });
         return;
       }
-      // 좁은 화면에서 화면 아래쪽에 있던 막대가 아래로 커지면 누른 버튼이 화면 밖으로 밀리므로 다시 보이게 한다(보이면 그대로)
-      const keepPressedInView = (button: HTMLElement) => { if (aside && aside.nextElementSibling === root) button.scrollIntoView({ block: "nearest" }); };
+      // 좁은 화면에서 막대가 커진 뒤에도 카드 머리와 누른 버튼이 보이게 한다(보이면 그대로).
+      // 본문 끝에서 밀려 올라간 막대는 위로 커져 머리가 화면 위로 숨으므로 막대 위 끝을 화면 안으로 내리고,
+      // 위에 붙기 전인 막대는 아래로 커지며 마우스로 누르면 읽어 주기 도크 밑에 그려지므로 누른 버튼을 지금 보이는 도크(재생 중이면 조작 바) 위로 올린다
+      const keepPressedInView = (button: HTMLElement) => {
+        if (!aside || aside.nextElementSibling !== root) return;
+        const barTop = aside.getBoundingClientRect().top;
+        if (barTop < 0) window.scrollBy(0, barTop);
+        if (aside.getBoundingClientRect().top <= 0.5) return;
+        const dock = Array.from(document.querySelectorAll<HTMLElement>(".ra-dock .ra-bar, .ra-dock .ra-start")).find((el) => el.getClientRects().length > 0);
+        const limit = Math.min(window.innerHeight - 4, (dock?.getBoundingClientRect().top ?? window.innerHeight) - 8);
+        const overlap = button.getBoundingClientRect().bottom - limit;
+        if (overlap > 0) window.scrollBy(0, overlap);
+      };
       if (more && target.closest(".more") === more) { setExpanded(!panel.classList.contains("is-expanded")); return keepPressedInView(more); }
       if (fold && target.closest(".fold") === fold) { setCollapsed(!panel.classList.contains("is-collapsed")); return keepPressedInView(fold); }
       if (panel.classList.contains("is-collapsed") && target.closest(".card.is-active") && panel.contains(target)) return setCollapsed(false);
@@ -1154,6 +1165,8 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
   .chip i { width: 6px; height: 6px; border-radius: 50%; background: var(--c); }
   .chip[aria-pressed="true"] { background: var(--s); border-color: var(--c); }
 
+  /* 가운뎃점으로 이은 긴 낱말(Object·Action·Function·…)이 좁은 화면에서 카드 밖으로 나가지 않게 들어가지 않을 때만 끊는다 */
+  .card { overflow-wrap: anywhere; }
   .card { scroll-margin-top: 16px; background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--c); border-radius: 12px; padding: 16px 18px 18px; display: grid; gap: 12px; min-width: 0; }
   .cmeta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font: 500 12px var(--fcm-mono); color: var(--muted); }
   .num { background: var(--c); color: var(--surface); border-radius: 6px; padding: 1px 8px; font-family: inherit; font-weight: 600; }
