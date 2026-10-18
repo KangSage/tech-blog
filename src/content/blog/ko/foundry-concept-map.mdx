@@ -51,10 +51,10 @@ Foundry의 구성 요소는 크게 다섯 개의 층과 이를 감싸는 권한 
 5. **운영**: Ontology Manager, Global Branching, Marketplace, Data Lineage·Workflow Lineage는 특정 층에 속하지 않습니다.\
    Ontology Manager는 Ontology를 정의하고 Global Branching과 Marketplace는 지원 범위 안에서 여러 층의 변경과 배포를 관리합니다.\
    Data Lineage·Workflow Lineage로는 리소스 사이의 의존 관계를 확인합니다.\
-   권한 요청과 Ontology proposal은 Approvals에서 승인합니다.
+   Project·Marking 접근 같은 권한 요청은 Approvals에서 승인하고 브랜치의 Ontology 변경은 Global Branching proposal과 함께 생기는 Ontology proposal에서 검토합니다.
 
 이 전체를 Project·Role·Marking 권한 체계가 감쌉니다.\
-여기에 더해 Restricted view는 Dataset의 행 단위 조회를, Object security policy는 Ontology 안에서 Object·Property 단위의 조회를, OAuth는 외부 앱의 인증을 담당합니다.
+여기에 더해 Restricted view는 Dataset의 행 단위 조회를, Object security policy와 Property security policy는 Ontology 안에서 Object·Property 단위의 조회를, OAuth는 외부 앱이 토큰을 받아 Foundry에 접근하는 과정을 담당합니다.
 
 ## 개념 지도
 
@@ -78,54 +78,61 @@ Foundry는 권한과 동작이 여러 계층에 나뉘어 있어서 비슷해 �
 
 | 질문 | 결정하는 곳 | DB 비유 | 일상 비유 |
 | --- | --- | --- | --- |
-| 누가 어떤 Object를 볼 수 있는가? | Object type Viewer 권한이 있고 [Object security policy](#concept-osp)와 필수 통제(Marking, Organization, CBAC)를 모두 통과해야 함.<br />레거시 datasource-derived 모델에서는 backing datasource의 Viewer 권한도 필요.<br />Restricted view 기반 Object type은 Restricted view가 결정 | 모든 SELECT에 자동으로 붙는 WHERE | 같은 명부를 열어도 내 담당 줄만 보임 |
+| 누가 어떤 Object를 볼 수 있는가? | Object type의 View 권한과 데이터 접근 권한이 함께 필요.<br />[Object security policy](#concept-osp)를 설정한 타입은 그 정책이 정하고(정책은 원본의 Marking 같은 필수 통제를 기본으로 물려받음) 설정하지 않은 타입은 backing datasource의 View 권한이 필요.<br />레거시 datasource-derived 모델에서는 정책이 있어도 backing datasource의 Viewer 권한이 필요.<br />Restricted view 기반 Object type은 Restricted view의 행 접근이 결정 | 모든 SELECT에 자동으로 붙는 WHERE | 같은 명부를 열어도 내 담당 줄만 보임 |
 | 이 Action을 제출할 수 있는가? | [Submission criteria](#concept-action)를 통과하고 편집 대상 Object type·Link type과 그 datasource를 볼 권한이 필요.<br />Action 밖 편집도 허용한 타입은 writeback Dataset의 Edit 권한(Restricted view 기반이면 edit policy 통과)도 필요.<br />action log가 있으면 그 Object type 권한도 필요 | UPDATE 전에 실행되는 IF 검사 | 결재 조건을 통과해야 신청서를 낼 수 있음 |
-| 변경은 언제 실제로 저장되는가? | 기본 설정에서는 [Action](#concept-action)이 실행될 때만 | COMMIT.<br />[Edit function](#concept-function)은 변경할 SQL을 만드는 데까지만 관여 | 신청서가 처리되어야 반영됨.<br />계산기로 미리 계산해 둔 것만으로는 반영되지 않음 |
+| 변경은 언제 실제로 저장되는가? | 보통 [Action](#concept-action)이 실행될 때.<br />Action 밖 편집을 허용한 타입과 Automate의 Logic effect([AIP Logic](#concept-aip) 함수가 반환한 편집을 Action 없이 적용)는 예외 | COMMIT.<br />[Edit function](#concept-function)은 변경할 SQL을 만드는 데까지만 관여 | 신청서가 처리되어야 반영됨.<br />계산기로 미리 계산해 둔 것만으로는 반영되지 않음 |
 
-### OSDK 토큰의 리소스 범위는 사용자 권한과 앱 제한의 교집합입니다
+공식 문서: [Ontology permissions](https://www.palantir.com/docs/foundry/object-permissioning/ontology-permissions) · [Object security policies](https://www.palantir.com/docs/foundry/object-permissioning/object-security-policies) · [Action type permissions](https://www.palantir.com/docs/foundry/action-types/permissions) · [Ontology edits](https://www.palantir.com/docs/foundry/functions/edits-overview) · [Logic effect](https://www.palantir.com/docs/foundry/automate/effect-logic)
 
-OSDK로 만든 앱이 받는 토큰은 사용자 권한과 Developer Console에 설정한 앱 제한(application restrictions)이 모두 허용하는 리소스에만 접근할 수 있습니다.\
-앱 제한에는 접근할 리소스를 정하는 resource restrictions와 할 수 있는 작업을 정하는 operation restrictions 두 종류가 있습니다.
+### 편집은 원본 Dataset으로 돌아가지 않습니다
 
-| 범위 | 주문 | 고객 | 재고 |
-| --- | :-: | :-: | :-: |
-| 사용자 권한 | ✓ | ✓ | ✓ |
-| 앱 제한 (resource restrictions) | ✓ | ✗ | ✓ |
-| **토큰 리소스 접근 범위** | **✓** | ✗ | **✓** |
+지도의 Materialization 화살표는 원본 Dataset과 Object type 사이의 양방향 동기화가 아닙니다.\
+Action 편집은 원본(backing) Dataset에 쓰이지 않고 아래 표처럼 따로 저장됩니다.
 
-앱 제한은 앱이 받을 수 있는 권한의 보장된 상한입니다.\
-요청 scope는 작업(operation) 범위만 좁힙니다([OSDK](#concept-osdk)).\
-앱이 토큰을 요청할 때 고를 수 있는 것은 `api:use-ontologies-read` 같은 작업(operation) scope뿐이며 위 표의 리소스는 scope로 좁힐 수 없습니다.\
-scope를 빈 값(`[]`)으로 요청하면 앱의 operation restrictions 전체가 적용됩니다.\
-scope 없이 토큰을 요청하면 앱 제한이 허용하는 사용자 권한 전부가 적용됩니다.
+| 저장되는 곳 | 담기는 내용 | 갱신 시점 | 만드는 주체 |
+| --- | --- | --- | --- |
+| 원본(backing) [Dataset](#concept-dataset) | 파이프라인이 만든 데이터.<br />Action 편집은 들어가지 않음 | 파이프라인의 Build | 데이터 파이프라인 |
+| [Ontology](#concept-onto) 인덱스(OSv2) | 원본과 편집을 합친 Object.<br />앱은 여기서 읽음 | 편집은 즉시 반영.<br />원본 변경은 [Funnel](#concept-funnel) 파이프라인이 실행될 때 반영 | Funnel |
+| Funnel이 관리하는 Dataset | 원본의 변경분을 담은 changelog Dataset과 원본·편집을 합친 merged Dataset.<br />편집은 먼저 Funnel이 관리하는 큐에 쌓임.<br />사용자는 접근할 수 없음 | 원본에 새 트랜잭션이 생길 때 또는 편집이 있었다면 6시간마다 merged Dataset을 Build | Funnel(자동) |
+| Materialized Dataset (선택) | 원본과 편집을 합친 각 Object의 최신 상태.<br />최신 스냅샷만 보장 | 편집 자동 전파(몇 분 지연) 또는 원본이 바뀔 때·6시간마다 | 사용자가 Ontology Manager에서 만듦 |
 
-### 권한이 서로 연동되지 않는 곳
+기본 설정에서는 편집한 property가 이후 원본이 바뀌어도 편집 값을 유지합니다(Apply user edits).\
+예전 Object Storage v1에서는 편집하려면 writeback Dataset이 필요했습니다.\
+OSv2에서 Materialization은 하류 파이프라인이나 대량 다운로드에 필요할 때만 만드는 선택 사항입니다.\
+Materialized Dataset은 지난 트랜잭션이 계속 지워지므로 이력이 필요하면 하류 transform으로 따로 남깁니다.
+
+공식 문서: [How user edits are applied](https://www.palantir.com/docs/foundry/object-edits/how-edits-applied) · [Materializations](https://www.palantir.com/docs/foundry/object-edits/materializations) · [Funnel batch pipelines](https://www.palantir.com/docs/foundry/object-indexing/funnel-batch-pipelines)
+
+### 권한은 계층마다 따로 막아야 합니다
 
 한 곳을 막았다고 해서 관련 데이터가 모두 보호되지는 않습니다.\
-아래 경우는 각각 따로 막아야 합니다.
+[Object security policy](#concept-osp)로 Object를 가려도 원본 [Dataset](#concept-dataset)과 [Media set](#concept-media)은 각각 따로 잠가야 합니다.\
+Object security policy는 Ontology 밖에서 Dataset을 읽는 것을 막지 않으므로 Object가 아니라 Dataset을 분석하는 [Contour](#concept-analytics) 같은 도구는 Dataset 쪽 권한으로 따로 막아야 합니다.\
+Object security policy 같은 행 단위 정책은 읽는 순간에만 적용되므로 [Function](#concept-function)이 읽어 만든 결과까지 보호하려면 Marking 같은 필수 통제를 함께 겁니다.\
+[Action](#concept-action)은 쓰는 데이터의 보안을 Action의 로직이 정하므로 Marking이 붙은 데이터를 읽고 그보다 덜 제한된 곳에 쓸 수 있습니다.\
+그래서 Marking이 붙은 데이터를 읽는 Action에는 read authorization(베타)을 설정합니다.\
+OSDK 앱이 받는 토큰은 사용자(또는 서비스 유저) 권한과 Developer Console의 앱 제한이 모두 허용하는 리소스에만 접근합니다([OSDK](#concept-osdk)).\
+Application permissions를 쓰는 Developer Console 앱과 [Compute module](#concept-cm)은 로그인하거나 호출한 사용자가 아니라 서비스 유저 권한으로 동작합니다.\
+[Media set](#concept-media)에 같은 경로로 올리면 경고 없이 덮어쓰므로 경로가 겹치지 않게 합니다.\
+덮어쓰거나 삭제한 item도 기존 media reference나 직접 링크로 계속 접근할 수 있으므로 보존 정책으로 정리합니다.
 
-<div class="nowrap-last-col">
+공식 문서: [Managing object security](https://www.palantir.com/docs/foundry/object-permissioning/managing-object-security) · [Access control propagation](https://www.palantir.com/docs/foundry/security/access-control-propagation) · [Read and write authorizations](https://www.palantir.com/docs/foundry/action-types/read-write-authorizations) · [Developer Console 권한](https://www.palantir.com/docs/foundry/developer-console/permissions) · [Compute module 실행 모드](https://www.palantir.com/docs/foundry/compute-modules/execution-modes) · [Importing media](https://www.palantir.com/docs/foundry/media-sets-advanced-formats/importing-media) · [Media sets](https://www.palantir.com/docs/foundry/media-sets-advanced-formats/media-overview) · [Media set 설정](https://www.palantir.com/docs/foundry/media-sets-advanced-formats/media-set-settings)
 
-| 막은 곳 | 그래도 열려 있는 곳 | 따로 해야 할 일 |
-| --- | --- | --- |
-| [Object security policy](#concept-osp)로 Object를 가림 | 원본 [Dataset](#concept-dataset) | Dataset 권한을 따로 설정 |
-| [Object security policy](#concept-osp)로 media reference property를 가림 | [Media set](#concept-media)에서 파일을 직접 가져오기 | Media set 권한을 따로 설정 |
-| [Media set](#concept-media)의 파일을 같은 경로에 덮어써 교체 | 이전 파일 (기존 media reference로 접근 가능) | 덮어쓴 item의 보존 정책 설정 |
-| [Object security policy](#concept-osp)로 Object 읽기를 제한 | [Action](#concept-action)·[Function](#concept-function)이 그 Object를 읽어 만든 결과 (다른 Object type에 쓴 값, 함수 출력, 내보내기) | [필수 통제](https://www.palantir.com/docs/foundry/security/access-control-propagation)를 함께 설정<br />(Marking·<wbr />CBAC·<wbr />Organization)<br />필수 통제는 파생 데이터로 전파됨 |
-| 사용자별 권한으로 데이터를 제한 | Application permissions를 쓰는 [Compute module](#concept-cm) (호출한 사용자가 아니라 서비스 유저 권한으로 동작) | 서비스 유저에게 필요한 권한만 부여 |
-
-</div>
+이런 경우를 모은 표와 Restricted view·Object security policy 중 무엇을 쓸지는 [권한 노선](../foundry-access-route/) 글에 정리했습니다.
 
 ## 정리
 
 - Foundry의 데이터는 주로 **원본 → Dataset → Ontology** 순서로 쌓입니다.\
   업무용 앱은 주로 Ontology를 직접 조회하고 쓰기와 계산은 로직을 거칩니다.
-- 기본 설정에서 사용자의 편집은 **Action**을 거쳐 Ontology에 반영됩니다.\
-  Function은 편집 내용을 계산할 뿐 Action 없이 직접 저장하지 않습니다.
-- 권한은 **계층마다 독립적**입니다.\
-  Object security policy, 원본 Dataset, Media set, OSDK 앱 제한을 각각 따로 설계해야 합니다.
+- 사용자의 편집은 보통 **Action**을 거쳐 Ontology에 반영됩니다.\
+  코드로 작성한 Function은 편집 내용을 계산할 뿐 Action 없이 직접 저장하지 않습니다.\
+  Automate의 Logic effect가 staged writes를 끈 AIP Logic 함수의 편집을 Action 없이 적용하는 것은 예외입니다.
+- Role과 행·열 단위 정책은 **계층마다 따로** 적용됩니다.\
+  Object security policy, 원본 Dataset, Media set, OSDK 앱 제한을 각각 따로 설계하고 파생 데이터까지 보호하려면 Marking 같은 필수 통제를 함께 겁니다.
 
 ---
 
 각 카드의 설명은 카드 하단에 링크한 Palantir 공식 문서를 근거로 하며 OSDK의 PKCE 처리 방식은 공식 [osdk-ts](https://github.com/palantir/osdk-ts) 저장소의 소스 코드로 확인했습니다.\
-이 글은 2026년 10월 1일 기준으로 작성되었으며 Foundry는 업데이트가 잦으므로 최신 내용은 공식 문서를 확인하시기 바랍니다.
+"관점으로 보기"의 단계 설명은 노선마다 링크한 공식 문서를 근거로 합니다.\
+이 글은 2026년 10월 18일 기준이며 카드와 단계 설명은 이날 공식 문서로 다시 확인했습니다.\
+공식 문서의 내용은 바뀔 수 있으므로 최신 내용은 공식 문서를 확인하시기 바랍니다.
