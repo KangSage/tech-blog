@@ -1,5 +1,6 @@
 ---
 import { render } from "astro:content";
+import Comments from "@/components/Comments.astro";
 import PostToc from "@/components/PostToc.astro";
 import ReadAloud from "@/components/ReadAloud.astro";
 import BaseLayout from "@/layouts/BaseLayout.astro";
@@ -87,6 +88,8 @@ const jsonLd = {
         <ReadAloud lang={lang} />
       </div>
     </div>
+    <!-- 댓글은 본문(.post-body) 밖에 두어 읽어 주기가 읽지 않는다 -->
+    <Comments lang={lang} />
   </article>
 </BaseLayout>
 
@@ -259,7 +262,8 @@ const jsonLd = {
       grid-row: 1;
     }
 
-    article:has(:global(.post-toc)):not(:has(.post-aside:not([hidden]))) .post-head {
+    article:has(:global(.post-toc)):not(:has(.post-aside:not([hidden]))) .post-head,
+    article:has(:global(.post-toc)):not(:has(.post-aside:not([hidden]))) > :global(.post-comments) {
       margin-left: 248px;
     }
 
@@ -288,7 +292,8 @@ const jsonLd = {
       grid-column: 3;
     }
 
-    article:has(:global(.post-toc)):has(.post-aside:not([hidden])) .post-head {
+    article:has(:global(.post-toc)):has(.post-aside:not([hidden])) .post-head,
+    article:has(:global(.post-toc)):has(.post-aside:not([hidden])) > :global(.post-comments) {
       margin-left: 248px;
     }
 
