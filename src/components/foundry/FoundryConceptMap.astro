@@ -836,6 +836,11 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
       if (link && linkId && ids.includes(linkId)) {
         event.preventDefault();
         pick(linkId);
+        // 펼쳐진 막대가 누른 노선 단계 이름이나 본문 링크를 덮으면 세로로만 맞춘다(지도 상자와 같게). 막대 안의 링크는 그대로 둔다
+        if (!aside?.contains(link)) {
+          const r = link.getBoundingClientRect();
+          keepBelowBar(r.top, r.bottom);
+        }
       }
     });
 

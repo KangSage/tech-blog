@@ -214,7 +214,7 @@ Foundry의 60개가 넘는 상호작용에 통합되어 있습니다.\
 
 공식 문서는 Ontology에서 Object 보안을 관리할 때 대부분의 경우 Object security policy와 Property security policy를 권장합니다.\
 Restricted view는 backing Dataset을 Ontology 밖에서도 사용자별로 행 단위 보호해야 할 때 맞습니다.\
-datasource마다 다른 resolution strategy나 build schedule 때문에 multi-datasource Object type을 써야 하면 datasource 쪽 정책이 필요할 수 있습니다.\
+datasource마다 resolution strategy나 Schedule을 다르게 해야 해서 multi-datasource Object type을 써야 하면 datasource 쪽 정책이 필요할 수 있습니다.\
 datasource 권한으로 접근을 정하는 Object type에서는 Stream의 Viewer 권한이 있으면 그 Stream으로 만든 Object를 모두 볼 수 있습니다.\
 Restricted view는 Stream에 만들 수 없으므로 Stream 기반 Object type을 행 단위로 나누려면 Object security policy를 씁니다.
 
@@ -234,7 +234,7 @@ Restricted view는 Stream에 만들 수 없으므로 Stream 기반 Object type�
 ### 파생 데이터까지 막을 때: 필수 통제를 함께 겁니다
 
 Project Role, Restricted view, Object security policy, Property security policy는 사용자가 읽는 순간에만 데이터를 거릅니다.\
-읽은 뒤의 데이터에는 원본 정책이 따라가지 않습니다.\
+읽은 뒤의 데이터에는 이 통제들이 따라가지 않습니다.\
 공식 문서가 드는 예는 아래와 같습니다.
 
 - Function의 반환값
@@ -297,6 +297,6 @@ action log에는 파라미터 값과 Object 파라미터의 property 값이 기�
 
 ---
 
-이 글의 설명은 본문에 링크한 Palantir 공식 문서를 근거로 하며 2026년 10월 18일 기준입니다.\
+이 글의 설명은 본문에 링크한 Palantir 공식 문서를 근거로 하며 2026년 10월 19일 기준입니다.\
 공식 문서의 내용은 바뀔 수 있으므로 최신 내용은 공식 문서를 확인하시기 바랍니다.\
 다른 노선은 [개념 지도](../foundry-concept-map/)의 "관점으로 보기"에서 볼 수 있습니다.
