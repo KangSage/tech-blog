@@ -49,6 +49,7 @@ Marking, Organization, Classification-based Access Controls(CBAC)는 필수 통�
 Marking 하나에 대한 접근은 all-or-nothing입니다.\
 여러 Marking은 AND 조건이라서 파일·폴더·Project에 붙은 Marking 모두의 멤버여야 접근할 수 있습니다.\
 Marking은 파일 계층과 데이터 의존 관계를 따라 상속되며 명시적으로 제거하지 않는 한 파생 리소스에도 붙습니다.\
+다만 Action은 쓰는 데이터의 보안을 Action의 로직이 정하므로 Action이 쓴 결과에는 읽은 데이터의 Marking이 따라가지 않을 수 있습니다(아래 "파생 데이터까지 막을 때"에서 설명합니다).\
 Marking을 제거하려면 그 Marking의 Expand Access 권한이 필요하며 Dataset의 Owner Role만으로는 제거할 수 없습니다.\
 공식 문서는 Marking을 접근 제한에만 쓰고 접근 권한은 Project의 Role로 부여하도록 안내합니다.
 
@@ -66,7 +67,9 @@ Object를 보려면 Object type의 View 권한과 데이터 접근 권한이 함
 [Restricted view](#concept-rv)는 backing Dataset 위에 만들어 사용자가 볼 권한이 있는 행만 보이게 합니다.\
 정책은 granular policy로 작성합니다.\
 granular policy는 사용자 속성과 컬럼과 값을 비교하는 규칙과 논리 연산자로 구성됩니다.\
-정책에서 사용자·그룹·Organization을 가리킬 때는 이름이 아니라 UUID를 씁니다.
+정책에서 사용자·그룹·Organization을 가리킬 때는 이름이 아니라 UUID를 씁니다.\
+그룹·Marking·Organization 멤버십에 NOT 조건을 쓰는 것은 피해야 합니다.\
+범위가 좁혀진 토큰(scoped token)에는 검사할 속성이 없을 수 있어서 조건이 통과되고 필요 이상으로 접근이 열릴 수 있기 때문입니다.
 
 Owner Role이나 필요한 권한이 있는 사용자가 Dataset을 우클릭해 만듭니다.\
 만들면 입력 Dataset이 갱신될 때마다 다시 Build하는 Schedule이 자동으로 생깁니다.\
@@ -78,9 +81,11 @@ Restricted view를 datasource로 쓰는 Object type에서는 특정 Object에 �
 Restricted view는 backing Dataset 자체를 잠그지 않습니다.\
 Restricted view로만 데이터를 봐야 하는 사용자에게는 backing Dataset 권한을 주지 않아야 합니다.\
 Restricted view를 backing Dataset과 같은 Project에 두면 Marking으로 backing Dataset을 보호합니다.\
-Restricted view는 backing Dataset의 Marking을 물려받으며 Marking 권한이 있으면 만들 때 물려받은 Marking을 뺄 수 있습니다.
+Restricted view는 backing Dataset의 Marking을 물려받으며 Marking 권한이 있으면 만들 때 물려받은 Marking을 뺄 수 있습니다.\
+그러나 granular policy는 사용자가 읽는 순간에만 적용되고 파생 데이터로 전파되어 하류를 보호하는 것은 Marking입니다.\
+그래서 공식 문서는 granular policy가 이미 접근을 통제한다는 이유로 물려받은 Marking을 빼지 말라고 안내합니다.
 
-공식 문서: [Restricted views](https://www.palantir.com/docs/foundry/security/restricted-views) · [Managing object security](https://www.palantir.com/docs/foundry/object-permissioning/managing-object-security)
+공식 문서: [Restricted views](https://www.palantir.com/docs/foundry/security/restricted-views) · [Managing object security](https://www.palantir.com/docs/foundry/object-permissioning/managing-object-security) · [Manage granular policies](https://www.palantir.com/docs/foundry/platform-security-management/manage-granular-policies)
 
 ## 3. Object security policy: Ontology 안의 행·셀 단위 통제
 
@@ -100,8 +105,7 @@ Object security policy는 datasource의 필수 통제(Marking·Organization·CBA
 정책을 만들고 고치려면 Object type의 Owner여야 합니다.\
 project-based 권한에서는 그 Object type이 든 Project의 Owner를 뜻하고 레거시 권한 모델에서는 Ontology의 Owner를 뜻합니다.\
 공식 문서는 정책을 설정하기 전에 project-based 권한으로 migration하도록 권장합니다.\
-그룹·Marking·Organization 멤버십에 NOT 조건을 쓰는 것은 피해야 합니다.\
-범위가 좁혀진 토큰(scoped token)에는 검사할 속성이 없을 수 있어서 조건이 통과되고 필요 이상으로 접근이 열릴 수 있기 때문입니다.
+Restricted view 정책과 마찬가지로 그룹·Marking·Organization 멤버십에 NOT 조건을 쓰는 것은 피해야 합니다.
 
 공식 문서: [Object security policies](https://www.palantir.com/docs/foundry/object-permissioning/object-security-policies)
 
@@ -110,11 +114,15 @@ project-based 권한에서는 그 Object type이 든 Project의 Owner를 뜻하�
 [Action](#concept-action)을 제출하려면 Submission criteria를 통과해야 합니다.\
 Submission criteria의 조건은 세 가지 틀로 만듭니다.\
 제출하는 사용자(사용자 ID, 그룹 멤버십, Multipass 속성)와 파라미터 값(Object 파라미터면 그 property 값)과 실행 맥락(Ontology Scenario 안에서 제출했는지)입니다.\
+사용자 조건에서도 Restricted view 정책과 마찬가지로 그룹·Marking·Organization 멤버십에 NOT 조건을 쓰는 것은 피해야 합니다.\
 그리고 편집 대상 Object type·Link type과 그 datasource를 볼 수 있어야 합니다.
 
 새 Object type의 기본값은 Action으로만 편집하는 방식입니다.\
 이 방식에서는 볼 수 있는 Object를 모두 편집할 수 있고 편집할 Object에 필요한 것은 Read 권한뿐입니다.\
 공식 문서는 그래서 사용자가 자신이 볼 수 없는 Object를 만들 수도 있다고 설명합니다.
+
+Restricted view 기반 Object type에서는 보안 정책이 참조하는 property를 Action으로 고치면 그 Object를 볼 수 있는 사용자가 바뀝니다.\
+Restricted view의 행은 Action 편집의 영향을 받지 않으므로 Ontology에서 Object를 볼 수 있는 사용자와 Restricted view에서 그 행을 볼 수 있는 사용자가 달라질 수 있습니다.
 
 Action 밖 편집(Foundry Forms, Object Explorer 직접 편집, API 호출)도 허용한 Object type·Link type은 backing 종류에 따라 조건이 더 붙습니다.\
 Dataset 기반이면 writeback Dataset의 Edit 권한이 추가로 필요합니다.\
@@ -131,6 +139,7 @@ Action type에 action log가 설정되어 있으면 제출하는 사용자에게
 
 OSDK로 만든 외부 앱은 [Developer Console](#concept-osdk)에 등록하고 [OAuth](#concept-oauth)로 토큰을 받습니다.\
 Authorization code 방식은 사용자를 대신해 동작하고 Client credentials 방식은 서비스 유저로 동작합니다.\
+Developer Console에서 앱의 권한 방식으로 Application permissions를 고르면 앱은 자체 서비스 유저로 동작하므로 로그인한 사용자의 권한과 관계없이 서비스 유저가 볼 수 있는 데이터를 보여 줄 수 있습니다.\
 토큰이 접근할 수 있는 범위는 아래 셋이 모두 허용하는 교집합입니다.
 
 - 사용자(Authorization code) 또는 서비스 유저(Client credentials)의 Foundry 권한
@@ -149,7 +158,8 @@ Authorization code 방식은 사용자를 대신해 동작하고 Client credenti
 | **토큰 리소스 접근 범위** | **✓** | ✗ | **✓** |
 
 표는 리소스 범위만 나타냅니다.\
-제한된 앱으로 실제로 조회하려면 그 리소스가 든 Project가 resource restrictions에 있고 필요한 작업(예: `api:use-datasets-read`)도 operation restrictions에 있어야 합니다.
+제한된 앱에서 OSDK로 쓰는 Object type·Action type 같은 Ontology 리소스는 Developer Console의 Ontology SDK 탭에서 resource restrictions에 추가합니다.\
+Platform SDK로 Dataset 같은 리소스를 읽으려면 그 리소스가 든 Project를 Platform SDK 탭에서 resource restrictions에 넣고 필요한 작업(예: `api:use-datasets-read`)도 operation restrictions에 넣어야 합니다.
 
 앱은 기본적으로 제한(restricted) 상태로 만들어집니다.\
 제한 없는(unrestricted) 앱은 사용자 권한과 요청한 작업만으로 접근이 정해지므로 신뢰할 수 있는 코드에만 써야 합니다.\
@@ -157,7 +167,7 @@ Authorization code 방식은 사용자를 대신해 동작하고 Client credenti
 제한 없는 앱이 Authorization code 방식을 쓰면 scope를 반드시 요청해야 합니다.\
 제한 없는 앱이 Client credentials 방식으로 scope 없이 요청하면 서비스 유저가 할 수 있는 작업이 모두 허용됩니다.
 
-공식 문서: [Application restrictions](https://www.palantir.com/docs/foundry/developer-console/application-restrictions) · [OAuth 클라이언트 작성](https://www.palantir.com/docs/foundry/platform-security-third-party/writing-oauth2-clients)
+공식 문서: [Application restrictions](https://www.palantir.com/docs/foundry/developer-console/application-restrictions) · [Developer Console 권한](https://www.palantir.com/docs/foundry/developer-console/permissions) · [OAuth 클라이언트 작성](https://www.palantir.com/docs/foundry/platform-security-third-party/writing-oauth2-clients)
 
 ## 6. Approvals · Checkpoints: 권한이 없을 때와 민감한 작업 전
 
@@ -192,7 +202,8 @@ Foundry의 60개가 넘는 상호작용에 통합되어 있습니다.\
 공식 문서는 Ontology에서 Object 보안을 관리할 때 대부분의 경우 Object security policy와 Property security policy를 권장합니다.\
 Restricted view는 backing Dataset을 Ontology 밖에서도 사용자별로 행 단위 보호해야 할 때 맞습니다.\
 datasource마다 다른 resolution strategy나 build schedule 때문에 multi-datasource object type을 써야 하면 datasource 쪽 정책이 필요할 수 있습니다.\
-Stream의 Viewer 권한이 있으면 그 Stream으로 만든 Object를 모두 볼 수 있으므로 Stream 기반 Object type을 나누려면 Object security policy를 씁니다.
+datasource 권한으로 접근을 정하는 Object type에서는 Stream의 Viewer 권한이 있으면 그 Stream으로 만든 Object를 모두 볼 수 있습니다.\
+Restricted view는 Stream에 만들 수 없으므로 Stream 기반 Object type을 행 단위로 나누려면 Object security policy를 씁니다.
 
 공식 문서: [Managing object security](https://www.palantir.com/docs/foundry/object-permissioning/managing-object-security) · [Restricted views](https://www.palantir.com/docs/foundry/security/restricted-views)
 
@@ -203,9 +214,9 @@ Stream의 Viewer 권한이 있으면 그 Stream으로 만든 Object를 모두 �
 | 종류 | 임의 통제(discretionary) | 필수 통제(mandatory) |
 | 하는 일 | 할 수 있는 일을 부여 | 자격이 없는 사용자를 차단.<br />접근 부여에는 쓰지 않도록 안내(Role로 부여) |
 | 붙는 곳 | 보통 Project 단위로 사용자나 그룹에 | 파일·폴더·Project |
-| 파생 데이터 | 따라가지 않음 | 명시적으로 제거하지 않는 한 따라감 |
+| 파생 데이터 | 따라가지 않음 | 명시적으로 제거하지 않는 한 따라감.<br />Action이 쓴 결과는 예외일 수 있음 |
 
-공식 문서: [Projects and roles](https://www.palantir.com/docs/foundry/security/projects-and-roles) · [Markings](https://www.palantir.com/docs/foundry/security/markings)
+공식 문서: [Projects and roles](https://www.palantir.com/docs/foundry/security/projects-and-roles) · [Markings](https://www.palantir.com/docs/foundry/security/markings) · [Read and write authorizations](https://www.palantir.com/docs/foundry/action-types/read-write-authorizations)
 
 ### 파생 데이터까지 막을 때: 필수 통제를 함께 겁니다
 
@@ -224,10 +235,17 @@ Project Role, Restricted view, Object security policy, Property security policy�
 반면 필수 통제인 Marking, CBAC, Organization은 파생과 하류 사용을 거쳐도 데이터를 따라갑니다.\
 그래서 파생 데이터·writeback·내보내기·모델 출력까지 보호해야 하면 필수 통제를 씁니다.\
 사용자별로 거르면서 하류로 흘러가는 데이터도 보호해야 하면 공식 문서는 둘을 함께 쓰도록 안내합니다.\
-Marking을 건 Dataset을 backing으로 하는 Restricted view는 사용자별 행 거르기를 하면서 원본과 파생 데이터에 Marking을 남깁니다.\
+Marking을 건 Dataset을 backing으로 하는 Restricted view는 물려받은 Marking을 그대로 두면 사용자별로 행을 거르면서 원본과 파생 데이터에 Marking을 남깁니다.\
 공식 문서는 더 강하게 보호하려면 Restricted view의 backing Dataset에 Marking을 걸라고 합니다.
 
-공식 문서: [Access control propagation](https://www.palantir.com/docs/foundry/security/access-control-propagation)
+Action은 예외입니다.\
+Action이 쓰는 데이터의 보안은 Action의 로직이 정하므로 Action은 읽은 데이터와 같거나 높거나 낮은 보안으로 결과를 쓸 수 있습니다.\
+read authorization은 Action이 읽을 수 있는 Marking 데이터의 상한을 정하고 write authorization은 Action이 쓰는 데이터가 갖춰야 할 최소 보안을 정합니다.\
+두 설정은 지금 선택 사항이라서 read authorization이 없으면 Action이 Marking이 붙은 데이터를 읽어 덜 제한된 곳에 쓸 수 있습니다.\
+그래서 공식 문서는 Marking이 붙은 데이터를 읽을 수 있는 Action에는 read authorization을 설정하라고 안내합니다.\
+read·write authorization은 베타 기능이라 환경(enrollment)에 따라 제공되지 않을 수 있습니다.
+
+공식 문서: [Access control propagation](https://www.palantir.com/docs/foundry/security/access-control-propagation) · [Read and write authorizations](https://www.palantir.com/docs/foundry/action-types/read-write-authorizations)
 
 ## 함정: 한 곳을 막아도 열려 있는 곳
 
@@ -238,13 +256,14 @@ Marking을 건 Dataset을 backing으로 하는 Restricted view는 사용자별 �
 | [Object security policy](#concept-osp)로 Object를 가림 | 원본 [Dataset](#concept-dataset) ([Contour](#concept-analytics)·Code Workspaces처럼 Dataset을 직접 읽는 도구) | Dataset 권한을 따로 설정 |
 | [Restricted view](#concept-rv)로 행을 거름 | backing [Dataset](#concept-dataset) (권한이 있으면 Restricted view를 거치지 않고 읽음) | backing Dataset 권한을 주지 않거나 Marking으로 보호 |
 | [Object security policy](#concept-osp)·Property security policy로 media reference property를 가림 | Media set 권한이 Object type과 다르면 [Media set](#concept-media)에서 파일을 직접 가져올 수 있음 | Media set 권한을 따로 설정 |
-| [Object security policy](#concept-osp)로 Object 읽기를 제한 | [Action](#concept-action)·[Function](#concept-function)이 그 Object를 읽어 만든 결과 (Function 반환값은 정책에 묶이지 않고 Action 편집에는 쓰기 대상의 통제가 적용됨) | 파생 결과까지 보호해야 하면 필수 통제를 함께 설정<br />(Marking·<wbr />CBAC·<wbr />Organization)<br />Action이 쓰는 대상의 권한도 따로 확인 |
-| [Stream](#concept-stream)으로 Object type을 만듦 | Stream의 Viewer 권한이 있는 사용자 (그 Stream의 Object를 모두 봄) | Object security policy 적용 |
+| [Object security policy](#concept-osp)로 Object 읽기를 제한 | [Action](#concept-action)·[Function](#concept-function)이 그 Object를 읽어 만든 결과 (Function 반환값은 정책에 묶이지 않고 Action 편집에는 쓰기 대상의 통제가 적용됨) | 파생 결과까지 보호해야 하면 필수 통제를 함께 설정<br />(Marking·<wbr />CBAC·<wbr />Organization)<br />Marking 데이터를 읽는 Action에는<br />read authorization(베타) 설정<br />Action이 쓰는 대상의 권한도 따로 확인 |
+| [Stream](#concept-stream)으로 Object type을 만듦 | Object security policy가 없으면 Stream의 Viewer 권한이 있는 사용자 (그 Stream의 Object를 모두 봄) | Object security policy 적용<br />(정책은 Ontology 안에서만 적용되므로<br />원본 Stream 권한도 따로 설정) |
 | 사용자별 권한으로 데이터를 제한 | Application permissions를 쓰는 [Compute module](#concept-cm) (호출한 사용자와 관계없이 서비스 유저 권한으로 동작) | Control Panel에서 서비스 유저의 권한을 설정<br />(예: 특정 Marking으로 제한) |
+| 사용자별 권한으로 데이터를 제한 | Application permissions를 쓰는 [Developer Console](#concept-osdk) 앱 (로그인한 사용자와 관계없이 서비스 유저 권한으로 동작) | 서비스 유저의 권한과<br />앱 제한을 따로 확인 |
 
 </div>
 
-공식 문서: [Managing object security](https://www.palantir.com/docs/foundry/object-permissioning/managing-object-security) · [Access control propagation](https://www.palantir.com/docs/foundry/security/access-control-propagation) · [Compute module 실행 모드](https://www.palantir.com/docs/foundry/compute-modules/execution-modes)
+공식 문서: [Managing object security](https://www.palantir.com/docs/foundry/object-permissioning/managing-object-security) · [Access control propagation](https://www.palantir.com/docs/foundry/security/access-control-propagation) · [Read and write authorizations](https://www.palantir.com/docs/foundry/action-types/read-write-authorizations) · [Compute module 실행 모드](https://www.palantir.com/docs/foundry/compute-modules/execution-modes) · [Developer Console 권한](https://www.palantir.com/docs/foundry/developer-console/permissions)
 
 ## 정리
 
@@ -253,7 +272,8 @@ Marking을 건 Dataset을 backing으로 하는 Restricted view는 사용자별 �
 - 공식 문서는 Object의 행과 셀을 거를 때 대부분의 경우 Object security policy와 Property security policy를 권장합니다.\
   Ontology 밖에서도 Dataset의 행을 보호해야 하면 Restricted view를 씁니다.
 - 행 단위 정책은 읽는 순간에만 적용됩니다.\
-  파생 데이터까지 보호하려면 Marking 같은 필수 통제를 함께 겁니다.
+  파생 데이터까지 보호하려면 Marking 같은 필수 통제를 함께 겁니다.\
+  Action은 결과의 보안을 로직이 정하므로 Marking이 붙은 데이터를 읽는 Action에는 read authorization(베타)을 설정합니다.
 - Action으로 수정하려면 Submission criteria를 통과하고 편집 대상 Object type·Link type과 그 datasource를 볼 수 있어야 합니다.\
   외부 앱의 토큰은 사용자(또는 서비스 유저) 권한과 앱 제한이 모두 허용하는 리소스에만 접근합니다.
 
