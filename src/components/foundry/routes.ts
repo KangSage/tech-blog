@@ -67,7 +67,7 @@ export const routes: Route[] = [
       { ids: ["action"], note: "Submission criteria를 통과해야 제출되며 Action 한 번이 트랜잭션 하나입니다." },
       { ids: ["function", "aip"], note: "Function-backed action이면 Edit function이나 AIP Logic 함수가 편집 내용을 계산합니다. 계산만으로는 저장되지 않고 Action이 실행될 때 저장됩니다." },
       { ids: ["onto"], note: "Object의 값은 원본 데이터와 Action 편집을 합친 것이 됩니다." },
-      { ids: ["funnel"], note: "편집은 인덱스에 즉시 반영되고 원본 Dataset이 아니라 Funnel이 관리하는 Dataset에 주기적으로 저장됩니다. Materialization을 만들면 원본과 편집을 합친 각 Object의 최신 상태가 별도 출력 Dataset으로 저장되며 Object Storage v2(OSv2)에서는 선택 사항입니다." },
+      { ids: ["funnel"], note: "편집은 인덱스에 즉시 반영되고 backing Dataset이 아니라 Funnel이 관리하는 Dataset에 주기적으로 저장됩니다. Materialization은 Object Storage v2(OSv2)에서 선택 사항이며 만들면 원본과 편집을 합친 각 Object의 최신 상태가 별도 출력 Dataset으로 저장됩니다." },
     ],
     edges: [
       ["workshop", "action"],
@@ -119,10 +119,10 @@ export const routes: Route[] = [
     steps: [
       { ids: ["project"], note: "Project Role이 할 수 있는 일을 정하고 Marking·Organization·Classification-based Access Controls(CBAC) 같은 필수 통제를 모두 통과해야 리소스에 접근할 수 있습니다." },
       { ids: ["rv"], note: "Restricted view는 Dataset에서 볼 수 있는 행만 보이게 하고 그 행으로 만든 Object에도 같은 통제가 적용됩니다. 정책을 바꾸면 다시 Build해야 반영되고 backing Dataset 권한은 따로 막아야 합니다." },
-      { ids: ["osp"], note: "Object security policy는 Ontology 안에서 Object를 행 단위로 거르고 정책 변경은 거의 즉시 반영되지만 그룹 멤버십 같은 사용자 속성의 변경은 잠시 캐시됩니다. 원본 Dataset은 따로 잠가야 합니다." },
+      { ids: ["osp"], note: "Object security policy는 Ontology 안에서 Object를 행 단위로 거르고 정책 변경은 거의 즉시 반영되지만 그룹 멤버십 같은 사용자 속성의 변경은 잠시 캐시됩니다. backing Dataset은 따로 잠가야 합니다." },
       { ids: ["action"], note: "Action을 제출하려면 Submission criteria를 통과하고 편집 대상 Object type·Link type과 그 datasource를 볼 수 있어야 합니다. Action은 쓰는 데이터의 보안을 로직이 정하므로 Marking이 붙은 데이터를 읽는 Action에는 read authorization(베타)을 설정합니다." },
-      { ids: ["oauth"], note: "OSDK 앱이 받는 토큰은 사용자(또는 서비스 유저) 권한과 앱 제한이 모두 허용하는 리소스에만 접근합니다." },
-      { ids: ["approvals"], note: "권한이 없으면 Approvals로 Project 접근이나 Marking 접근을 요청합니다. request의 모든 task가 승인되면 적용되고 필수 checkpoint가 남아 있으면 제출한 뒤에 적용됩니다. Checkpoints는 민감할 수 있는 작업에서 사유를 묻고 기록합니다." },
+      { ids: ["oauth"], note: "OSDK 앱이 받는 토큰은 사용자(또는 서비스 유저) 권한과 앱 제한이 모두 허용하는 리소스에만 접근합니다. 제한 없는(unrestricted) 앱에는 앱 제한이 없으므로 사용자 권한이 허용하는 리소스에 모두 접근합니다." },
+      { ids: ["approvals"], note: "권한이 없으면 Approvals로 Project 접근이나 Marking 접근을 요청합니다. request의 모든 task가 승인되면 적용되고 필수 checkpoint가 남아 있으면 그 checkpoint를 제출한 뒤에 적용됩니다. Checkpoints는 민감할 수 있는 작업에서 사유를 묻고 기록합니다." },
     ],
     edges: [],
     sources: [
@@ -147,7 +147,7 @@ export const routes: Route[] = [
       { ids: ["branch"], note: "Global Branching으로 파이프라인·Ontology·Workshop 같은 여러 앱의 변경을 브랜치 하나에서 테스트합니다. Proposal의 check를 모두 통과해야 Main에 병합할 수 있습니다. 검토자는 proposal 페이지나 branch taskbar에서 지정합니다. Project의 승인 정책은 Project Owner가 Branch protection 탭에서 정하고 Code Repositories와 Pipeline Builder는 리소스 안에서 승인 정책을 정합니다." },
       { ids: ["lineage"], note: "Workflow Lineage로 바꿀 Object 컬럼을 쓰는 하류 Action과 Workshop 앱을 찾습니다. 브랜치에서 리소스를 제거해 Main 버전으로 되돌리기 전에는 다른 브랜치 리소스가 그 변경에 기대고 있지 않은지 확인합니다." },
       { ids: ["approvals"], note: "Ontology 변경이 있는 브랜치에서 Global Branching proposal을 만들면 Ontology proposal이 자동으로 생기고 함께 병합됩니다. 그 변경은 Ontology Manager의 Review changes 탭이나 Global Branching proposal 페이지에서 검토합니다. Approvals가 다루는 task 종류에도 Ontology proposal이 있으며 이 task는 Ontology Manager로 연결됩니다." },
-      { ids: ["market"], note: "개발·테스트·운영처럼 환경이 여럿이면 리소스를 product로 묶어 환경마다 버전별로 설치하고 업그레이드할 수 있습니다. 공식 문서는 이것이 릴리스 관리를 구현하는 한 가지 방법이며 Global Branching을 쓰는 방법도 있다고 설명합니다." },
+      { ids: ["market"], note: "개발·테스트·운영처럼 환경이 여럿이면 리소스를 product로 묶어 환경마다 버전별로 설치하고 업그레이드할 수 있습니다. 릴리스 관리 문서는 이것이 릴리스 관리를 구현하는 한 가지 방법이며 Global Branching을 쓰는 방법도 있다고 설명합니다. Global Branching 문서는 둘을 서로 다른 문제를 푸는 보완 관계로 보고 브랜치에서 개발해 개발 환경에 병합한 뒤 릴리스 관리로 테스트·운영 환경에 배포하는 예를 듭니다." },
     ],
     edges: [],
     sources: [
@@ -161,6 +161,7 @@ export const routes: Route[] = [
       { label: "Approvals", href: D + "approvals/overview" },
       { label: "Marketplace", href: D + "marketplace/overview" },
       { label: "릴리스 관리", href: D + "devops-release-management/use-devops-for-release-management" },
+      { label: "Global Branching과 릴리스 관리", href: D + "global-branching/overview" },
     ],
   },
 ];

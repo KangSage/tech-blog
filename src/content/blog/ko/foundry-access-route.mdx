@@ -83,10 +83,14 @@ Restricted view로만 데이터를 봐야 하는 사용자에게는 backing Data
 공식 문서에 따르면 Restricted view는 보통 backing Dataset과 다른 Project에 저장합니다.\
 같은 Project에 둘 때는 Marking으로 backing Dataset을 보호합니다.\
 Restricted view는 backing Dataset의 Marking을 물려받으며 Marking 권한이 있으면 만들 때 물려받은 Marking을 뺄 수 있습니다.\
-그러나 granular policy는 사용자가 읽는 순간에만 적용되고 파생 데이터로 전파되어 하류를 보호하는 것은 Marking입니다.\
-그래서 공식 문서는 granular policy가 이미 접근을 통제한다는 이유로 물려받은 Marking을 빼지 말라고 안내합니다.
+그러나 granular policy는 사용자가 읽는 순간에만 적용됩니다.\
+파생 데이터로 전파되어 하류를 보호하는 것은 Marking입니다.\
+그래서 공식 문서는 granular policy가 이미 접근을 통제한다는 이유로 물려받은 Marking을 빼지 말라고 안내합니다.\
+Marking은 모두 통과해야 하는 조건이라서 Restricted view를 읽는 사용자도 Restricted view에 남은 Marking의 멤버여야 합니다.\
+그래서 같은 Project에서 backing Dataset을 막으려고 건 Marking이 Restricted view에 그대로 남으면 그 Marking으로는 Restricted view 사용자가 backing Dataset을 직접 읽는 것을 막지 못합니다.\
+물려받은 Marking을 그대로 두면서 backing Dataset을 막으려면 Restricted view를 다른 Project에 두고 Restricted view 사용자에게 backing Dataset이 든 Project의 Role을 주지 않습니다.
 
-공식 문서: [Restricted views](https://www.palantir.com/docs/foundry/security/restricted-views) · [Managing object security](https://www.palantir.com/docs/foundry/object-permissioning/managing-object-security) · [Manage granular policies](https://www.palantir.com/docs/foundry/platform-security-management/manage-granular-policies) · [Restricted view 기반 Object type 설정](https://www.palantir.com/docs/foundry/object-permissioning/configuring-rv-access-controls)
+공식 문서: [Restricted views](https://www.palantir.com/docs/foundry/security/restricted-views) · [Managing object security](https://www.palantir.com/docs/foundry/object-permissioning/managing-object-security) · [Manage granular policies](https://www.palantir.com/docs/foundry/platform-security-management/manage-granular-policies) · [Markings](https://www.palantir.com/docs/foundry/security/markings) · [Restricted view 기반 Object type 설정](https://www.palantir.com/docs/foundry/object-permissioning/configuring-rv-access-controls)
 
 ## 3. Object security policy: Ontology 안의 행·셀 단위 통제
 
@@ -116,7 +120,7 @@ Restricted view 정책과 마찬가지로 그룹·Marking·Organization 멤버�
 Submission criteria의 조건은 세 가지 틀로 만듭니다.\
 제출하는 사용자(사용자 ID, 그룹 멤버십, Multipass의 사용자 속성)와 파라미터 값(Object 파라미터면 그 property 값)과 실행 맥락(Ontology Scenario 안에서 제출했는지)입니다.\
 사용자 조건에서도 Restricted view 정책과 마찬가지로 그룹·Marking·Organization 멤버십에 NOT 조건을 쓰는 것은 피해야 합니다.\
-그리고 편집 대상 Object type·Link type과 그 datasource를 볼 수 있어야 합니다.
+제출하는 사용자는 Submission criteria와 별개로 편집 대상 Object type·Link type과 그 datasource도 볼 수 있어야 합니다.
 
 새 Object type의 기본값은 Action으로만 편집하는 방식입니다.\
 이 방식에서는 볼 수 있는 Object를 모두 편집할 수 있고 편집할 Object에 필요한 것은 Read 권한뿐입니다.\
@@ -203,7 +207,7 @@ Foundry의 60개가 넘는 상호작용에 통합되어 있습니다.\
 | 거르는 대상 | Ontology의 Object.<br />Property security policy와 함께 쓰면 셀 단위까지 | Dataset의 행과 그 행으로 만든 Object.<br />multi-datasource Object type과 함께 쓰면 셀 단위까지 |
 | 정책 변경 반영 | 거의 즉시 | 파이프라인을 다시 Build해야 반영 |
 | Stream 기반 Object type | 적용할 수 있음 | 만들 수 없음(Dataset에만) |
-| Ontology 밖(예: Code Workspaces)의 Dataset 읽기 | 보호하지 않음(Ontology 안에서만 적용) | Restricted view로 읽을 때 보호함.<br />원본 Dataset 권한은 주지 않아야 함 |
+| Ontology 밖(예: Code Workspaces)의 Dataset 읽기 | 보호하지 않음(Ontology 안에서만 적용) | Restricted view로 읽을 때 보호함.<br />backing Dataset 권한은 주지 않아야 함 |
 | 파생 데이터로 전파 | 행·열 거르기는 전파되지 않음.<br />정책에 넣은 필수 통제는 파생 데이터에도 적용 | 행 거르기는 전파되지 않음 |
 
 공식 문서는 Ontology에서 Object 보안을 관리할 때 대부분의 경우 Object security policy와 Property security policy를 권장합니다.\
@@ -250,9 +254,11 @@ Action이 쓰는 데이터의 보안은 Action의 로직이 정하므로 Action�
 read authorization은 Action이 읽을 수 있는 Marking 데이터의 상한을 정하고 write authorization은 Action이 쓰는 데이터가 갖춰야 할 최소 보안을 정합니다.\
 두 설정은 지금 선택 사항이라서 read authorization이 없으면 Action이 Marking이 붙은 데이터를 읽어 덜 제한된 곳에 쓸 수 있습니다.\
 그래서 공식 문서는 Marking이 붙은 데이터를 읽을 수 있는 Action에는 read authorization을 설정하라고 안내합니다.\
-read·write authorization은 베타 기능이라 환경(enrollment)에 따라 제공되지 않을 수 있습니다.
+read·write authorization은 베타 기능이라 환경(enrollment)에 따라 제공되지 않을 수 있습니다.\
+write authorization은 action log와 edit history처럼 플랫폼이 관리하는 쓰기에는 적용되지 않으므로 그 보안은 write authorization보다 낮을 수 있습니다.\
+action log에는 파라미터 값과 Object 파라미터의 property 값이 기록될 수 있으므로 action log Object type의 권한도 따로 확인합니다.
 
-공식 문서: [Access control propagation](https://www.palantir.com/docs/foundry/security/access-control-propagation) · [Read and write authorizations](https://www.palantir.com/docs/foundry/action-types/read-write-authorizations)
+공식 문서: [Access control propagation](https://www.palantir.com/docs/foundry/security/access-control-propagation) · [Read and write authorizations](https://www.palantir.com/docs/foundry/action-types/read-write-authorizations) · [Action log](https://www.palantir.com/docs/foundry/action-types/action-log)
 
 ## 함정: 한 곳을 막아도 열려 있는 곳
 
@@ -260,8 +266,8 @@ read·write authorization은 베타 기능이라 환경(enrollment)에 따라 �
 
 | 막은 곳 | 그래도 열려 있는 곳 | 따로 해야 할 일 |
 | --- | --- | --- |
-| [Object security policy](#concept-osp)로 Object를 가림 | 원본 [Dataset](#concept-dataset) ([Contour](#concept-analytics)·Code Workspaces처럼 Dataset을 직접 읽는 도구) | Dataset 권한을 따로 설정 |
-| [Restricted view](#concept-rv)로 행을 거름 | backing [Dataset](#concept-dataset) (권한이 있으면 Restricted view를 거치지 않고 읽음) | backing Dataset 권한을 주지 않거나 Marking으로 보호 |
+| [Object security policy](#concept-osp)로 Object를 가림 | backing [Dataset](#concept-dataset) ([Contour](#concept-analytics)·Code Workspaces처럼 Dataset을 직접 읽는 도구) | Dataset 권한을 따로 설정 |
+| [Restricted view](#concept-rv)로 행을 거름 | backing [Dataset](#concept-dataset) (권한이 있으면 Restricted view를 거치지 않고 읽음) | backing Dataset 권한을 주지 않음<br />(보통 Restricted view를 다른 Project에 둠)<br />같은 Project에서 Marking으로 막으려면<br />그 Marking이 Restricted view에 남지 않아야 함 |
 | [Object security policy](#concept-osp)·Property security policy로 media reference property를 가림 | Media set 권한이 Object type과 다르면 [Media set](#concept-media)에서 파일을 직접 가져올 수 있음 | Media set 권한을 따로 설정 |
 | [Object security policy](#concept-osp)로 Object 읽기를 제한 | [Action](#concept-action)·[Function](#concept-function)이 그 Object를 읽어 만든 결과 (Function 반환값은 정책에 묶이지 않고 Action 편집에는 쓰기 대상의 통제가 적용됨) | 파생 결과까지 보호해야 하면 필수 통제를 함께 설정<br />(Marking·<wbr />CBAC·<wbr />Organization)<br />Marking 데이터를 읽는 Action에는<br />read authorization(베타) 설정<br />Action이 쓰는 대상의 권한도 따로 확인 |
 | [Stream](#concept-stream)으로 Object type을 만듦 | Object security policy가 없으면 Stream의 Viewer 권한이 있는 사용자 (그 Stream의 Object를 모두 봄) | Object security policy 적용<br />(정책은 Ontology 안에서만 적용되므로<br />원본 Stream 권한도 따로 설정) |

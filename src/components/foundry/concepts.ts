@@ -41,7 +41,7 @@ export const concepts: Concept[] = [
     everyday: "여러 거래처에서 오는 자료를 한곳에서 받아 두는 회사의 문서 수발실과 같습니다. 거래처별 연락처와 출입 방법(Source)을 등록해 두고 정해진 때마다 자료를 받아 옵니다(Sync).",
     points: [
       "Source: 외부 시스템 하나에 대한 연결입니다. 대상 위치(보통 URL)와 인증 정보를 담습니다.",
-      "Sync는 데이터를 Foundry로 가져오는 작업을 통칭하던 예전 용어입니다. 지금은 batch, Iceberg, streaming, CDC, media sync 등 기능별 이름으로 나뉩니다.",
+      "Sync는 데이터를 Foundry로 가져오는 작업을 통칭하던 예전 용어입니다. 지금은 batch, Iceberg, streaming, 변경 데이터 캡처(CDC), media sync 등 기능별 이름으로 나뉩니다.",
       "batch sync를 만들면 동기화한 데이터를 쓸 새 Dataset도 함께 만들어집니다. 직접 실행하거나 Schedule로 Build를 걸어야 데이터를 가져오며 이 출력 Dataset이 파이프라인의 원본(raw) Dataset이 됩니다. 기존 Dataset에 쓰는 것도 지원되지만 기존 데이터를 덮어쓸 수 있어 권장되지 않습니다.",
       "Python transform은 external transforms로 Data Connection의 source에 직접 연결해 외부 시스템과 통신할 수도 있습니다.",
       "데이터는 외부에서 미리 가공하지 않고 원본 그대로(as-is) 가져오는 것을 원칙으로 합니다.",
@@ -84,7 +84,7 @@ export const concepts: Concept[] = [
       "trained model node로 Foundry 안팎에서 학습한 모델의 추론을 Spark 배치·Flink 스트리밍 파이프라인 안에서 코드 없이 실행할 수 있습니다. 입력과 출력이 표 하나씩인 모델만 지원합니다.",
       "실행 엔진으로 Spark와 Flink를 쓰며 DataFusion 기반의 Faster pipelines로 배치·증분 파이프라인을 더 빠르게 실행할 수 있습니다.",
       "출력 검사를 통과하지 못하면 Build를 막아 하류 파이프라인이 깨지는 것을 방지합니다.",
-      "출력으로 Dataset, Media set, 파일, Virtual table(베타), Object type·Link type, time series, geotemporal series 등을 지원하고 스트리밍 파이프라인으로는 Stream을 만듭니다. Faster pipelines는 2026년 10월부터 Foundry Iceberg table도 읽고 씁니다. Ontology에 바로 쓰는 direct datasource(베타)의 writer는 지금 Pipeline Builder뿐입니다.",
+      "출력으로 Dataset, Media set, 파일, Virtual table(베타), Object type·Link type, time series, geotemporal series 등을 지원하고 스트리밍 파이프라인으로는 Stream을 만듭니다. Foundry Iceberg table은 표준 Spark 파이프라인과 Faster pipelines(2026년 10월부터)에서 입출력으로 쓸 수 있으며 Iceberg 입력을 증분으로 처리하려면 표준 Spark 파이프라인을 씁니다. Ontology에 바로 쓰는 direct datasource(베타)의 writer는 지금 Pipeline Builder뿐입니다.",
       "생성된 코드는 기존 Java transforms 저장소로만 내보낼 수 있습니다(PySpark 불가, 기본 배치 파이프라인만). 대상 브랜치의 기존 코드는 삭제되고 되돌릴 수 없는 단방향 작업입니다.",
       "UDF·LLM 호출·미디어 연산 등은 내보낸 코드에서 TODO로 남으며 결과가 원래 파이프라인과 다를 수 있습니다.",
     ],
@@ -97,6 +97,7 @@ export const concepts: Concept[] = [
       { label: "Direct datasource", href: D + "object-indexing/direct-datasources" },
       { label: "스트리밍 파이프라인", href: D + "building-pipelines/create-stream-pipeline-pb" },
       { label: "Iceberg 지원 공지", href: D + "announcements/2026-10" },
+      { label: "Iceberg 파이프라인", href: D + "iceberg/data-pipelines" },
     ],
   },
   {
@@ -131,10 +132,11 @@ export const concepts: Concept[] = [
       "Iceberg table은 Dataset 대신 표 데이터를 담는 다른 리소스 유형으로 Foundry가 관리하는 Iceberg 카탈로그나 외부 카탈로그(Virtual table)로 씁니다.",
       "View는 파일을 갖지 않고 읽힐 때 하나 이상의 backing Dataset을 합쳐(union) 보여 주며 primary key로 중복을 없앨 수 있습니다. transform의 입력으로는 쓸 수 있지만 출력으로는 쓸 수 없습니다.",
     ],
-    warn: "Data Lineage → History → Rollback to transaction으로 롤백할 수 있지만 되돌아가는 것은 데이터뿐이며 로직은 그대로입니다. 보존 정책(retention)으로 삭제된 트랜잭션으로는 롤백할 수 없습니다. Object Storage v2의 Object type을 받치는 Dataset을 롤백하면 Object type이 저절로 다시 인덱싱되지 않으므로 대체 파이프라인을 실행해 다시 인덱싱해야 합니다. 보존 정책은 삭제 표시 후 보통 7일 뒤 실제로 지우며 그 이후에는 복구할 수 없습니다. 실제로 지우기 전에는 삭제 표시를 되돌릴 수 있습니다. 잘못 표시한 정책을 먼저 고치고 7일 안에 Palantir 담당자에게 연락합니다.",
+    warn: "Data Lineage → History → Rollback to transaction으로 롤백할 수 있지만 되돌아가는 것은 데이터뿐이며 로직은 그대로입니다. 보존 정책(retention)으로 삭제된 트랜잭션으로는 롤백할 수 없습니다. Object Storage v2의 Object type을 받치는 Dataset을 롤백하면 Object type이 저절로 다시 인덱싱되지 않습니다. Funnel의 replacement pipeline이 성공적으로 실행되어 다시 인덱싱되도록 직접 조치해야 합니다. 보존 정책은 삭제 표시 후 보통 7일 뒤 실제로 지우며 그 이후에는 복구할 수 없습니다. 실제로 지우기 전에는 삭제 표시를 되돌릴 수 있습니다. 잘못 표시한 정책을 먼저 고치고 7일 안에 Palantir 담당자에게 연락합니다.",
     doc: D + "data-integration/datasets",
     related: [
       { label: "롤백", href: D + "data-lineage/dataset-rollback" },
+      { label: "Replacement pipeline", href: D + "object-indexing/funnel-batch-pipelines" },
       { label: "보존 정책 실행", href: D + "retention/policy-execution" },
       { label: "Iceberg tables", href: D + "data-integration/iceberg-tables" },
       { label: "Views", href: D + "data-integration/views" },
@@ -167,7 +169,7 @@ export const concepts: Concept[] = [
   {
     id: "media", short: "Media set", layer: "data", title: "Media set",
     lead: "Media set은 파일 전용 저장소이고 media reference는 그 파일(또는 일반 Dataset의 파일)을 가리키는 포인터입니다.",
-    analogy: "버전 관리를 켠 S3 버킷과 DB 컬럼에 저장한 S3 key의 관계와 같습니다.",
+    analogy: "버전 관리를 켠 S3 버킷과 DB 컬럼에 저장한 객체 버전 ID(key + versionId)의 관계와 같습니다. 같은 key에 새 파일을 올려도 저장해 둔 버전 ID는 계속 이전 파일을 가리킵니다.",
     everyday: "사진·문서를 보관하는 창고와 장부에 적어 둔 '창고 몇 번 선반' 메모의 관계와 같습니다. 같은 선반에 새 파일을 넣어도 옛 파일은 치워지지 않고 옛 메모는 계속 옛 파일을 가리킵니다.",
     points: [
       "같은 경로에 다시 업로드하면 경고 없이 새 media item으로 덮어씁니다. 기존 reference는 계속 이전 파일을 가리킵니다.",
@@ -216,7 +218,7 @@ export const concepts: Concept[] = [
       "모델은 파일·가중치 같은 model artifact와 그것을 불러와 추론하는 방법을 정한 model adapter로 구성됩니다.",
       "Modeling Objective에 모델을 제출하면 변경할 수 없는 사본(submission)이 만들어지고 Objective에 정한 metric으로 다른 모델과 비교됩니다. 채택한 모델은 Staging·Production 같은 환경 태그가 붙은 release가 됩니다.",
       "batch deployment는 입력 Dataset으로 추론해 출력 Dataset에 쓰며 보통 Build Schedule로 관리합니다. live deployment는 바로 호출할 수 있는 REST API endpoint를 제공합니다. Modeling Objective를 거치지 않고 모델에서 바로 live endpoint인 direct model deployment를 만들 수도 있습니다.",
-      "live deployment는 model function으로 감싸 TypeScript·Python Function에서 query function처럼 호출할 수 있습니다. 2026년 2월부터 새로 만드는 model function은 Ontology에 묶입니다.",
+      "live deployment는 model function으로 감싸 TypeScript·Python function에서 query function처럼 호출할 수 있습니다. 2026년 2월부터 새로 만드는 model function은 Ontology에 묶입니다.",
     ],
     warn: "deployment는 환경 태그가 붙은 최신 release를 가져가도록 설정할 수 있습니다. 이렇게 설정한 Production deployment에 새 모델을 반영하려면 그 모델의 release에 Production 태그를 붙입니다.",
     doc: [
@@ -338,7 +340,7 @@ export const concepts: Concept[] = [
     id: "cm", short: "Compute module", layer: "logic", title: "Compute module",
     lead: "어떤 언어로 작성한 코드든 Docker 컨테이너로 Foundry 안에서 실행합니다. 부하에 따라 컨테이너 수가 자동으로 늘거나 줄어듭니다.",
     analogy: "Google Cloud Run 같은 서버리스 컨테이너 서비스에 가깝습니다. Docker 이미지를 올리면 플랫폼이 실행과 확장을 맡습니다.",
-    everyday: "회사 밖 전문 업체에 일을 맡기는 것과 같습니다. 업체는 자기에게 익숙한 방식(언어·도구)으로 일하고 Application permissions를 쓰면 누가 맡겼든 업체 자신의 출입 권한으로 일합니다.",
+    everyday: "외부 전문 업체의 직원을 회사 안에 들여 일을 맡기는 것과 같습니다. 직원은 자기에게 익숙한 방식(언어·도구)으로 회사 안에서 일하고 Application permissions를 쓰면 누가 맡겼든 업체에 내준 출입 권한으로 일합니다.",
     points: [
       "Function mode: 컨테이너에 함수를 올려 Workshop·Slate, Developer Console의 OSDK 앱, TypeScript function에서 호출합니다. TypeScript function에서 부를 때는 5분이 넘으면 시간 초과입니다.",
       "Pipeline mode: 입력과 출력으로 지정한 Dataset·Stream·Media set만 다루며 사용자가 직접 질의할 수 없습니다. 데이터 계보와 provenance 통제를 지키기 위한 방식이고 함께 주어지는 job token은 그 입출력 리소스에만 쓸 수 있습니다.",
@@ -516,7 +518,7 @@ export const concepts: Concept[] = [
   },
   {
     id: "project", short: "Project · Role · Marking", layer: "sec", title: "Project · Role · Marking",
-    lead: "Project는 리소스를 묶는 작업 단위이자 역할 부여(discretionary) 권한의 경계입니다. 리소스에 접근하려면 Role이 있어야 하고 필수 통제인 Organization, Marking, Classification-based Access Controls(CBAC)를 모두 통과해야 합니다.",
+    lead: "Project는 리소스를 묶는 작업 단위이자 임의 통제(discretionary control)인 Role 부여의 기본 경계입니다. 리소스에 접근하려면 Role이 있어야 하고 필수 통제인 Organization, Marking, Classification-based Access Controls(CBAC)를 모두 통과해야 합니다.",
     analogy: "Role은 MySQL의 GRANT처럼 무엇을 할 수 있는지 정합니다. Marking은 모든 요청 앞에 붙는 필수 검사 미들웨어와 같아서 하나라도 통과하지 못하면 GRANT와 관계없이 차단됩니다.",
     everyday: "Role은 사무실 출입증의 등급(보기만 가능, 편집 가능 등)과 같습니다. Marking은 '기밀' 표시가 붙은 서류실의 추가 잠금이라 출입증 등급이 높아도 기밀 허가가 없으면 들어갈 수 없습니다.",
     points: [
@@ -553,7 +555,7 @@ export const concepts: Concept[] = [
       "원본의 Marking·Organization·Classification-based Access Controls(CBAC) 같은 필수 통제를 기본으로 물려받으며 정책에서 필수 통제를 더하거나 필요 없는 것을 제거할 수 있습니다.",
       "변경은 거의 즉시 반영되지만 그룹 멤버십 같은 사용자 속성의 변경은 잠시 캐시됩니다. 반면 Restricted view(Dataset용 RLS)는 정책을 바꾼 뒤 파이프라인을 다시 Build해야 반영됩니다.",
     ],
-    warn: "Ontology 안에서만 적용되므로 원본 Dataset은 따로 잠가야 합니다. 레거시 datasource-derived 권한 모델을 쓰는 환경에서는 Dataset 권한도 여전히 필요합니다.",
+    warn: "Ontology 안에서만 적용되므로 backing Dataset은 따로 잠가야 합니다. 레거시 datasource-derived 권한 모델을 쓰는 환경에서는 Dataset 권한도 여전히 필요합니다.",
     doc: D + "object-permissioning/object-security-policies",
     related: [
       { label: "Restricted view", href: D + "security/restricted-views" },
@@ -572,7 +574,7 @@ export const concepts: Concept[] = [
       "Ontology Manager에서 Dataset처럼 Object type의 datasource로 고를 수 있습니다. 특정 primary key의 Object에 접근할 수 있는지는 그 행에 접근할 수 있는지로 정해집니다.",
       "Dataset에만 만들 수 있고 Stream 등 다른 datasource에는 만들 수 없습니다. transform처럼 새 Dataset을 만드는 배치 작업의 입력으로도 쓸 수 없습니다.",
       "backing Dataset 자체를 잠그지는 않습니다. Restricted view로만 볼 사용자에게는 backing Dataset 권한을 주지 않아야 하며 보통 Restricted view를 backing Dataset과 다른 Project에 저장합니다. 같은 Project에 두면 Marking으로 backing Dataset을 보호합니다.",
-      "Restricted view는 backing Dataset의 Marking을 물려받습니다. 공식 문서는 granular policy가 이미 접근을 통제한다는 이유로 물려받은 Marking을 빼지 말라고 안내합니다.",
+      "Restricted view는 backing Dataset의 Marking을 물려받습니다. 공식 문서는 granular policy가 이미 접근을 통제한다는 이유로 물려받은 Marking을 빼지 말라고 안내합니다. 다만 Restricted view 사용자도 Restricted view에 남은 Marking의 멤버여야 하므로 같은 Project에서 backing Dataset을 막으려고 건 Marking이 Restricted view에 그대로 남으면 그 Marking으로는 backing Dataset을 막지 못합니다.",
     ],
     warn: "정책은 사용자가 읽는 순간에 행을 거를 뿐 읽은 뒤의 데이터로 전파되지 않습니다. Function 반환값, Action 편집, AIP Logic 도구 호출, OSDK 응답, writeback, 내보내기로 넘어간 데이터에는 원본 정책이 따라가지 않습니다. Object security policy와 Property security policy도 같습니다. 파생 데이터까지 보호하려면 backing Dataset에 Marking을 함께 겁니다. 다만 Action이 쓴 결과에는 Marking도 저절로 따라가지 않습니다(Action type 카드 참고). 정책을 바꾸면 파이프라인을 다시 Build해야 읽기에 반영됩니다. Object 보안에는 대부분 Object security policy가 권장되며 변경도 거의 즉시 반영됩니다. Restricted view는 backing Dataset을 Ontology 밖(예: Code Workspaces)에서도 행 단위로 보호해야 할 때 적합합니다.",
     doc: D + "security/restricted-views",
@@ -580,6 +582,7 @@ export const concepts: Concept[] = [
       { label: "정책 방식 비교", href: D + "object-permissioning/managing-object-security" },
       { label: "Granular policy", href: D + "platform-security-management/manage-granular-policies" },
       { label: "권한 전파", href: D + "security/access-control-propagation" },
+      { label: "Marking", href: D + "security/markings" },
     ],
   },
   {
@@ -588,8 +591,8 @@ export const concepts: Concept[] = [
     analogy: "'Google로 로그인'과 서버 간 API 키의 차이와 같습니다.",
     everyday: "'카카오로 로그인'처럼 각자 자기 계정으로 앱에 들어가는 방식과 회사 공용 계정 하나로 모두가 같이 쓰는 방식의 차이입니다.",
     points: [
-      "브라우저 앱처럼 client secret을 안전하게 보관할 수 없는 public client는 PKCE가 필수입니다.",
-      "PKCE는 로그인마다 새 verifier를 만들어 인가 코드 탈취를 막는 장치입니다. OSDK의 @osdk/oauth(createPublicOauthClient)가 verifier 생성과 S256 challenge를 자동으로 처리합니다.",
+      "브라우저 앱처럼 client secret을 안전하게 보관할 수 없는 public client는 PKCE(Proof Key for Code Exchange)가 필수입니다.",
+      "PKCE는 로그인마다 새 verifier를 만들고 토큰을 받을 때 그 verifier가 처음 보낸 challenge와 맞는지 확인하므로 가로챈 인가 코드만으로는 토큰을 받을 수 없게 합니다. OSDK의 @osdk/oauth(createPublicOauthClient)가 verifier 생성과 S256 challenge를 자동으로 처리합니다.",
       "Client credentials 방식은 client secret이 필요하며 일반 Foundry 사용자와 연결되지 않는 서비스 유저 작업을 위한 것입니다.",
       "offline_access scope를 요청하면 refresh token을 받습니다. refresh token은 쓸 때마다 새것으로 바뀌며 30일 넘게 쓰지 않으면 무효가 됩니다.",
     ],
@@ -633,13 +636,14 @@ export const concepts: Concept[] = [
     points: [
       "Object type을 만들 때 메타데이터, backing datasource, 속성 매핑, 키(primary key·title key)를 지정합니다.",
       "Action으로만 데이터를 채울 Object type은 datasource 없이 만들 수 있습니다. 이 경우 Object type을 Project에 저장하고 누가 Object를 볼 수 있는지 정하는 Object security policy를 설정해야 합니다.",
-      "보호된 리소스는 브랜치에서 수정하고 proposal을 거쳐 병합해야 합니다. 보호는 리소스의 Owner가 켜거나 끕니다.",
+      "보호된 리소스는 브랜치에서 수정하고 proposal을 거쳐 병합해야 합니다. 보호는 리소스의 Owner가 켜거나 끕니다. Object type·Link type·Action type·Interface 같은 Ontology 리소스는 먼저 project-based 권한으로 migration해야 보호할 수 있습니다.",
     ],
     warn: "Ontology-as-code를 기본으로 포함하는 SuperRepo는 베타 단계이며 공식 문서에 따르면 환경(enrollment)에 따라 제공되지 않을 수 있습니다.",
     doc: D + "ontology-manager/overview",
     related: [
       { label: "Object type 만들기", href: D + "object-link-types/create-object-type" },
       { label: "리소스 보호", href: D + "global-branching/resource-protection-and-approval-policies" },
+      { label: "Ontology 브랜치", href: D + "ontologies/branching-ontology" },
       { label: "Interface 지원 앱", href: D + "interfaces/interface-overview" },
       { label: "SuperRepo", href: D + "superrepo/overview" },
     ],
@@ -653,7 +657,7 @@ export const concepts: Concept[] = [
       "지원 대상: Code Repositories, Pipeline Builder, Ontology(Action·Materialization 포함), Workshop, AIP Logic, Automate, Object Views, Restricted view, TypeScript·Python function, Developer Console 등. 공식 지원 범위 문서의 목록에는 direct model deployment가 있지만 Modeling Objectives와 AIP Chatbot Studio는 없으며 문서는 지원 리소스를 늘려 가는 중이라고 설명합니다.",
       "TypeScript v2(TS v2)·Python function은 저장소 템플릿을 지원 버전 이상으로 올리고 로컬 OSDK를 켜면 브랜치에서 개발하고 브랜치 전용 버전을 게시할 수 있습니다(2026년 10월 GA). 로컬 OSDK가 없는 TS v2·Python 저장소는 브랜치에서 특정 버전을 참조할 수만 있고 브랜치 스키마로 코드를 고칠 수는 없습니다.",
       "Developer Console은 npm으로 설치한 TypeScript SDK와 Vite 6~8 앱에 한해 브랜치에서 SDK를 생성하고 브랜치 데이터로 테스트할 수 있습니다(2026년 10월부터). 브랜치에서는 릴리스 태그와 운영 웹사이트 게시가 막힙니다.",
-      "Proposal이 PR 역할을 합니다. Proposal을 만들면 리소스마다 check(main과의 충돌, 필요한 승인 등)가 실행되고 모든 check를 통과해야 Merge할 수 있습니다. 일부 리소스만 실패한 병합은 지금은 되돌릴 수 없습니다.",
+      "Proposal이 PR 역할을 합니다. Proposal을 만들면 리소스마다 check(Main과의 충돌, 필요한 승인 등)가 실행되고 모든 check를 통과해야 Merge할 수 있습니다. 일부 리소스만 실패한 병합은 지금은 되돌릴 수 없습니다.",
       "브랜치에서 리소스를 만들거나 지우면 Main에도 반영됩니다. Ontology 리소스는 예외로 브랜치에서 만들고 지워도 Main에 영향을 주지 않습니다.",
       "병합할 때 Build 범위를 고릅니다. 영향받는 리소스 전부, 브랜치에서 바꾼 리소스만, Build 안 함 중 하나이며 Build 안 함을 고르면 병합 뒤 직접 Build해야 합니다.",
       "Branch protection은 리소스의 Owner가 켜거나 끕니다. Project의 Branch protection 탭에서 새 파일을 자동으로 보호하도록 설정할 수도 있습니다. Ontology 리소스는 먼저 project-based 권한으로 migration해야 보호할 수 있습니다.",

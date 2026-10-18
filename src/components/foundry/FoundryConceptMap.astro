@@ -152,7 +152,7 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
   <div class="explore">
     <p class="map-scroll-hint" data-read-skip>그림을 좌우로 밀어서 볼 수 있습니다.</p>
     <figure class="fig" id="concept-map">
-      <svg class="map" viewBox="-64 0 584 846" role="group" aria-label="Foundry 흐름: Data Connection이 외부 데이터를 Dataset·Stream·Media set으로 가져오거나 Virtual table로 연결하고 Python transform·Pipeline Builder가 그 Dataset을 입력으로 Build해 새 Dataset을 만듭니다. Restricted view는 Dataset에서 사용자가 볼 수 있는 행만 보이게 하며 Funnel이 Dataset·Restricted view·Stream 같은 datasource를 Ontology로 인덱싱합니다. 사용자는 필요하면 Materialization으로 원본과 편집을 합친 별도 출력 Dataset(입력 datasource에 따라 Restricted view)을 만들 수 있고 Object의 media reference는 Media set의 파일을 가리킵니다. 로직 층에서 Ontology에 쓰는 것은 Action이고 Function·Compute module·Automate·AIP Logic은 Ontology를 읽습니다. 예외로 Automate의 Logic effect는 staged writes를 끈 Logic 함수의 편집을 Action 없이 적용할 수 있습니다. Workshop·React 앱은 Ontology를 사용하고 분석 앱은 Ontology와 Dataset을 함께 사용합니다. Object Views는 Object 하나의 정보를 모아 보여 주고 외부 AI 에이전트는 Ontology MCP로 Ontology를 읽고 Action을 실행합니다. Models는 Modeling Objectives나 direct model deployment로 모델을 배포해 Function과 파이프라인에서 씁니다. 맨 아래 운영 줄의 Ontology Manager, Global Branching, Marketplace, Data Lineage · Workflow Lineage는 여러 층의 정의·변경·배포와 의존 관계 확인을 다루고 Approvals · Checkpoints는 Project 접근 요청이나 Ontology proposal 같은 승인과 민감한 작업의 사유 기록을 다룹니다. Project · Role · Marking이 전체를 감쌉니다.">
+      <svg class="map" viewBox="-64 0 584 846" role="group" aria-label="Foundry 흐름: Data Connection이 외부 데이터를 Dataset·Stream·Media set으로 가져오거나 Virtual table로 연결하고 Python transform·Pipeline Builder가 그 Dataset을 입력으로 Build해 새 Dataset을 만듭니다. Restricted view는 Dataset에서 사용자가 볼 수 있는 행만 보이게 하며 Funnel이 Dataset·Restricted view·Stream 같은 datasource를 Ontology로 인덱싱합니다. 사용자는 필요하면 Materialization으로 원본과 편집을 합친 별도 출력 Dataset(입력 datasource에 따라 Restricted view)을 만들 수 있고 Object의 media reference는 Media set의 파일을 가리킵니다. 로직 층에서 Ontology에 쓰는 것은 Action이고 Function·Compute module·Automate·AIP Logic은 Ontology를 읽습니다. 예외로 Automate의 Logic effect는 staged writes를 끈 Logic 함수의 편집을 Action 없이 적용할 수 있습니다. Workshop과 OSDK · Developer Console로 만든 앱은 Ontology를 사용하고 Contour · Quiver · Object Explorer는 Ontology와 Dataset을 함께 사용합니다. Object Views는 Object 하나의 정보를 모아 보여 주고 외부 AI 에이전트는 Ontology MCP로 Ontology를 읽고 Action을 실행합니다. Models는 Modeling Objectives나 direct model deployment로 모델을 배포해 Function과 파이프라인에서 씁니다. 맨 아래 운영 줄의 Ontology Manager, Global Branching, Marketplace, Data Lineage · Workflow Lineage는 여러 층의 정의·변경·배포와 의존 관계 확인을 다루고 Approvals · Checkpoints는 Project 접근 요청이나 Ontology proposal 같은 승인과 민감한 작업의 사유 기록을 다룹니다. Project · Role · Marking이 전체를 감쌉니다.">
         <defs>
           <marker id="fcm-ah" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
             <path class="ahp" d="M0,1 L9,5 L0,9 z"></path>
@@ -188,12 +188,14 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
         <line class="ar" data-edges="dc:transform" x1="256" y1="78" x2="212" y2="90" marker-end="url(#fcm-ah)"></line>
         <line class="ar" data-edges="dc:pb" x1="256" y1="78" x2="318" y2="90" marker-end="url(#fcm-ah)"></line>
         <text class="lab ae" data-edges="dc:transform dc:pb" x="206" y="86">원본 Dataset을 입력으로</text>
-        <line class="ar" data-edges="dc:dataset" x1="256" y1="54" x2="256" y2="188" marker-end="url(#fcm-ah)"></line>
+        <!-- batch sync 선은 사선이 갈라지는 곳(y=78)에서 나눈다. 위쪽 구간은 transform·Pipeline Builder로 가는 길이기도 하다 -->
+        <line class="ar" data-edges="dc:dataset dc:transform dc:pb" x1="256" y1="54" x2="256" y2="78"></line>
+        <line class="ar" data-edges="dc:dataset" x1="256" y1="78" x2="256" y2="188" marker-end="url(#fcm-ah)"></line>
         <line class="ar" data-edges="dc:stream" x1="292" y1="54" x2="292" y2="188" marker-end="url(#fcm-ah)"></line>
         <text class="lab ae" data-edges="dc:dataset" x="250" y="68">batch sync</text>
         <text class="lab as" data-edges="dc:stream" x="298" y="68">streaming sync</text>
-        <line class="ar" data-edges="transform:dataset" x1="124" y1="144" x2="124" y2="188" marker-end="url(#fcm-ah)"></line>
-        <line class="ar" data-edges="pb:dataset" x1="400" y1="144" x2="264" y2="188" marker-end="url(#fcm-ah)"></line>
+        <line class="ar" data-edges="transform:dataset builds:transform builds:dataset" x1="124" y1="144" x2="124" y2="188" marker-end="url(#fcm-ah)"></line>
+        <line class="ar" data-edges="pb:dataset builds:pb builds:dataset" x1="400" y1="144" x2="264" y2="188" marker-end="url(#fcm-ah)"></line>
 
         <!-- 데이터 → 온톨로지: Dataset은 바로 또는 Restricted view를 거쳐, Stream은 바로 Funnel의 입력이 된다 (Restricted view는 Stream에 만들 수 없음) -->
         <line class="ar" data-edges="dataset:rv" x1="208" y1="242" x2="208" y2="254" marker-end="url(#fcm-ah)"></line>
@@ -286,7 +288,7 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
         <ul class="map-legend">
           <li><svg viewBox="0 0 30 10" aria-hidden="true"><line class="lg-line" x1="1" y1="5" x2="23" y2="5"></line><path class="lg-head" d="M22,1 L29,5 L22,9 z"></path></svg>실선: 데이터가 이동하는 방향 (로직 층에서 Ontology에 쓰는 선은 Action뿐이고 나머지는 Ontology를 읽음. Automate의 Logic effect 예외는 AIP Logic 카드 참고). 앱에서 위로 올라가는 짧은 선과 앱 위의 가로선, 거기서 위로 나가는 선만 앱이 로직을 호출하거나 Ontology를 직접 조회하는 방향</li>
           <li><svg viewBox="0 0 30 10" aria-hidden="true"><line class="lg-line lg-dash" x1="1" y1="5" x2="23" y2="5"></line><path class="lg-head" d="M22,1 L29,5 L22,9 z"></path></svg>점선: 데이터를 복사하지 않고 가리키기만 하는 관계 (media ref는 Object가 Media set의 파일을 가리킴, Virtual table은 외부 시스템의 테이블을 가리킴)</li>
-          <li><svg viewBox="0 0 30 10" aria-hidden="true"><rect class="lg-out" x="1" y="1" width="28" height="8" rx="3"></rect></svg>"Materialized Dataset" 상자: 개념이 아니라 Materialization이 만드는 선택 출력 Dataset (원본 Dataset으로 돌아가지 않음)</li>
+          <li><svg viewBox="0 0 30 10" aria-hidden="true"><rect class="lg-out" x="1" y="1" width="28" height="8" rx="3"></rect></svg>"Materialized Dataset" 상자: 개념이 아니라 Materialization이 만드는 선택 출력 Dataset (backing Dataset으로 돌아가지 않음)</li>
           <li><svg viewBox="0 0 30 10" aria-hidden="true"><path class="lg-line" d="M1,9 H29 M8,9 V2 M22,9 V2" fill="none"></path></svg>공용선(앱과 로직 사이의 가로선): 앱마다 실제로 호출하는 대상은 다르며 개념을 누르면 실제 연결만 강조됩니다</li>
           <li><svg viewBox="0 0 30 10" aria-hidden="true"><rect class="lg-extra" x="1" y="1" width="28" height="8" rx="3"></rect></svg>회색 점선 테두리 상자: 개념을 골랐을 때 그림에 선은 없지만 함께 동작하는 개념 (예: Automate가 실행하는 Action)</li>
           <li><svg viewBox="0 0 30 10" aria-hidden="true"><rect class="lg-frame" x="1" y="1" width="28" height="8" rx="3"></rect></svg>호박색 점선 테두리와 아래쪽 이름표: Project에 저장한 리소스에는 층과 관계없이 Project · Role · Marking 권한이 적용됨 (자세한 내용은 Project · Role · Marking 카드)</li>
@@ -624,6 +626,9 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
       ["branch", "lineage"],
       // Object security policy도 Global Branching과 연동된다(Managing object security)
       ["branch", "osp"],
+      // Ontology는 Ontology Manager에서 브랜치를 만들어 수정하고 Interface type도 브랜치 보호 대상이다(Branching the ontology)
+      ["branch", "oma"],
+      ["branch", "interfaces"],
     ];
     const pairsOf = (el: SVGElement) =>
       (el.dataset.edges ?? "").split(" ").filter(Boolean).map((pair) => pair.split(":") as [string, string]);
@@ -744,6 +749,13 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
 
     document.addEventListener("click", (event) => {
       const target = event.target as Element;
+      // "지도에서 보기": 좁은 화면에서는 막대를 접고 그 높이만큼 비워 지도로 간다(기본 링크 이동은 막대 아래에 지도를 숨긴다)
+      const back = target.closest(".back");
+      if (back && panel.contains(back)) {
+        event.preventDefault();
+        if (aside && aside.nextElementSibling === root) setCollapsed(true);
+        return scrollBelowBar(root.querySelector(".fig") ?? root);
+      }
       if (more && target.closest(".more") === more) return setExpanded(!panel.classList.contains("is-expanded"));
       if (fold && target.closest(".fold") === fold) return setCollapsed(!panel.classList.contains("is-collapsed"));
       if (panel.classList.contains("is-collapsed") && target.closest(".card.is-active") && panel.contains(target)) return setCollapsed(false);
@@ -832,11 +844,13 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
 
     // #route-… 주소는 그 관점을 켠 채로 연다 (연재 글에서 허브 지도의 노선으로 바로 보내는 용도)
     const routeFromHash = () => (location.hash.startsWith("#route-") ? location.hash.slice("#route-".length) : null);
-    // 지도 첫머리(관점 선택)로 스크롤한다. 좁은 화면에서는 지도 바로 위에 붙는 카드 막대 높이만큼 비워 둔다
-    const showRoutes = () => {
+    // 지도 쪽으로 스크롤한다. 좁은 화면에서는 지도 바로 위에 붙는 카드 막대 높이만큼 비워 둬서 막대가 지도를 가리지 않게 한다
+    const scrollBelowBar = (el: Element) => {
       const bar = aside && aside.nextElementSibling === root ? aside.getBoundingClientRect().height : 0;
-      window.scrollTo({ top: root.getBoundingClientRect().top + window.scrollY - bar - 8 });
+      window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - bar - 8 });
     };
+    // 지도 첫머리(관점 선택)로 스크롤한다
+    const showRoutes = () => scrollBelowBar(root);
     window.addEventListener("hashchange", () => {
       const rid = routeFromHash();
       if (rid === null) return pick(location.hash.replace("#concept-", ""));
@@ -860,7 +874,7 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
     if (ids.includes(initial)) {
       window.addEventListener("load", () => {
         scroller.scrollTop = 0;
-        root.scrollIntoView({ block: "start" });
+        showRoutes();
       }, { once: true });
     }
   }
@@ -870,7 +884,7 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
   /* 패널은 스크립트가 .fcm 밖(#post-aside)으로 옮기므로 색 변수를 패널에도 둔다 */
   .fcm, .panel {
     --fcm-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
-    --c-sec: #a86a12; --c-data: #0e7f80; --c-onto: #4a4fc4; --c-logic: #b8324f; --c-app: #2c7a4e; --c-ops: #5f6b7d;
+    --c-sec: #855510; --c-data: #0b6e6f; --c-onto: #4a4fc4; --c-logic: #b8324f; --c-app: #2c7a4e; --c-ops: #5f6b7d;
     --t-sec: #f8f0e4; --t-data: #e4f2f2; --t-onto: #ecedfa; --t-logic: #f8e7eb; --t-app: #e6f1ea; --t-ops: #edeff2;
     --s-sec: #eedcbf; --s-data: #c4e2e2; --s-onto: #d5d6f3; --s-logic: #efcbd3; --s-app: #c8e1d2; --s-ops: #d8dce2;
     font-size: 15px;
