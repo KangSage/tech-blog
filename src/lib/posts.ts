@@ -1,3 +1,4 @@
+import { execFileSync } from "node:child_process";
 import { getCollection, type CollectionEntry } from "astro:content";
 import { assertLocale, blogPath, locales, type Locale } from "./i18n";
 import type { Category } from "./categories";
@@ -43,9 +44,32 @@ export async function getAlternates(translationKey: string) {
     });
 }
 
-// 날짜는 언어와 관계없이 2026-09-29 형식으로 표시한다
+// 날짜는 언어와 관계없이 2026-09-29 형식으로, 한국 시간 기준 날짜로 표시한다
+const dateFormat = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit" });
 export function formatDate(date: Date): string {
-  return date.toISOString().slice(0, 10);
+  return dateFormat.format(date);
+}
+
+// 수정 날짜는 글 파일을 바꾼 마지막 git 커밋 시각이다. 글을 처음 올린 커밋 하나뿐이면 수정이 없다고 보고,
+// 공개한 날과 같은 날이어도 없다고 본다. 커밋되지 않은 새 글이나 git 기록이 없는 환경에서도 없다고 본다
+const lastCommitCache = new Map<string, Date | undefined>();
+function lastCommitDate(filePath: string): Date | undefined {
+  if (!lastCommitCache.has(filePath)) {
+    let date: Date | undefined;
+    try {
+      const out = execFileSync("git", ["log", "--format=%cI", "--", filePath], { encoding: "utf8" }).trim().split("\n");
+      if (out.length > 1) date = new Date(out[0]);
+    } catch {
+      // git이 없거나 저장소가 아니면 수정 날짜 없이 빌드한다
+    }
+    lastCommitCache.set(filePath, date);
+  }
+  return lastCommitCache.get(filePath);
+}
+
+export function getUpdatedAt(post: BlogPost): Date | undefined {
+  const date = post.filePath ? lastCommitDate(post.filePath) : undefined;
+  return date && formatDate(date) > formatDate(post.data.publishedAt) ? date : undefined;
 }
 
 export async function getLocalesWithPosts(): Promise<Locale[]> {

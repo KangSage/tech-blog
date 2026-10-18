@@ -67,6 +67,12 @@ export const ui = {
   figureClose: { ko: "닫기", ja: "閉じる", en: "Close" },
   copyCodeDone: { ko: "복사됨", ja: "コピーしました", en: "Copied" },
   copyCodeFailed: { ko: "복사 실패", ja: "コピー失敗", en: "Copy failed" },
+  commentsTitle: { ko: "댓글", ja: "コメント", en: "Comments" },
+  commentsNote: {
+    ko: "GitHub 계정으로 댓글을 남길 수 있습니다. 댓글은 이 블로그 저장소의 GitHub Discussions에 공개로 저장됩니다.",
+    ja: "GitHubアカウントでコメントできます。コメントはこのブログのリポジトリのGitHub Discussionsに公開で保存されます。",
+    en: "Sign in with GitHub to comment. Comments are stored publicly in this blog's GitHub Discussions.",
+  },
   themeToDark: { ko: "다크 모드로 전환", ja: "ダークモードに切り替え", en: "Switch to dark mode" },
   themeToLight: { ko: "라이트 모드로 전환", ja: "ライトモードに切り替え", en: "Switch to light mode" },
 } satisfies Record<string, Record<Locale, string>>;

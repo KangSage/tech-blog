@@ -21,6 +21,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          # 글의 수정 날짜를 git 기록에서 읽으므로 전체 기록을 받는다
+          fetch-depth: 0
 
       - name: Install pnpm
         uses: pnpm/action-setup@v6
