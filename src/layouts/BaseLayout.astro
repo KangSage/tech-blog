@@ -488,6 +488,7 @@ const themeCss = `:root { ${decl(light)} }
     color: var(--accent);
   }
 
+  /* 복사에 실패했을 때만 버튼 왼쪽에 뜨는 말풍선 (성공은 체크 아이콘으로 충분해 화면에 문구를 띄우지 않는다) */
   .code-copy-toast {
     position: absolute;
     top: 12px;
@@ -500,10 +501,6 @@ const themeCss = `:root { ${decl(light)} }
     line-height: 1.5;
     white-space: nowrap;
     pointer-events: none;
-  }
-
-  .code-copy-toast[hidden] {
-    display: none;
   }
 
   /* 접었다 펴는 글 안의 곁다리 설명 (예: 이 글을 쓰게 된 이유) */
