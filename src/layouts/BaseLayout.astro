@@ -145,7 +145,7 @@ const themeCss = `:root { ${decl(light)} }
 </html>
 
 <style is:global>
-  /* 페이지 스크롤이 포커스된 요소를 화면 가장자리에 딱 붙이면 포커스 윤곽선 한 변이 잘리므로 4px를 남긴다(글 페이지의 아래쪽은 ReadAloud가 더 크게 덮어쓴다) */
+  /* 페이지 스크롤이 포커스된 요소를 화면 가장자리에 딱 붙이면 포커스 윤곽선 한 변이 잘리므로 4px를 남긴다(글 본문의 읽어 주기 도크 몫은 ReadAloud가 본문 요소의 scroll-margin-bottom으로 준다) */
   html {
     scroll-padding-block: 4px;
   }

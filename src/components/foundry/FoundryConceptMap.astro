@@ -1232,8 +1232,9 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
     [data-docked].is-expanded { max-height: 65vh; overflow-y: auto; padding: 4px 4px 0; margin: -4px -4px 0; }
     /* 자세히를 연 패널은 막대 안에서 스크롤되므로 간단히·접기 버튼이 끝까지 내리지 않아도 보이게 아래에 붙인다 */
     [data-docked].is-expanded .nav { position: sticky; bottom: 0; padding: 6px 0 4px; background: var(--bg); }
-    /* 아래에 붙은 버튼 줄(약 40px) 뒤로 포커스된 링크가 숨지 않게 그만큼 비운다 */
-    [data-docked].is-expanded { scroll-padding-bottom: 48px; }
+    /* 아래에 붙은 버튼 줄(약 40px) 뒤로 포커스된 링크가 숨지 않게 링크·버튼에 그만큼 여백을 준다.
+       막대에 scroll-padding으로 주면 버튼 줄 자체가 그 띠 안에 들어가 버튼 사이를 Tab할 때마다 카드가 튄다 */
+    [data-docked].is-expanded :is(a[href], button):not(.nav *) { scroll-margin-bottom: 48px; }
     [data-docked] .more { display: inline-flex !important; }
     [data-docked] .step { display: none; }
     [data-docked] .fold { display: inline-flex; }

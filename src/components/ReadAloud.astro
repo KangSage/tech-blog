@@ -335,12 +335,13 @@ const labels = {
 <style>
   /* 본문 끝의 sticky 도크: 본문을 보는 동안 화면 하단에 붙는다. 도크 자체는 클릭을 통과시켜 뒤의 글을 가리는 면적을 버튼만큼으로 줄인다 */
   /* 화면 아래 끝에 걸친 본문 요소에 키보드 포커스가 가면 브라우저가 아래 끝에 붙여 보여 주므로 도크(읽어 주기 버튼)에 가리지 않게 그만큼 띄운다.
-     html의 scroll-padding으로 주면 아래 띠 안에 고정된 버튼(옆 카드·목차 등)으로 Tab할 때마다 페이지가 튀므로 본문 안에서 스크롤되는 요소에만 준다 */
-  :global(.post-body :is(a[href], button, summary, [tabindex]):not(.ra-dock *):not(#post-aside *)) {
+     html의 scroll-padding으로 주면 아래 띠 안에 고정된 버튼(옆 카드·목차 등)으로 Tab할 때마다 페이지가 튀므로 본문 안에서 스크롤되는 요소에만 준다.
+     가로로 스크롤되는 표와 코드 블록은 안에 포커스할 것이 없으면 브라우저가 Tab 대상으로 만들므로 함께 넣는다 */
+  :global(.post-body :is(a[href], button, summary, input, select, textarea, iframe, video[controls], audio[controls], [contenteditable], [tabindex], table, pre):not(.ra-dock *):not(#post-aside *)) {
     scroll-margin-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
   }
   /* 재생 중에는 조작 바가 화면 아래에서 약 101px까지 덮으므로 그만큼 더 띄운다 */
-  :global(html:has(.ra-bar:not([hidden])) .post-body :is(a[href], button, summary, [tabindex]):not(.ra-dock *):not(#post-aside *)) {
+  :global(html:has(.ra-bar:not([hidden])) .post-body :is(a[href], button, summary, input, select, textarea, iframe, video[controls], audio[controls], [contenteditable], [tabindex], table, pre):not(.ra-dock *):not(#post-aside *)) {
     scroll-margin-bottom: calc(112px + env(safe-area-inset-bottom, 0px));
   }
   .ra-dock {
