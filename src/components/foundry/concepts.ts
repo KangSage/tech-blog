@@ -86,7 +86,7 @@ export const concepts: Concept[] = [
       "출력 검사를 통과하지 못하면 Build를 막아 하류 파이프라인이 깨지는 것을 방지합니다.",
       "출력으로 Dataset, Media set, 파일, Virtual table(베타), Object type·Link type, time series, geotemporal series 등을 지원하고 스트리밍 파이프라인으로는 Stream을 만듭니다. Foundry Iceberg table은 표준 Spark 파이프라인과 Faster pipelines(2026년 10월부터)에서 입출력으로 쓸 수 있으며 Iceberg 입력을 증분으로 처리하려면 표준 Spark 파이프라인을 씁니다. Ontology에 바로 쓰는 direct datasource(베타)의 writer는 지금 Pipeline Builder뿐입니다.",
       "생성된 코드는 기존 Java transforms 저장소로만 내보낼 수 있습니다(PySpark 불가, 기본 배치 파이프라인만). 대상 브랜치의 기존 코드는 삭제되고 되돌릴 수 없는 단방향 작업입니다.",
-      "UDF·LLM 호출·미디어 연산 등은 내보낸 코드에서 TODO로 남으며 결과가 원래 파이프라인과 다를 수 있습니다.",
+      "사용자 정의 함수(UDF)·LLM 호출·미디어 연산 등은 내보낸 코드에서 TODO로 남으며 결과가 원래 파이프라인과 다를 수 있습니다.",
     ],
     warn: "스트리밍 파이프라인은 모든 환경에서 제공되지는 않습니다. 필요하면 Palantir 담당자에게 문의합니다.",
     doc: D + "pipeline-builder/overview",
@@ -170,7 +170,7 @@ export const concepts: Concept[] = [
     id: "media", short: "Media set", layer: "data", title: "Media set",
     lead: "Media set은 파일 전용 저장소이고 media reference는 그 파일(또는 일반 Dataset의 파일)을 가리키는 포인터입니다.",
     analogy: "버전 관리를 켠 S3 버킷과 DB 컬럼에 저장한 객체 버전 ID(key + versionId)의 관계와 같습니다. 같은 key에 새 파일을 올려도 저장해 둔 버전 ID는 계속 이전 파일을 가리킵니다.",
-    everyday: "사진·문서를 보관하는 창고와 장부에 적어 둔 '창고 몇 번 선반' 메모의 관계와 같습니다. 같은 선반에 새 파일을 넣어도 옛 파일은 치워지지 않고 옛 메모는 계속 옛 파일을 가리킵니다.",
+    everyday: "사진·문서를 보관하는 창고와 장부에 적어 둔 입고 번호의 관계와 같습니다. 같은 선반에 새 파일을 넣으면 새 입고 번호가 붙고 옛 파일은 치워지지 않으므로 장부에 적어 둔 옛 입고 번호는 계속 옛 파일을 가리킵니다.",
     points: [
       "같은 경로에 다시 업로드하면 경고 없이 새 media item으로 덮어씁니다. 기존 reference는 계속 이전 파일을 가리킵니다.",
       "덮어써진 item은 기본적으로 삭제되지 않고 버전 이력에 남으며 Build에서도 처리될 수 있습니다. 정리하려면 '덮어쓰거나 삭제된 뒤 N일 후 영구 삭제' 보존 정책을 설정합니다.",
@@ -304,7 +304,7 @@ export const concepts: Concept[] = [
       "제출하려면 편집 대상 Object type·Link type과 그 datasource를 볼 수 있어야 합니다. Action으로만 편집하는 타입은 볼 수 있는 Object를 모두 편집할 수 있습니다. Action 밖 편집도 허용한 타입은 Dataset 기반이면 writeback Dataset의 Edit 권한이, Restricted view 기반이면 edit policy 통과가 추가로 필요합니다.",
       "action log를 쓰는 Action은 action log Object type에 대한 권한도 있어야 제출할 수 있습니다.",
     ],
-    warn: "Submission criteria만 통과한다고 제출할 수 있는 것은 아닙니다. Object security policy 같은 행·열 통제는 Action이 읽는 데이터를 거릅니다. 이 통제는 Action이 쓴 결과로 전파되지 않고 쓰기 대상에는 그 대상의 통제가 적용됩니다. Marking도 Action이 쓴 결과에 저절로 따라가지 않습니다. Action은 쓰는 데이터의 보안을 로직이 정하므로 Marking이 붙은 데이터를 읽고 그보다 덜 제한된 곳에 쓸 수 있습니다. 공식 문서는 Marking이 붙은 데이터를 읽을 수 있는 Action에 read authorization(베타)을 설정하라고 안내합니다.",
+    warn: "Submission criteria만 통과한다고 제출할 수 있는 것은 아닙니다. Object security policy 같은 행·열 통제는 Action이 읽는 데이터를 거릅니다. 이 통제는 Action이 쓴 결과로 전파되지 않고 쓰기 대상에는 그 대상의 통제가 적용됩니다. Marking도 Action이 쓴 결과에 저절로 따라가지 않습니다. Action은 쓰는 데이터의 보안을 로직이 정하므로 Marking이 붙은 데이터를 읽고 그보다 덜 제한된 곳에 쓸 수 있습니다. 공식 문서는 Marking이 붙은 데이터를 읽을 수 있는 Action에 read authorization(베타)을 설정하라고 안내하며 write authorization을 그보다 덜 제한적으로 두면 여전히 낮은 보안으로 쓸 수 있습니다.",
     doc: D + "action-types/overview",
     related: [
       { label: "Rules", href: D + "action-types/rules" },
@@ -431,7 +431,7 @@ export const concepts: Concept[] = [
   },
   {
     id: "osdk", short: "OSDK · Developer Console", mapLines: ["OSDK", "Developer Console"], layer: "app", title: "OSDK · Developer Console",
-    lead: "OSDK는 Ontology에서 생성되는 타입 있는 클라이언트이고 Developer Console은 커스텀 앱을 관리하는 콘솔입니다.",
+    lead: "OSDK(Ontology SDK)는 Ontology에서 생성되는 타입 있는 클라이언트이고 Developer Console은 커스텀 앱을 관리하는 콘솔입니다.",
     analogy: "Prisma Client처럼 스키마(Ontology)에서 생성되는 타입 있는 클라이언트입니다. Developer Console은 GitHub의 OAuth App 설정처럼 앱을 등록하고 접근 범위를 관리하는 곳입니다.",
     everyday: "Foundry 데이터를 회사가 직접 만든 앱에서 쓸 수 있게 해 주는 전용 연결 도구입니다. Developer Console은 그 앱을 등록하고 어떤 데이터까지 쓸 수 있는지 정하는 관리 창구입니다.",
     points: [
@@ -439,7 +439,7 @@ export const concepts: Concept[] = [
       "앱 제한에는 접근할 리소스를 정하는 resource restrictions와 할 수 있는 작업을 정하는 operation restrictions 두 종류가 있습니다.",
       "앱이 토큰을 요청할 때 고를 수 있는 것은 api:use-ontologies-read 같은 작업(operation) scope뿐입니다. scope를 빈 값([])으로 요청하면 앱의 operation restrictions 전체가 적용됩니다. scope 없이 토큰을 요청하면 앱 제한이 허용하는 사용자 권한 전부가 적용됩니다.",
       "앱은 기본적으로 제한(restricted) 상태로 만들어집니다. 제한 없는(unrestricted) 앱은 사용자 권한과 요청한 작업만으로 접근이 결정되므로 신뢰할 수 있는 코드에만 써야 합니다. unrestricted 앱이 Authorization code 방식을 쓰면 scope를 반드시 요청해야 합니다.",
-      "웹 호스팅은 정적 에셋만 지원하고 서버 코드는 실행할 수 없습니다. 커스텀 404 페이지가 없으면 SPA로 간주합니다. 파일은 최대 1,000개, 전체 20MB까지 올릴 수 있습니다.",
+      "웹 호스팅은 정적 에셋만 지원하고 서버 코드는 실행할 수 없습니다. 커스텀 404 페이지가 없으면 단일 페이지 앱(SPA)으로 간주합니다. 파일은 최대 1,000개, 전체 20MB까지 올릴 수 있습니다.",
       "Platform SDK는 어느 환경(enrollment)에서나 Ontology를 포함한 모든 Foundry API를 호출하는 범용 라이브러리이고 OSDK는 각 환경에서 생성되어 Platform SDK 위에 Ontology를 더 다루기 쉽게 추상화한 라이브러리입니다.",
     ],
     warn: "앱 제한은 앱이 받을 수 있는 권한의 보장된 상한입니다. 요청 scope는 작업(operation) 범위만 좁힙니다. 리소스 접근은 앱의 resource restrictions와 사용자 권한만으로 정해집니다.",
@@ -531,7 +531,7 @@ export const concepts: Concept[] = [
       "Object type 같은 Ontology 리소스도 Project에 저장해 Project Role로 권한을 관리합니다. 이 방식은 레거시 모델인 ontology roles와 datasource-derived 권한 모델을 대체하며 새 Ontology에는 기본으로 켜져 있고 기존 Ontology는 Ontology의 Owner가 직접 켜야 하고 기존 리소스는 migration이 필요합니다.",
       "Compass는 Foundry의 파일 시스템으로 Project·폴더·리소스를 정리하고 관리하며 Quicksearch는 앱·Object·Dataset 같은 리소스를 찾는 검색 도구입니다. Quicksearch는 기존 권한을 그대로 따르므로 접근 권한이 없는 콘텐츠는 결과에 보이지 않고 Discover 권한이 있는 콘텐츠는 Request access 안내로 열립니다.",
     ],
-    warn: "Editor Role이 있어도 PII Marking의 멤버가 아니면 해당 데이터에 접근할 수 없습니다.",
+    warn: "Editor Role이 있어도 개인 식별 정보(PII) Marking의 멤버가 아니면 해당 데이터에 접근할 수 없습니다.",
     doc: [
       { label: "Project · Role", href: D + "security/projects-and-roles" },
       { label: "Marking", href: D + "security/markings" },
@@ -552,7 +552,7 @@ export const concepts: Concept[] = [
     points: [
       "조건은 granular policy로 작성합니다. 사용자 속성(그룹 ID 등)과 property 값을 비교하며 이름이 아니라 ID를 씁니다. 그룹·Marking·Organization 멤버십에 NOT 조건을 쓰는 것은 피해야 합니다.",
       "Dataset 권한과는 분리됩니다. 정책이 있으면 backing Dataset의 Viewer 권한 없이도 Object를 볼 수 있습니다.",
-      "원본의 Marking·Organization·Classification-based Access Controls(CBAC) 같은 필수 통제를 기본으로 물려받으며 정책에서 필수 통제를 더하거나 필요 없는 것을 제거할 수 있습니다.",
+      "backing datasource의 Marking·Organization·Classification-based Access Controls(CBAC) 같은 필수 통제를 기본으로 물려받으며 정책에서 필수 통제를 더하거나 필요 없는 것을 제거할 수 있습니다.",
       "변경은 거의 즉시 반영되지만 그룹 멤버십 같은 사용자 속성의 변경은 잠시 캐시됩니다. 반면 Restricted view(Dataset용 RLS)는 정책을 바꾼 뒤 파이프라인을 다시 Build해야 반영됩니다.",
     ],
     warn: "Ontology 안에서만 적용되므로 backing Dataset은 따로 잠가야 합니다. 레거시 datasource-derived 권한 모델을 쓰는 환경에서는 Dataset 권한도 여전히 필요합니다.",
@@ -574,7 +574,7 @@ export const concepts: Concept[] = [
       "Ontology Manager에서 Dataset처럼 Object type의 datasource로 고를 수 있습니다. 특정 primary key의 Object에 접근할 수 있는지는 그 행에 접근할 수 있는지로 정해집니다.",
       "Dataset에만 만들 수 있고 Stream 등 다른 datasource에는 만들 수 없습니다. transform처럼 새 Dataset을 만드는 배치 작업의 입력으로도 쓸 수 없습니다.",
       "backing Dataset 자체를 잠그지는 않습니다. Restricted view로만 볼 사용자에게는 backing Dataset 권한을 주지 않아야 하며 보통 Restricted view를 backing Dataset과 다른 Project에 저장합니다. 같은 Project에 두면 Marking으로 backing Dataset을 보호합니다.",
-      "Restricted view는 backing Dataset의 Marking을 물려받습니다. 공식 문서는 granular policy가 이미 접근을 통제한다는 이유로 물려받은 Marking을 빼지 말라고 안내합니다. 다만 Restricted view 사용자도 Restricted view에 남은 Marking의 멤버여야 하므로 같은 Project에서 backing Dataset을 막으려고 건 Marking이 Restricted view에 그대로 남으면 그 Marking으로는 backing Dataset을 막지 못합니다.",
+      "Restricted view는 backing Dataset의 Marking을 물려받습니다. 공식 문서는 granular policy가 이미 접근을 통제한다는 이유로 물려받은 Marking을 빼지 말라고 안내합니다. 다만 Restricted view 사용자도 Restricted view에 남은 Marking의 멤버여야 하므로 같은 Project에서 backing Dataset을 막으려고 건 Marking이 Restricted view에 그대로 남으면 그 Marking으로는 Restricted view 사용자가 backing Dataset을 직접 읽는 것을 막지 못합니다.",
     ],
     warn: "정책은 사용자가 읽는 순간에 행을 거를 뿐 읽은 뒤의 데이터로 전파되지 않습니다. Function 반환값, Action 편집, AIP Logic 도구 호출, OSDK 응답, writeback, 내보내기로 넘어간 데이터에는 원본 정책이 따라가지 않습니다. Object security policy와 Property security policy도 같습니다. 파생 데이터까지 보호하려면 backing Dataset에 Marking을 함께 겁니다. 다만 Action이 쓴 결과에는 Marking도 저절로 따라가지 않습니다(Action type 카드 참고). 정책을 바꾸면 파이프라인을 다시 Build해야 읽기에 반영됩니다. Object 보안에는 대부분 Object security policy가 권장되며 변경도 거의 즉시 반영됩니다. Restricted view는 backing Dataset을 Ontology 밖(예: Code Workspaces)에서도 행 단위로 보호해야 할 때 적합합니다.",
     doc: D + "security/restricted-views",
@@ -715,7 +715,7 @@ export const concepts: Concept[] = [
     everyday: "Data Lineage는 원재료가 어느 공정을 거쳐 제품이 되었는지 보여 주는 생산 이력표와 같습니다. Workflow Lineage는 매장에 놓인 상품(앱)이 어떤 부품과 양식으로 조립되었는지 보여 주는 조립도에 가깝습니다.",
     points: [
       "Data Lineage는 원천부터 Ontology와 워크플로까지 전 구간을 보여 주고 Workflow Lineage는 Ontology 위의 워크플로를 관리합니다. Workflow Lineage에서 Object type을 Data Lineage로 열면 그 Object type으로 들어오는 데이터의 Schedule을 확인할 수 있습니다.",
-      "Data Lineage에서는 Schedule을 관리하고 Build timeline으로 Build 이력을 봅니다. Dataset을 이전 트랜잭션으로 롤백하는 곳도 Data Lineage입니다. 보관(archive)되었거나 비활성 상태인 브랜치에서는 Build가 자동으로 실패하므로 그 브랜치의 리소스를 Build하는 Schedule이 반복된 실패로 멈출 수 있습니다. 이때는 브랜치를 다시 활성화(보관된 브랜치는 복원)한 뒤 필요하면 Build Schedules 앱이나 Data Lineage에서 Schedule을 직접 다시 시작합니다.",
+      "Data Lineage에서는 Schedule을 관리하고 Build timeline으로 Build 이력을 봅니다. Dataset을 이전 트랜잭션으로 롤백하는 곳도 Data Lineage입니다. 보관(archive)되었거나 비활성 상태인 브랜치에서는 Build가 자동으로 실패하므로 그 브랜치의 리소스를 Build하는 Schedule이 반복된 실패로 멈출 수 있습니다. 이때는 브랜치를 다시 활성화(보관된 브랜치는 복원)한 뒤 필요하면 Build Schedules 앱이나 Data Lineage에서 Schedule을 직접 다시 시작합니다. 다만 그사이 job spec이 지워졌다면 Data Lineage 같은 다른 앱에서 실행한 첫 Build로는 job spec이 다시 만들어지지 않습니다. 이때는 Code Repositories에서 사소한 변경을 커밋한 뒤 저장소 안에서 Build하고 Pipeline Builder에서는 다시 Deploy하고 Build합니다.",
       "Workflow Lineage는 Object·Action·Function·Interface·Custom widget·앱·모델 등의 API 이름·입력·Ontology 편집·Submission criteria를 보여 줍니다. Object의 특정 컬럼을 쓰는 하류 Action과 Workshop 앱을 모두 찾을 수 있습니다.",
       "Workflow Lineage에서는 권한·사용량·마지막 재인덱싱 상태를 색으로 보고 Action 버전 일괄 변경이나 Submission criteria 직접 수정 같은 작업도 합니다.",
       "둘 다 Global Branching을 지원합니다. 브랜치에서 리소스를 제거하면 그 리소스는 Main의 버전으로 돌아가므로 브랜치 상태가 깨질 수 있습니다. 제거하기 전에 lineage로 다른 브랜치 리소스가 그 변경에 기대고 있지 않은지 확인해야 합니다.",

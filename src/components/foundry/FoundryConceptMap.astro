@@ -286,7 +286,7 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
       </svg>
       <figcaption>
         <ul class="map-legend">
-          <li><svg viewBox="0 0 30 10" aria-hidden="true"><line class="lg-line" x1="1" y1="5" x2="23" y2="5"></line><path class="lg-head" d="M22,1 L29,5 L22,9 z"></path></svg>실선: 데이터가 이동하는 방향 (로직 층에서 Ontology에 쓰는 선은 Action뿐이고 나머지는 Ontology를 읽음. Automate의 Logic effect 예외는 AIP Logic 카드 참고). 앱에서 위로 올라가는 짧은 선과 앱 위의 가로선, 거기서 위로 나가는 선만 앱이 로직을 호출하거나 Ontology를 직접 조회하는 방향</li>
+          <li><svg viewBox="0 0 30 10" aria-hidden="true"><line class="lg-line" x1="1" y1="5" x2="23" y2="5"></line><path class="lg-head" d="M22,1 L29,5 L22,9 z"></path></svg><span>실선: 데이터가 이동하는 방향<br />로직 층에서 Ontology에 쓰는 선은 Action뿐이고 나머지는 Ontology를 읽음 (Automate의 Logic effect 예외는 AIP Logic 카드 참고)<br />앱에서 위로 올라가는 짧은 선과 앱 위의 가로선, 거기서 위로 나가는 선만 앱이 로직을 호출하거나 Ontology를 직접 조회하는 방향</span></li>
           <li><svg viewBox="0 0 30 10" aria-hidden="true"><line class="lg-line lg-dash" x1="1" y1="5" x2="23" y2="5"></line><path class="lg-head" d="M22,1 L29,5 L22,9 z"></path></svg>점선: 데이터를 복사하지 않고 가리키기만 하는 관계 (media ref는 Object가 Media set의 파일을 가리킴, Virtual table은 외부 시스템의 테이블을 가리킴)</li>
           <li><svg viewBox="0 0 30 10" aria-hidden="true"><rect class="lg-out" x="1" y="1" width="28" height="8" rx="3"></rect></svg>"Materialized Dataset" 상자: 개념이 아니라 Materialization이 만드는 선택 출력 Dataset (backing Dataset으로 돌아가지 않음)</li>
           <li><svg viewBox="0 0 30 10" aria-hidden="true"><path class="lg-line" d="M1,9 H29 M8,9 V2 M22,9 V2" fill="none"></path></svg>공용선(앱과 로직 사이의 가로선): 앱마다 실제로 호출하는 대상은 다르며 개념을 누르면 실제 연결만 강조됩니다</li>
@@ -753,8 +753,13 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
       const back = target.closest(".back");
       if (back && panel.contains(back)) {
         event.preventDefault();
+        const fig = root.querySelector<HTMLElement>(".fig") ?? root;
         if (aside && aside.nextElementSibling === root) setCollapsed(true);
-        return scrollBelowBar(root.querySelector(".fig") ?? root);
+        scrollBelowBar(fig);
+        // 기본 링크 이동을 막았으므로 키보드 시작점도 지도로 옮긴다(다음 Tab이 지도의 첫 상자로 가게)
+        fig.setAttribute("tabindex", "-1");
+        fig.focus({ preventScroll: true });
+        return;
       }
       if (more && target.closest(".more") === more) return setExpanded(!panel.classList.contains("is-expanded"));
       if (fold && target.closest(".fold") === fold) return setCollapsed(!panel.classList.contains("is-collapsed"));
@@ -1016,6 +1021,8 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
   .node .box { fill: var(--t); stroke: var(--c); stroke-width: 1.2; }
   [data-enhanced] .node:hover .box { stroke-width: 2; }
   .node.sel .box { fill: var(--s); stroke-width: 2.4; }
+  /* 고른 상자의 바탕(--s)에서는 회색 부제가 WCAG AA에 못 미치므로 본문 글자색으로 바꾼다 */
+  .node.sel .s { fill: var(--text); }
   .node:focus-visible .box { stroke: var(--accent); stroke-width: 2.6; }
   .node.link:hover .lab, .node.link.sel .lab, .node.link:focus-visible .lab { fill: var(--c); font-weight: 600; }
   .node.link.sel .ar { stroke: var(--c); stroke-width: 1.8; }
