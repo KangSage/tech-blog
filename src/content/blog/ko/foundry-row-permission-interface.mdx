@@ -74,7 +74,7 @@ Foundry 플랫폼과 툴체인 버전에 따라 세부 동작은 달라질 수 �
 - **Object Security Policy**: 오브젝트 타입에 적용하는 행 단위 접근 제어 규칙입니다.\
   사용자의 속성(소속 그룹 ID 등)과 객체의 속성을 비교하는 [Granular Policy](https://www.palantir.com/docs/foundry/platform-security-management/manage-granular-policies)를 통해 특정 행의 노출 여부를 결정합니다([공식 문서](https://www.palantir.com/docs/foundry/object-permissioning/object-security-policies)).
 - **Action**: Ontology의 객체를 변경하는 표준 작업 단위입니다.\
-  이 글에 등장하는 Action은 모두 TypeScript 함수가 변경할 내용(Edits)을 계산해 반환하면 Action이 이를 실제 Ontology에 반영하는 **함수 기반 Action(Function-backed Action)**입니다.
+  이 글에 등장하는 Action은 모두 TypeScript 함수가 변경할 내용(Edits)을 계산해 반환하면 Action이 이를 실제 Ontology에 반영하는 <strong>함수 기반 Action(Function-backed Action)</strong>입니다.
 - **Edit-only 속성**: 백킹 데이터셋(Backing dataset)의 컬럼과 연결하지 않고 오직 Ontology 편집(Action 등)으로만 값을 채우는 속성입니다.\
   Object Storage V2 타입에서만 사용할 수 있으며 속성 자체의 권한은 백킹 데이터셋 중 하나를 따릅니다([공식 문서](https://www.palantir.com/docs/foundry/object-link-types/edit-only-properties)).
 - **Global Branching**: Ontology 설정과 코드 레포지토리를 하나의 브랜치에서 함께 수정하고 Proposal을 통해 기본 브랜치로 병합하는 기능입니다([공식 문서](https://www.palantir.com/docs/foundry/global-branching/core-concepts)).\
@@ -130,7 +130,7 @@ TypeScript의 `interface`와 비슷한 개념으로 볼 수 있습니다.
 - **'누가 볼 수 있는지' 계산하는 비즈니스 로직은 Interface로 합치지 않습니다.**\
   프로젝트는 프로젝트 단위 권한으로, 세부 항목은 프로젝트 및 항목 범위로 계산하는 등 타입마다 권한 산출 규칙이 다르기 때문에 계산 로직은 기존처럼 타입별 함수에 그대로 남겨 두었습니다.
 
-요컨대 Interface는 **"권한 값을 담는 칸이 어디에 있는가"**만 하나로 통일하고 **"그 칸에 어떤 값을 채울 것인가"**는 기존 도메인 로직이 그대로 결정하도록 역할을 분리한 것입니다.
+요컨대 Interface는 <strong>"권한 값을 담는 칸이 어디에 있는가"</strong>만 하나로 통일하고 <strong>"그 칸에 어떤 값을 채울 것인가"</strong>는 기존 도메인 로직이 그대로 결정하도록 역할을 분리한 것입니다.
 
 <PostFigure src={interfaceOverview} alt="Ontology Manager의 Ks Secured interface 화면. 구현 타입 6개와 속성 Viewer Group Ids 1개, 연결된 Action 타입 3개가 보인다">Ontology Manager → Interfaces → Ks Secured 화면입니다.<br />가운데에는 이를 구현한 6개 타입이 있고 왼쪽 아래에는 공통 속성 1개(Viewer Group Ids)가 표시됩니다.<br />오른쪽 아래 Action types에 보이는 부여·회수·백필 Action 3개는 Interface 전용 Action이 아니라 내부 함수가 Interface를 통해 권한 값을 수정하는 일반 함수 기반 Action입니다.</PostFigure>
 
@@ -350,7 +350,7 @@ Ontology Manager에서 대상 오브젝트 타입을 열고 **Interfaces 탭 →
   당시 모든 객체의 권한 값이 이미 정상이어서 백필 함수가 반환한 편집 목록이 **0건**이었기 때문입니다.\
   이 환경에서는 편집이 0건인 실행이 이 검사에 걸리지 않았습니다.
 
-따라서 테스트는 **실제로 객체 값이 변경되는 시나리오(권한 부여·회수)**로 해야 합니다.\
+따라서 테스트는 <strong>실제로 객체 값이 변경되는 시나리오(권한 부여·회수)</strong>로 해야 합니다.\
 6개 타입 모두에서 *Enable interface actions*를 켜고 브랜치에 저장하자 이미 인덱싱되어 있던 `KsGrant`를 제외한 나머지 5개 타입의 브랜치 인덱싱이 시작되었고 인덱싱이 완료된 뒤에야 부여·회수 테스트가 모두 통과했습니다.
 
 한 가지 더 덧붙이자면 Action을 저장할 때 Foundry가 "아직 인덱싱되지 않은 오브젝트 타입을 수정합니다"라고 알려 준 대상에는 함수가 구체 타입(`Edits.Object`)으로 직접 수정하는 `KsGrant`만 표시되었습니다.\
@@ -379,7 +379,7 @@ Foundry의 함수 버전은 [Semantic Versioning](https://www.palantir.com/docs/
 
 ### 2. Developer Console의 웹 앱 리소스는 Main 병합 후에만 추가할 수 있었다
 
-검증용 React 웹 앱은 Developer Console에 등록한 앱으로 로그인한 사용자의 토큰을 사용하며 이 앱은 **리소스 제한 모드(Application restrictions)**입니다.\
+검증용 React 웹 앱은 Developer Console에 등록한 앱으로 로그인한 사용자의 토큰을 사용하며 이 앱은 <strong>리소스 제한 모드(Application restrictions)</strong>입니다.\
 제한 모드 앱은 Developer Console의 Ontology SDK 탭에 명시적으로 등록한 오브젝트 타입과 Interface와 Action에만 접근할 수 있습니다([공식 문서](https://www.palantir.com/docs/foundry/developer-console/application-restrictions)).
 
 1단계 브랜치 작업 중 웹 앱에서 새로 만든 `KsSecured` Interface 조회와 백필 Action 호출을 시도하자 `404 Not Found` 에러가 발생했습니다.\
@@ -448,9 +448,50 @@ Developer Console의 앱은 Global Branch 바깥에 있기 때문에 아직 브�
 11. **Main 환경 최종 확인**: Main 브랜치에서 모든 구현 타입의 인덱싱 완료 여부와 *Enable interface actions* 활성화 상태와 Action의 함수 버전을 확인한 뒤 통합 점검 쿼리를 실행합니다.\
     (Main 인덱싱이 끝나기 전에 권한 부여·회수를 실행하는 시나리오는 검증하지 않았으므로 인덱싱 완료를 확인한 뒤 실행하는 것이 안전합니다.)
 
+<details class="post-note">
+<summary>따라 해 보려는 분들을 위한 AIP Assist 예제 프롬프트</summary>
+
+[AIP Assist](https://www.palantir.com/docs/foundry/assist/overview)는 Foundry 사용을 돕는 LLM 기반 도우미입니다.\
+작업 공간 내비게이션 바 아래쪽에서 열거나 macOS에서 Cmd+Shift+U로 열 수 있고 플랫폼 관리자가 AIP를 켜 둔 환경에서만 쓸 수 있습니다.\
+아래 프롬프트는 이 글의 내용을 바탕으로 만든 예시이며 AIP Assist에서 직접 시험해 본 것은 아닙니다.\
+`<...>` 부분을 자기 환경에 맞게 바꿔 붙여 넣고 답변은 공식 문서와 대조해 확인하시기 바랍니다.
+
+<div class="prompt-block">
+
+```text
+Palantir Foundry에서 여러 오브젝트 타입의 행 권한 속성을 Ontology Interface 하나로 묶으려고 합니다.
+아래 환경과 목표를 보고 단계별 진행 방법을 알려 주세요.
+확실하지 않은 부분은 추측하지 말고 확인이 필요하다고 표시해 주시고 근거가 되는 공식 문서 페이지도 함께 알려 주세요.
+
+[현재 환경]
+- 행 권한 대상 오브젝트 타입: <타입 A>, <타입 B>, <타입 C> (총 <N>개)
+- 각 타입은 그룹 ID 목록 속성 <viewerGroupIds>를 가지며 이 속성은 Edit-only 속성입니다.
+- Object Security Policy는 사용자 그룹과 <viewerGroupIds>가 겹치거나 사용자가 <관리자 그룹>에 속하면 행을 보여 줍니다.
+- 권한 값은 TypeScript Functions v2 함수 기반 Action(부여·회수·백필)이 타입별 Edits.Object로 씁니다.
+- Ontology 변경은 Global Branch에서 하고 Proposal로 Main에 병합합니다.
+- 웹 앱은 Developer Console에 등록한 리소스 제한 모드 앱입니다.
+
+[목표]
+1. Interface <InterfaceName>에 속성 <viewerGroupIds>를 두고 위 타입들이 기존 속성으로 구현하게 합니다.
+2. 점검: Interface 조회 한 번으로 타입별 객체 수와 권한 값이 비어 있는 객체 수를 셉니다.
+3. 쓰기: 권한 값 갱신을 Edits.Interface 편집으로 바꿉니다. 누가 볼 수 있는지 계산하는 규칙은 타입별로 유지합니다.
+
+[함께 확인하고 싶은 점]
+- 브랜치에서 새로 만든 Interface를 같은 브랜치의 함수에서 Edits.Interface로 편집할 수 있는지와 안 된다면 병합을 어떤 순서로 나눠야 하는지
+- 구현 오브젝트 타입의 Interfaces 탭에 있는 Enable interface actions 설정이 함수 기반 Action의 Interface 편집에도 필요한지
+- 설정을 바꾼 뒤 브랜치 인덱싱이 필요한 타입과 그 확인 방법
+- Action의 함수 버전과 Auto upgrade 설정이 병합 직후 Main 동작에 주는 영향
+- 리소스 제한 모드 앱에 Interface와 Action을 추가할 수 있는 시점
+- 편집이 0건인 실행으로는 드러나지 않는 문제가 있는지와 그에 맞는 테스트 시나리오
+```
+
+</div>
+
+</details>
+
 ## 마무리
 
-Ontology Interface는 **"여러 오브젝트 타입이 동일한 의미와 형태의 속성을 공유한다"**는 사실을 플랫폼 수준에서 선언하는 도구입니다.\
+Ontology Interface는 <strong>"여러 오브젝트 타입이 동일한 의미와 형태의 속성을 공유한다"</strong>는 사실을 플랫폼 수준에서 선언하는 도구입니다.\
 행 단위 권한 속성처럼 여러 타입에 똑같이 반복되는 값을 다룰 때 도입하면 읽기와 쓰기 양쪽에서 타입별 분기 코드를 깔끔하게 걷어낼 수 있습니다(계산 규칙과 객체 생성은 타입별로 남습니다).
 
 다만 이 환경에서는 **Interface를 브랜치에서 새로 만들 때 정의와 편집 코드를 두 번의 병합으로 나누어 반영**해야 했다는 점과 **구현 타입마다 *Enable interface actions* 설정과 제출 조건을 꼼꼼히 챙겨야 한다**는 점을 꼭 기억하시기 바랍니다.\
@@ -471,5 +512,6 @@ Ontology Interface는 **"여러 오브젝트 타입이 동일한 의미와 형�
 - [Function-backed actions • Getting started](https://www.palantir.com/docs/foundry/action-types/function-actions-getting-started)
 - [Developer Console • Application restrictions](https://www.palantir.com/docs/foundry/developer-console/application-restrictions)
 - [Ontologies API v2 • Apply Action](https://www.palantir.com/docs/foundry/api/ontologies-v2-resources/actions/apply-action)
+- [AIP Assist • Overview](https://www.palantir.com/docs/foundry/assist/overview)
 
 *(본문의 함정 1·2 원인 분석과 실행 수치는 공식 문서에 명시된 사양이 아니라 검증 환경에서 직접 관찰하고 테스트한 결과입니다.)*
