@@ -152,7 +152,7 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
   <div class="explore">
     <p class="map-scroll-hint" data-read-skip>그림을 좌우로 밀어서 볼 수 있습니다.</p>
     <figure class="fig" id="concept-map">
-      <svg class="map" viewBox="-64 0 584 836" role="group" aria-label="Foundry 흐름: Data Connection이 외부 데이터를 Dataset·Stream·Media set으로 가져오거나 Virtual table로 연결하고 Python transform·Pipeline Builder가 그 Dataset을 입력으로 Build해 새 Dataset을 만듭니다. Restricted view는 Dataset에서 사용자가 볼 수 있는 행만 보이게 하며 Funnel이 Dataset·Restricted view·Stream을 Ontology로 인덱싱합니다. Action·Function·Compute module·Automate·AIP Logic은 Ontology를 읽고 편집은 Action을 거쳐 저장합니다. Workshop·React 앱은 Ontology를 사용하고 분석 앱은 Ontology와 Dataset을 함께 사용합니다. Object Views는 Object 하나의 정보를 모아 보여 주고 외부 AI 에이전트는 Ontology MCP로 Ontology를 읽고 Action을 실행합니다. Models는 Modeling Objectives나 직접 배포(direct deployment)로 모델을 배포해 Function과 파이프라인에서 씁니다. Project·Role·Marking이 전체를 감쌉니다.">
+      <svg class="map" viewBox="-64 0 584 836" role="group" aria-label="Foundry 흐름: Data Connection이 외부 데이터를 Dataset·Stream·Media set으로 가져오거나 Virtual table로 연결하고 Python transform·Pipeline Builder가 그 Dataset을 입력으로 Build해 새 Dataset을 만듭니다. Restricted view는 Dataset에서 사용자가 볼 수 있는 행만 보이게 하며 Funnel이 Dataset·Restricted view·Stream을 Ontology로 인덱싱합니다. 로직 층에서 Ontology에 쓰는 것은 Action이고 Function·Compute module·Automate·AIP Logic은 Ontology를 읽습니다. 예외로 Automate의 Logic effect는 staged writes를 끈 Logic 함수의 편집을 Action 없이 적용할 수 있습니다. Workshop·React 앱은 Ontology를 사용하고 분석 앱은 Ontology와 Dataset을 함께 사용합니다. Object Views는 Object 하나의 정보를 모아 보여 주고 외부 AI 에이전트는 Ontology MCP로 Ontology를 읽고 Action을 실행합니다. Models는 Modeling Objectives나 직접 배포(direct deployment)로 모델을 배포해 Function과 파이프라인에서 씁니다. Project·Role·Marking이 전체를 감쌉니다.">
         <defs>
           <marker id="fcm-ah" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
             <path class="ahp" d="M0,1 L9,5 L0,9 z"></path>
@@ -213,19 +213,20 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
           <text class="lab as" x="426" y="279">ref</text>
         </a>
 
-        <!-- 로직 → 온톨로지: 아래 층이 위 층을 읽고 쓴다. 맨 오른쪽(x=494)은 분석 앱이 Ontology로 가는 통로 -->
+        <!-- 로직 ↔ 온톨로지: 화살표는 데이터가 이동하는 방향이다. 로직 층에서 Ontology에 쓰는 것은 Action이라 Action만 위로 향하고
+             Function·Compute module·Automate·AIP Logic은 Ontology에서 읽으므로 아래로 향한다.
+             예외(Automate의 Logic effect가 staged writes를 끈 Logic 함수의 편집을 Action 없이 적용)는 AIP Logic 카드에 적는다.
+             맨 오른쪽(x=494)은 앱이 Ontology를 직접 조회하는 통로 -->
         <line class="ar" data-edges="action:onto" x1="64" y1="470" x2="64" y2="434" marker-end="url(#fcm-ah)"></line>
         <text class="lab as" data-edges="action:onto" x="70" y="455">쓰기(편집)</text>
-        <line class="ar" data-edges="function:onto" x1="148" y1="470" x2="148" y2="434" marker-end="url(#fcm-ah)"></line>
-        <text class="lab as" data-edges="function:onto" x="154" y="455">읽기·계산</text>
-        <line class="ar dash" data-edges="cm:onto" x1="244" y1="470" x2="244" y2="434" marker-end="url(#fcm-ah)"></line>
-        <text class="lab as" data-edges="cm:onto" x="250" y="455">서비스 유저</text>
-        <line class="ar" data-edges="automate:onto" x1="342" y1="470" x2="342" y2="434" marker-end="url(#fcm-ah)"></line>
-        <text class="lab as" data-edges="automate:onto" x="348" y="455">감시·실행</text>
-        <line class="ar" data-edges="aip:onto" x1="434" y1="470" x2="434" y2="434" marker-end="url(#fcm-ah)"></line>
-        <!-- AIP Logic은 편집을 계산만 하고 저장은 Action을 거친다 -->
-        <text class="lab as" data-edges="aip:onto" x="440" y="449">읽기와</text>
-        <text class="lab as" data-edges="aip:onto" x="440" y="462">편집 계산</text>
+        <line class="ar" data-edges="onto:function" x1="148" y1="434" x2="148" y2="470" marker-end="url(#fcm-ah)"></line>
+        <text class="lab as" data-edges="onto:function" x="154" y="455">읽기</text>
+        <line class="ar dash" data-edges="onto:cm" x1="244" y1="434" x2="244" y2="470" marker-end="url(#fcm-ah)"></line>
+        <text class="lab as" data-edges="onto:cm" x="250" y="455">서비스 유저</text>
+        <line class="ar" data-edges="onto:automate" x1="342" y1="434" x2="342" y2="470" marker-end="url(#fcm-ah)"></line>
+        <text class="lab as" data-edges="onto:automate" x="348" y="455">감시</text>
+        <line class="ar" data-edges="onto:aip" x1="434" y1="434" x2="434" y2="470" marker-end="url(#fcm-ah)"></line>
+        <text class="lab as" data-edges="onto:aip" x="440" y="455">읽기</text>
 
         <!-- 앱 → 로직·Ontology: 세 앱이 하나의 가로선에 모이고, 그 선에서 로직 상자로는 호출, 오른쪽 통로로는 Ontology 직접 조회.
              (Automate는 조건으로 실행되므로 호출 대상 아님. Object Explorer도 Action을 일괄 실행할 수 있어 분석 앱도 로직에 연결) -->
@@ -276,7 +277,7 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
       </svg>
       <figcaption>
         <ul class="map-legend">
-          <li><svg viewBox="0 0 30 10" aria-hidden="true"><line class="lg-line" x1="1" y1="5" x2="23" y2="5"></line><path class="lg-head" d="M22,1 L29,5 L22,9 z"></path></svg>실선: 데이터가 흐르는 방향 또는 아래 층이 위 층을 호출·읽기·쓰기를 하는 방향</li>
+          <li><svg viewBox="0 0 30 10" aria-hidden="true"><line class="lg-line" x1="1" y1="5" x2="23" y2="5"></line><path class="lg-head" d="M22,1 L29,5 L22,9 z"></path></svg>실선: 데이터가 이동하는 방향 (로직 층에서 Ontology에 쓰는 것은 Action이고 나머지는 Ontology를 읽음). 앱 아래 가로선과 거기서 나가는 선만 앱이 로직·Ontology를 호출하는 방향</li>
           <li><svg viewBox="0 0 30 10" aria-hidden="true"><line class="lg-line lg-dash" x1="1" y1="5" x2="23" y2="5"></line><path class="lg-head" d="M22,1 L29,5 L22,9 z"></path></svg>점선: Materialization(원본과 편집을 합친 별도 출력 Dataset을 만듦), 파일 참조(media ref), 서비스 유저 권한으로 접근</li>
           <li><svg viewBox="0 0 30 10" aria-hidden="true"><rect class="lg-out" x="1" y="1" width="28" height="8" rx="3"></rect></svg>흐린 상자: 개념이 아니라 Materialization이 만드는 선택 출력 Dataset (원본 Dataset으로 돌아가지 않음)</li>
           <li><svg viewBox="0 0 30 10" aria-hidden="true"><path class="lg-line" d="M1,9 H29 M8,9 V2 M22,9 V2" fill="none"></path></svg>공용선(앱과 로직 사이의 가로선): 앱마다 실제로 호출하는 대상은 다르며 개념을 누르면 실제 연결만 강조됩니다</li>
