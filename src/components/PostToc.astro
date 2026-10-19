@@ -84,6 +84,29 @@ const title = t("tocTitle", lang);
     mark();
     window.addEventListener("scroll", mark, { passive: true });
     window.addEventListener("resize", mark);
+
+    // 화면 폭이 바뀌어 보이는 목차가 바뀌면(왼쪽 열 ↔ 글 머리의 접힌 '목차') 숨는 쪽에 있던 키보드 포커스가 body로 떨어진다.
+    // 그때는 보이는 쪽의 같은 링크로, 없으면 지금 읽는 절의 링크나 '목차' 제목으로 옮긴다. 다른 곳을 누르거나 Tab으로 나간 경우는 그대로 둔다.
+    // 접힌 details 안의 링크는 상자 크기가 있어도 포커스를 받지 못하므로, 후보에 차례로 포커스를 걸어 실제로 옮겨 간 곳에서 멈춘다
+    const shown = (el: HTMLElement) => el.checkVisibility?.() ?? el.getClientRects().length > 0;
+    document.querySelectorAll<HTMLElement>(".post-toc, .toc-inline").forEach((toc) => toc.addEventListener("focusout", (event) => {
+      const el = event.target as HTMLElement;
+      if (event.relatedTarget || shown(el)) return;
+      setTimeout(() => {
+        if (document.activeElement && document.activeElement !== document.body) return;
+        const href = el.getAttribute("href");
+        const candidates = [
+          ...links.filter((a) => a.getAttribute("href") === href),
+          ...links.filter((a) => a.hasAttribute("aria-current")),
+          ...Array.from(document.querySelectorAll<HTMLElement>(".toc-inline summary, .post-toc a")),
+        ];
+        for (const target of candidates) {
+          if (target === el) continue;
+          target.focus({ preventScroll: true });
+          if (document.activeElement === target) return;
+        }
+      });
+    }));
   }
 </script>
 
