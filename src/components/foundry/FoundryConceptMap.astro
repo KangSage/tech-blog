@@ -440,6 +440,15 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
         }
       };
       // 포커스가 패널 안에 있을 때 패널을 옮기면 크롬은 스크롤 앵커링으로 화면을 패널 높이쯤 움직인다(포커스가 다른 곳이면 움직이지 않는다). 옮기기 전 위치로 되돌린다
+      // 패널을 옮기면 안쪽 스크롤 위치가 처음으로 돌아가므로, 되돌린 키보드 포커스가 그 요소가 든 스크롤 영역(칩 줄·층 줄, 펼친 목록, 펼친 막대) 밖에 남을 수 있다.
+      // 그 영역들만 움직여 보이게 하고(scroll-margin·scroll-padding을 따른다) 페이지 스크롤은 되돌린다
+      const revealFocused = () => {
+        const el = document.activeElement;
+        if (!(el instanceof HTMLElement) || !aside.contains(el) || !el.matches(":focus-visible")) return;
+        const { scrollX, scrollY } = window;
+        el.scrollIntoView({ block: "nearest", inline: "nearest" });
+        if (window.scrollX !== scrollX || window.scrollY !== scrollY) window.scrollTo(scrollX, scrollY);
+      };
       const place = () => {
         const focused = aside.contains(document.activeElement) ? (document.activeElement as HTMLElement) : null;
         const y = window.scrollY;
@@ -453,13 +462,15 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
         const el = event.target as HTMLElement;
         if (event.relatedTarget || (el.isConnected && (el.checkVisibility?.() ?? el.getClientRects().length > 0))) return;
         setTimeout(() => {
-          if (!document.activeElement || document.activeElement === document.body) refocus(el);
+          if (document.activeElement && document.activeElement !== document.body) return;
+          refocus(el);
+          revealFocused();
         });
       });
       place();
       // 목록 모양이 바뀌므로(넓은 화면의 층별 줄 ↔ 좁은 화면의 가로 스크롤 줄) 현재 항목이 보이게 다시 맞춘다
       // resize 처리기(막대 높이·붙음 표시)는 패널을 옮기기 전에 돌 수 있으므로 옮긴 뒤 다시 잰다
-      narrow.addEventListener("change", () => { place(); syncBar(); showCurrentChip(); updateStuck(); });
+      narrow.addEventListener("change", () => { place(); syncBar(); showCurrentChip(); revealFocused(); updateStuck(); });
     }
     // 카드 id는 JS가 없을 때의 앵커용. 켜진 뒤에는 지워서 #concept-… 해시로 브라우저가 스크롤하지 않게 한다
     cards.forEach((card) => card.removeAttribute("id"));
