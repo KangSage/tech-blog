@@ -439,7 +439,7 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
           if (target && document.activeElement === target) return;
         }
       };
-      // 크롬의 스크롤 앵커링은 포커스가 있는 요소를 기준으로 삼으므로, 포커스가 패널 안에 있으면 옮긴 패널을 따라 화면이 튄다. 옮기기 전 위치로 되돌린다
+      // 포커스가 패널 안에 있을 때 패널을 옮기면 크롬은 스크롤 앵커링으로 화면을 패널 높이쯤 움직인다(포커스가 다른 곳이면 움직이지 않는다). 옮기기 전 위치로 되돌린다
       const place = () => {
         const focused = aside.contains(document.activeElement) ? (document.activeElement as HTMLElement) : null;
         const y = window.scrollY;
@@ -458,7 +458,8 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
       });
       place();
       // 목록 모양이 바뀌므로(넓은 화면의 층별 줄 ↔ 좁은 화면의 가로 스크롤 줄) 현재 항목이 보이게 다시 맞춘다
-      narrow.addEventListener("change", () => { place(); syncBar(); showCurrentChip(); });
+      // resize 처리기(막대 높이·붙음 표시)는 패널을 옮기기 전에 돌 수 있으므로 옮긴 뒤 다시 잰다
+      narrow.addEventListener("change", () => { place(); syncBar(); showCurrentChip(); updateStuck(); });
     }
     // 카드 id는 JS가 없을 때의 앵커용. 켜진 뒤에는 지워서 #concept-… 해시로 브라우저가 스크롤하지 않게 한다
     cards.forEach((card) => card.removeAttribute("id"));
