@@ -849,7 +849,7 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
 
     document.addEventListener("click", (event) => {
       const target = event.target as Element;
-      // 막대 높이가 바뀌면 스크롤 앵커링이 있는 브라우저(크롬, 사파리 27 이후)는 아래에서 위치를 잴 때 이미 화면을 움직여 두고 사파리 26 이하는 움직이지 않는다.
+      // 막대 높이가 바뀌면 스크롤 앵커링이 있는 브라우저(크롬, 파이어폭스, 사파리 27 이후)는 아래에서 위치를 잴 때 이미 화면을 움직여 두고 사파리 26 이하는 움직이지 않는다.
       // 어느 쪽이든 같게 맞추도록 누르기 전 막대 위치, 스크롤 위치, 누른 요소의 위치를 잡아 둔다
       const barTopBefore = aside?.getBoundingClientRect().top ?? 0;
       const scrollYBefore = window.scrollY;

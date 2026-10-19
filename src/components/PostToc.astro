@@ -103,7 +103,14 @@ const title = t("tocTitle", lang);
         for (const target of candidates) {
           if (target === el) continue;
           target.focus({ preventScroll: true });
-          if (document.activeElement === target) return;
+          if (document.activeElement !== target) continue;
+          // 왼쪽 목차 열은 자기 안에서 스크롤되므로 키보드 포커스가 옮겨 간 링크가 열 안에서 보이게 하고, 이 호출이 움직인 페이지 스크롤은 되돌린다
+          if (target.matches(":focus-visible")) {
+            const { scrollX, scrollY } = window;
+            target.scrollIntoView({ block: "nearest", inline: "nearest" });
+            if (window.scrollX !== scrollX || window.scrollY !== scrollY) window.scrollTo(scrollX, scrollY);
+          }
+          return;
         }
       });
     }));
