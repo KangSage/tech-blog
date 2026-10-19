@@ -263,14 +263,17 @@ const labels = {
       toggle.classList.toggle("is-paused", !on);
     }
 
+    // 포커스가 있던 버튼을 숨기면 포커스가 body로 떨어져 포커스 링과 화면 낭독기의 위치를 잃으므로 시작·정지할 때 보이는 쪽 버튼으로 옮긴다(도크는 늘 보이므로 스크롤하지 않는다)
     function stop() {
       run++;
       playing = false;
       speech.cancel();
       utterance = null;
       mark(null);
+      const refocus = bar.contains(document.activeElement);
       bar.hidden = true;
       idle.hidden = false;
+      if (refocus) start.focus({ preventScroll: true });
       status.textContent = "";
     }
 
@@ -283,8 +286,10 @@ const labels = {
       ({ items, sections } = collect());
       if (!items.length) return;
       notice.textContent = "";
+      const refocus = document.activeElement === start;
       idle.hidden = true;
       bar.hidden = false;
+      if (refocus) toggle.focus({ preventScroll: true });
       setPlaying(true);
       speak(0);
     });
@@ -312,7 +317,10 @@ const labels = {
       // 읽는 중이면 지금 문장을 새 속도로 다시 읽는다. 일시정지 중이면 다음에 읽을 때 적용된다
       if (playing) speak(index);
     });
-    document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !bar.hidden) stop(); });
+    // 그림 라이트박스처럼 열린 dialog 안에서 누른 Esc는 그 창만 닫게 두고 읽기는 멈추지 않는다
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && !bar.hidden && !(e.target as Element | null)?.closest?.("dialog[open]")) stop();
+    });
     window.addEventListener("pagehide", () => speech.cancel());
 
     // 폰에서 다른 앱으로 나가면 운영체제가 음성을 멈추지만 onend는 오지 않아, 돌아왔을 때 버튼만 '재생 중'으로 남는다.
@@ -334,6 +342,16 @@ const labels = {
 
 <style>
   /* 본문 끝의 sticky 도크: 본문을 보는 동안 화면 하단에 붙는다. 도크 자체는 클릭을 통과시켜 뒤의 글을 가리는 면적을 버튼만큼으로 줄인다 */
+  /* 화면 아래 끝에 걸친 본문 요소에 키보드 포커스가 가면 브라우저가 아래 끝에 붙여 보여 주므로 도크(읽어 주기 버튼)에 가리지 않게 그만큼 띄운다.
+     html의 scroll-padding으로 주면 아래 띠 안에 고정된 버튼(옆 카드·목차 등)으로 Tab할 때마다 페이지가 튀므로 본문 안에서 스크롤되는 요소에만 준다.
+     가로로 스크롤되는 표와 코드 블록은 안에 포커스할 것이 없으면 브라우저가 Tab 대상으로 만들므로 함께 넣는다 */
+  :global(.post-body :is(a[href], button, summary, input, select, textarea, iframe, video[controls], audio[controls], [contenteditable], [tabindex], table, pre):not(.ra-dock *):not(#post-aside *)) {
+    scroll-margin-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+  }
+  /* 재생 중에는 조작 바가 화면 아래에서 약 101px까지 덮으므로 그만큼 더 띄운다 */
+  :global(html:has(.ra-bar:not([hidden])) .post-body :is(a[href], button, summary, input, select, textarea, iframe, video[controls], audio[controls], [contenteditable], [tabindex], table, pre):not(.ra-dock *):not(#post-aside *)) {
+    scroll-margin-bottom: calc(112px + env(safe-area-inset-bottom, 0px));
+  }
   .ra-dock {
     position: sticky;
     bottom: calc(12px + env(safe-area-inset-bottom, 0px));

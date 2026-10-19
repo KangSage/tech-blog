@@ -132,10 +132,13 @@ const jsonLd = {
       area.setAttribute("readonly", "");
       area.style.position = "fixed";
       area.style.opacity = "0";
+      // 선택하려면 포커스가 임시 칸으로 옮겨 가므로 지운 뒤 원래 자리(키보드로 누른 복사 버튼)로 되돌린다
+      const focused = document.activeElement;
       document.body.append(area);
       area.select();
       const ok = document.execCommand("copy");
       area.remove();
+      if (focused instanceof HTMLElement && focused !== document.body) focused.focus({ preventScroll: true });
       if (!ok) throw new Error("copy failed");
     };
     body.querySelectorAll("pre").forEach((pre) => {
@@ -207,7 +210,8 @@ const jsonLd = {
     position: sticky;
     top: 0;
     z-index: 10;
-    margin: 0 -16px;
+    /* 본문 끝의 읽어 주기 도크(위 여백 32px + 재생 중 조작 바 약 89px)와 겹치지 않게 막대가 그만큼 앞에서 멈춘다. 뒤따르는 지도의 음수 margin-top이 흐름 위치를 되돌린다 */
+    margin: 0 -16px 124px;
     padding: 8px 16px 10px;
     background: var(--bg);
     border-bottom: 1px solid var(--border);
@@ -227,12 +231,14 @@ const jsonLd = {
       align-items: start;
     }
 
+    /* 패널은 안에서 스크롤되므로 가장자리에 붙은 버튼의 포커스 윤곽선이 잘리지 않게 4px 여백을 두고 그만큼 바깥으로 넓힌다(내용 위치와 보이는 높이는 그대로) */
     .post-aside {
       grid-column: 2;
       grid-row: 1;
-      top: 16px;
-      margin: 0;
-      padding: 0;
+      top: 12px;
+      margin: -4px;
+      padding: 4px;
+      scroll-padding-block: 4px;
       max-height: calc(100vh - 32px);
       overflow-y: auto;
       background: none;
@@ -303,10 +309,13 @@ const jsonLd = {
     }
   }
 
-  /* 목차 열: 화면에 고정하고 길면 열 안에서 스크롤 */
+  /* 목차 열: 화면에 고정하고 길면 열 안에서 스크롤. 안에서 스크롤되므로 링크의 포커스 링이 잘리지 않게 4px 여백을 두고 그만큼 바깥으로 넓힌다 */
   .post-grid :global(.post-toc) {
     position: sticky;
-    top: 16px;
+    top: 12px;
+    margin: -4px;
+    padding: 4px;
+    scroll-padding-block: 4px;
     max-height: calc(100vh - 32px);
     overflow-y: auto;
   }

@@ -24,7 +24,7 @@ Foundry는 기존에 익숙하던 개발 환경과 용어도 개념도 다른 �
 </details>
 
 Palantir Foundry는 데이터 수집과 가공, 업무 모델링, 애플리케이션 개발, 권한 관리를 하나의 플랫폼에서 다룹니다.\
-범위가 넓은 만큼 처음 접하면 Dataset, Ontology, Funnel, Action, Function, OSDK처럼 낯선 이름이 한꺼번에 등장하고 각각이 전체 구조의 어디에 놓이는지 파악하기 어렵습니다.
+범위가 넓은 만큼 처음 접하면 Dataset, Ontology, Funnel, Action, Function, OSDK(Ontology SDK)처럼 낯선 이름이 한꺼번에 등장하고 각각이 전체 구조의 어디에 놓이는지 파악하기 어렵습니다.
 
 이 글은 Foundry의 주요 개념 31개를 **데이터가 흐르는 순서**로 배치한 개념 지도입니다.\
 각 개념은 개발자에게 익숙한 React·MySQL·클라우드 서비스 또는 일상과 업무의 장면에 빗대어 설명합니다.
@@ -46,7 +46,8 @@ Foundry의 구성 요소는 크게 데이터·온톨로지·로직·앱의 네 �
 3. **로직**: Action은 Ontology를 수정하고 Function은 조회와 계산을 담당합니다.\
    직접 만든 컨테이너 코드는 Compute module로, 조건에 따른 자동 실행은 Automate로, LLM 기반 로직은 AIP Logic으로 만듭니다.
 4. **앱**: Workshop(노코드)이나 OSDK 기반 React 앱은 Ontology를 직접 조회하고 쓰기는 Action으로 처리하며 복잡한 계산이 필요하면 Function 같은 로직 계층을 호출합니다.\
-   Workshop은 Derived properties로 연결된 Object의 집계와 property 사이의 계산을 Ontology를 바꾸지 않고 화면에서 바로 하기도 합니다.\
+   Workshop은 링크로 연결된 Object의 집계나 여러 property 값을 조합한 계산을 Derived properties로 화면에서 바로 하기도 합니다.\
+   이렇게 만든 Derived properties는 정의한 Workshop 모듈 안에만 있고 Ontology에 저장되지 않습니다.\
    Contour · Quiver · Object Explorer로는 코드 없이 데이터를 분석합니다.\
    Object Views는 Object 하나의 정보를 모아 보여 주고 외부 AI 에이전트는 Ontology MCP로 Ontology를 읽고 Action을 실행합니다.
 5. **운영**: Ontology Manager, Global Branching, Marketplace, Data Lineage · Workflow Lineage는 한 층에 속하지 않고 여러 층에 걸쳐 쓰이는 도구라서 지도에서는 맨 아래 운영 줄에 모았습니다.\
@@ -62,7 +63,7 @@ Foundry의 구성 요소는 크게 데이터·온톨로지·로직·앱의 네 �
 
 그림의 상자나 개념 목록의 이름을 누르면 해당 개념의 요약 카드가 표시됩니다.\
 상자와 이름의 색은 개념이 속한 층을 나타냅니다.\
-지도 위의 "관점으로 보기"에서 질문 하나를 고르면 그 질문에 답하는 개념만 순서 번호와 함께 표시됩니다.\
+지도 위의 "관점으로 보기"에서 관점(노선) 하나를 고르면 그 관점의 질문이 나타나고 질문에 답하는 개념에 순서 번호가 붙으며 나머지 개념은 흐리게 표시됩니다.\
 카드의 "비유로 보면"에서 개발자용과 일반용 비유 중 편한 쪽을 고를 수 있습니다.\
 비유는 이해를 돕기 위한 근사치이며 실제 동작의 세부 사항은 카드 하단의 공식 문서를 기준으로 봐야 합니다.
 
@@ -80,23 +81,23 @@ Foundry는 권한과 동작이 여러 계층에 나뉘어 있어서 비슷해 �
 
 | 질문 | 결정하는 곳 | DB 비유 | 일상 비유 |
 | --- | --- | --- | --- |
-| 누가 어떤 Object를 볼 수 있는가? | Object type의 View 권한과 데이터 접근 권한이 함께 필요.<br />[Object security policy](#concept-osp)를 설정한 타입은 그 정책이 정하고(정책은 원본의 Marking 같은 필수 통제를 기본으로 물려받음) 설정하지 않은 타입은 backing datasource의 View 권한이 필요.<br />레거시 datasource-derived 권한 모델에서는 정책이 있어도 backing datasource의 Viewer 권한이 필요.<br />Restricted view 기반 Object type은 Restricted view의 행 접근이 결정 | 모든 SELECT에 자동으로 붙는 WHERE | 같은 명부를 열어도 내 담당 줄만 보임 |
-| 이 Action을 제출할 수 있는가? | [Submission criteria](#concept-action)를 통과하고 편집 대상 Object type·Link type과 그 datasource를 볼 권한이 필요.<br />Action 밖 편집도 허용한 타입은 writeback Dataset의 Edit 권한(Restricted view 기반이면 edit policy 통과)도 필요.<br />action log가 있으면 그 Object type 권한도 필요 | UPDATE 전에 실행되는 IF 검사 | 결재 조건을 통과해야 신청서를 낼 수 있음 |
+| 누가 어떤 Object를 볼 수 있는가? | Object type의 Viewer 권한과 데이터 접근 권한이 함께 필요.<br />[Object security policy](#concept-osp)를 설정한 타입은 그 정책이 정하고(정책은 backing datasource의 Marking 같은 필수 통제를 기본으로 물려받음) 설정하지 않은 타입은 backing datasource의 Viewer 권한이 필요.<br />레거시 datasource-derived 권한 모델에서는 정책이 있어도 backing datasource의 Viewer 권한이 필요.<br />Restricted view 기반 Object type은 Restricted view의 행 접근이 결정 | 모든 SELECT에 자동으로 붙는 WHERE | 같은 명부를 열어도 내 담당 줄만 보임 |
+| 이 Action을 제출할 수 있는가? | [Submission criteria](#concept-action)를 통과하고 편집 대상 Object type·Link type과 그 datasource를 볼 권한이 필요.<br />Action 밖 편집도 허용한 타입은 writeback Dataset의 Edit 권한(Restricted view 기반이면 edit policy 통과)도 필요.<br />action log가 있으면 action log Object type 권한도 필요 | UPDATE 전에 실행되는 IF 검사 | 결재 조건을 통과해야 신청서를 낼 수 있음 |
 | 변경은 언제 실제로 저장되는가? | 보통 [Action](#concept-action)이 실행될 때.<br />Action 밖 편집을 허용한 타입과 Automate의 Logic effect([AIP Logic](#concept-aip) 함수가 반환한 편집을 Action 없이 적용)는 예외 | COMMIT.<br />[Edit function](#concept-function)은 변경할 SQL을 만드는 데까지만 관여 | 신청서가 처리되어야 반영됨.<br />계산기로 미리 계산해 둔 것만으로는 반영되지 않음 |
 
 공식 문서: [Ontology permissions](https://www.palantir.com/docs/foundry/object-permissioning/ontology-permissions) · [Object security policies](https://www.palantir.com/docs/foundry/object-permissioning/object-security-policies) · [Action type permissions](https://www.palantir.com/docs/foundry/action-types/permissions) · [Ontology edits](https://www.palantir.com/docs/foundry/functions/edits-overview) · [Logic effect](https://www.palantir.com/docs/foundry/automate/effect-logic)
 
 ### 편집은 원본 Dataset으로 돌아가지 않습니다
 
-지도의 Materialization 화살표는 원본 Dataset과 Object type 사이의 양방향 동기화가 아닙니다.\
-Action 편집은 원본(backing) Dataset에 쓰이지 않고 아래 표처럼 따로 저장됩니다.
+지도의 Materialization 화살표는 Object type의 원본(backing) Dataset과 Object type 사이의 양방향 동기화가 아닙니다.\
+Action 편집은 이 backing Dataset에 쓰이지 않고 아래 표처럼 따로 저장됩니다.
 
 | 저장되는 곳 | 담기는 내용 | 갱신 시점 | 만드는 주체 |
 | --- | --- | --- | --- |
 | 원본(backing) [Dataset](#concept-dataset) | 파이프라인이 만든 데이터.<br />Action 편집은 들어가지 않음 | 파이프라인의 Build | 데이터 파이프라인 |
 | Object Storage v2(OSv2)의 [Ontology](#concept-onto) 인덱스 | 원본과 편집을 합친 Object.<br />앱은 여기서 읽음 | 편집은 즉시 반영.<br />원본 변경은 [Funnel](#concept-funnel) 파이프라인이 실행될 때 반영 | Funnel |
 | Funnel이 관리하는 Dataset | 원본의 변경분을 담은 changelog Dataset과 원본·편집을 합친 merged Dataset.<br />편집은 먼저 Funnel이 관리하는 큐에 쌓임.<br />사용자는 접근할 수 없음 | 원본에 새 트랜잭션이 생길 때 또는 편집이 있었다면 6시간마다 merged Dataset을 Build | Funnel(자동) |
-| Materialized Dataset (선택) | 원본과 편집을 합친 각 Object의 최신 상태.<br />최신 스냅샷만 보장 | 편집 자동 전파(몇 분 지연) 또는 원본이 바뀔 때·6시간마다 | 사용자가 Ontology Manager에서 만듦 |
+| Materialized Dataset (선택) | 원본과 편집을 합친 각 Object의 최신 상태.<br />최신 스냅샷만 보장 | 설정한 방식에 따름.<br />편집 자동 전파를 켜면 몇 분 안에 반영.<br />주기적 Build를 고르면 원본이 바뀔 때나 6시간마다 다시 Build | 사용자가 Ontology Manager에서 만듦 |
 
 기본 설정에서는 편집한 property가 이후 원본이 바뀌어도 편집 값을 유지합니다(Apply user edits).\
 예전 Object Storage v1에서는 편집하려면 writeback Dataset이 필요했습니다.\
@@ -108,33 +109,34 @@ Materialized Dataset은 지난 트랜잭션이 계속 지워지므로 이력이 
 ### 권한은 계층마다 따로 막아야 합니다
 
 한 곳을 막았다고 해서 관련 데이터가 모두 보호되지는 않습니다.\
-[Object security policy](#concept-osp)로 Object를 가려도 원본 [Dataset](#concept-dataset)과 [Media set](#concept-media)은 각각 따로 잠가야 합니다.\
+[Object security policy](#concept-osp)로 Object를 가려도 backing [Dataset](#concept-dataset)과 [Media set](#concept-media)은 각각 따로 잠가야 합니다.\
 Object security policy는 Ontology 밖에서 Dataset을 읽는 것을 막지 않으므로 Object가 아니라 Dataset을 분석하는 [Contour](#concept-analytics) 같은 도구는 Dataset 쪽 권한으로 따로 막아야 합니다.\
 Object security policy 같은 행 단위 정책은 읽는 순간에만 적용되므로 [Function](#concept-function)이 읽어 만든 결과까지 보호하려면 Marking 같은 필수 통제를 함께 겁니다.\
 [Action](#concept-action)은 쓰는 데이터의 보안을 Action의 로직이 정하므로 Marking이 붙은 데이터를 읽고 그보다 덜 제한된 곳에 쓸 수 있습니다.\
-그래서 Marking이 붙은 데이터를 읽는 Action에는 read authorization(베타)을 설정합니다.\
-OSDK 앱이 받는 토큰은 사용자(또는 서비스 유저) 권한과 Developer Console의 앱 제한이 모두 허용하는 리소스에만 접근합니다([OSDK](#concept-osdk)).\
-Application permissions를 쓰는 Developer Console 앱과 [Compute module](#concept-cm)은 로그인하거나 호출한 사용자가 아니라 서비스 유저 권한으로 동작합니다.\
+그래서 Marking이 붙은 데이터를 읽는 Action에는 read authorization(베타)을 설정하고 write authorization을 그보다 낮게 두지 않습니다.\
+OSDK 앱이 받는 토큰은 사용자(또는 서비스 유저) 권한과 Developer Console의 앱 제한이 모두 허용하는 리소스에만 접근하며 제한 없는(unrestricted) 앱은 사용자(또는 서비스 유저)가 접근할 수 있는 리소스에 모두 접근합니다([OSDK](#concept-osdk)).\
+Developer Console 앱과 [Compute module](#concept-cm)이 Application permissions를 쓰면 로그인하거나 호출한 사용자가 아니라 서비스 유저 권한으로 동작합니다.\
 [Media set](#concept-media)에 같은 경로로 올리면 경고 없이 덮어쓰므로 경로가 겹치지 않게 합니다.\
 덮어쓰거나 삭제한 item도 기존 media reference나 직접 링크로 계속 접근할 수 있으므로 보존 정책으로 정리합니다.
 
-공식 문서: [Managing object security](https://www.palantir.com/docs/foundry/object-permissioning/managing-object-security) · [Access control propagation](https://www.palantir.com/docs/foundry/security/access-control-propagation) · [Read and write authorizations](https://www.palantir.com/docs/foundry/action-types/read-write-authorizations) · [Developer Console 권한](https://www.palantir.com/docs/foundry/developer-console/permissions) · [Compute module 실행 모드](https://www.palantir.com/docs/foundry/compute-modules/execution-modes) · [Importing media](https://www.palantir.com/docs/foundry/media-sets-advanced-formats/importing-media) · [Media sets](https://www.palantir.com/docs/foundry/media-sets-advanced-formats/media-overview) · [Media set 설정](https://www.palantir.com/docs/foundry/media-sets-advanced-formats/media-set-settings)
+공식 문서: [Managing object security](https://www.palantir.com/docs/foundry/object-permissioning/managing-object-security) · [Access control propagation](https://www.palantir.com/docs/foundry/security/access-control-propagation) · [Read and write authorizations](https://www.palantir.com/docs/foundry/action-types/read-write-authorizations) · [Application restrictions](https://www.palantir.com/docs/foundry/developer-console/application-restrictions) · [Developer Console 권한](https://www.palantir.com/docs/foundry/developer-console/permissions) · [Compute module 실행 모드](https://www.palantir.com/docs/foundry/compute-modules/execution-modes) · [Importing media](https://www.palantir.com/docs/foundry/media-sets-advanced-formats/importing-media) · [Media sets](https://www.palantir.com/docs/foundry/media-sets-advanced-formats/media-overview) · [Media set 설정](https://www.palantir.com/docs/foundry/media-sets-advanced-formats/media-set-settings)
 
 이런 경우를 모은 표와 Restricted view·Object security policy 중 무엇을 쓸지는 [권한 노선](../foundry-access-route/) 글에 정리했습니다.
 
 ## 정리
 
-- Foundry의 데이터는 주로 **원본 → Dataset → Ontology** 순서로 쌓입니다.\
+- Foundry의 데이터는 주로 **외부 시스템 → Dataset → Ontology** 순서로 쌓입니다.\
   업무용 앱은 주로 Ontology를 직접 조회하고 쓰기는 Action을 거치며 복잡한 계산에는 Function 같은 로직을 씁니다.
 - 사용자의 편집은 보통 **Action**을 거쳐 Ontology에 반영됩니다.\
   코드로 작성한 Function은 편집 내용을 계산할 뿐 Action 없이 직접 저장하지 않습니다.\
   Automate의 Logic effect가 staged writes를 끈 AIP Logic 함수의 편집을 Action 없이 적용하는 것은 예외입니다.
 - Role과 행·열 단위 정책은 **계층마다 따로** 적용됩니다.\
-  Object security policy, 원본 Dataset, Media set, OSDK 앱 제한을 각각 따로 설계하고 파생 데이터까지 보호하려면 Marking 같은 필수 통제를 함께 겁니다.
+  Object security policy, backing Dataset, Media set, OSDK 앱 제한은 각각 따로 설계합니다.\
+  파생 데이터까지 보호하려면 Marking 같은 필수 통제를 함께 겁니다.
 
 ---
 
-각 카드의 설명은 카드 하단에 링크한 Palantir 공식 문서를 근거로 하며 OSDK의 PKCE 처리 방식은 공식 [osdk-ts](https://github.com/palantir/osdk-ts) 저장소의 소스 코드로 확인했습니다.\
+각 카드의 설명은 카드 하단에 링크한 Palantir 공식 문서를 근거로 하며 OSDK의 PKCE(Proof Key for Code Exchange) 처리 방식은 공식 [osdk-ts](https://github.com/palantir/osdk-ts) 저장소의 소스 코드로 확인했습니다.\
 "관점으로 보기"의 단계 설명은 노선마다 링크한 공식 문서를 근거로 합니다.\
-이 글은 2026년 10월 18일 기준이며 카드와 단계 설명은 이날 공식 문서로 다시 확인했습니다.\
+이 글은 2026년 10월 19일 기준이며 카드와 단계 설명은 이날 공식 문서로 다시 확인했습니다.\
 공식 문서의 내용은 바뀔 수 있으므로 최신 내용은 공식 문서를 확인하시기 바랍니다.

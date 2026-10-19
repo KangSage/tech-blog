@@ -58,9 +58,13 @@ const alternates = locales
       align-items: start;
     }
 
+    /* 안에서 스크롤되므로 칩·검색창의 포커스 윤곽선이 잘리지 않게 4px 여백을 두고 그만큼 바깥으로 넓힌다(내용 위치와 보이는 높이는 그대로) */
     .home-aside {
       position: sticky;
-      top: 16px;
+      top: 12px;
+      margin: -4px;
+      padding: 4px;
+      scroll-padding-block: 4px;
       max-height: calc(100vh - 32px);
       overflow-y: auto;
     }
