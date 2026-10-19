@@ -440,8 +440,9 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
         }
       };
       // 포커스가 패널 안에 있을 때 패널을 옮기면 크롬은 스크롤 앵커링으로 화면을 패널 높이쯤 움직인다(포커스가 다른 곳이면 움직이지 않는다). 옮기기 전 위치로 되돌린다
-      // 패널을 옮기면 안쪽 스크롤 위치가 처음으로 돌아가므로, 되돌린 키보드 포커스가 그 요소가 든 스크롤 영역(칩 줄·층 줄, 펼친 목록, 펼친 막대) 밖에 남을 수 있다.
-      // 그 영역들만 움직여 보이게 하고(scroll-margin·scroll-padding을 따른다) 페이지 스크롤은 되돌린다
+      // 패널을 옮기면 안쪽 스크롤 위치가 처음으로 돌아가므로, 되돌린 키보드 포커스가 그 요소가 든 스크롤 영역
+      // (좁은 화면의 칩 줄과 펼친 막대, 넓은 화면의 층 줄과 펼친 목록, 목록을 펼쳤을 때의 카드 전체) 밖에 남을 수 있다.
+      // 그 영역들을 움직여 보이게 하고(scroll-margin·scroll-padding을 따른다) 이 호출이 움직인 페이지 스크롤은 되돌린다
       const revealFocused = () => {
         const el = document.activeElement;
         if (!(el instanceof HTMLElement) || !aside.contains(el) || !el.matches(":focus-visible")) return;
