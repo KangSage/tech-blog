@@ -144,9 +144,18 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
       <button type="button" data-route="" aria-pressed="true">전체</button>
       {routes.map((r) => <button type="button" data-route={r.id} aria-pressed="false">{r.label}</button>)}
     </div>
-    <!-- 질문은 지도 위에, 단계 설명과 근거 문서는 지도 바로 아래에 둬서 고르자마자 지도가 보이게 한다 -->
-    {routes.map((r) => <p class="route-q" data-route-q={r.id} hidden>{r.question}</p>)}
-    <p class="route-hint" data-read-skip>{sentences('번호는 질문을 따라 읽는 순서이고 "/"로 나뉜 개념은 그중 하나를 쓰는 갈래입니다. 관점을 고른 동안 개념을 누르면 카드만 바뀌고 "전체"를 누르면 개념별 연결 강조로 돌아갑니다.').map((t, k) => <>{k > 0 && <br />}{t}</>)}</p>
+    <!-- 질문은 지도 위에, 단계 설명과 근거 문서는 지도 바로 아래에 둬서 고르자마자 지도가 보이게 한다.
+         질문들과 안내들은 각각 한 칸에 겹쳐 두고 고르지 않은 것은 자리만 차지하게(visibility: hidden) 해서,
+         칸 높이가 그 폭에서 가장 긴 글에 맞춰지고 관점을 바꿔도 지도가 위아래로 움직이지 않는다.
+         "전체"의 두 줄은 조작 안내라 읽어 주기에서 빼고, 고르지 않은 질문은 aria-hidden으로 읽어 주기와 화면 낭독기에서 뺀다 -->
+    <div class="route-qs">
+      <p class="route-q" data-route-q="" data-read-skip>개념을 누르면 그 개념과 이어진 개념과 선만 진하게 보입니다.</p>
+      {routes.map((r) => <p class="route-q" data-route-q={r.id} data-off aria-hidden="true">{r.question}</p>)}
+    </div>
+    <div class="route-hints" data-read-skip>
+      <p class="route-hint route-hint-all">관점을 고르면 질문을 따라 읽는 순서대로 개념에 번호가 붙습니다.</p>
+      <p class="route-hint route-hint-on">{sentences('번호는 질문을 따라 읽는 순서이고 "/"로 나뉜 개념은 그중 하나를 쓰는 갈래입니다. 관점을 고른 동안 개념을 누르면 카드만 바뀌고 "전체"를 누르면 개념별 연결 강조로 돌아갑니다.').map((t, k) => <>{k > 0 && <br />}{t}</>)}</p>
+    </div>
   </div>
 
   <div class="explore">
@@ -750,7 +759,12 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
       // 노선을 보는 동안에는 선 종류 범례 대신 노선 안내를 보여 준다
       root!.classList.toggle("route-mode", !!routePanel);
       routeBox?.querySelectorAll<HTMLElement>("button[data-route]").forEach((b) => b.setAttribute("aria-pressed", String((b.dataset.route ?? "") === activeRoute)));
-      routeBox?.querySelectorAll<HTMLElement>("[data-route-q]").forEach((q) => (q.hidden = q.dataset.routeQ !== activeRoute));
+      routeBox?.querySelectorAll<HTMLElement>("[data-route-q]").forEach((q) => {
+        const off = q.dataset.routeQ !== activeRoute;
+        q.toggleAttribute("data-off", off);
+        if (off) q.setAttribute("aria-hidden", "true");
+        else q.removeAttribute("aria-hidden");
+      });
       routePanels.forEach((p) => (p.hidden = p !== routePanel));
       const steps = new Map(words(routePanel?.dataset.steps).map((s) => s.split(":") as [string, string]));
       // 관점을 고르면 첫 단계 카드로 바꾼다(#route-… 주소로 열 때와 같게). 독자가 직접 고른 카드가 노선의 단계이면 그대로 둔다.
@@ -1106,7 +1120,11 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
   .map-hint { margin: 6px 0 0; }
 
   /* 관점(노선) 보기: 질문 하나를 고르면 그 노선의 단계와 근거 문서를 보여 준다 */
-  .routes[hidden], .route[hidden], .route-q[hidden] { display: none; }
+  .routes[hidden], .route[hidden] { display: none; }
+  .route-qs, .route-hints { display: grid; }
+  .route-qs > *, .route-hints > * { grid-area: 1 / 1; }
+  .route-q[data-off], .route-hint-on, .route-mode .route-hint-all { visibility: hidden; }
+  .route-mode .route-hint-on { visibility: visible; }
   .routes { display: grid; gap: 8px; margin-top: 14px; }
   /* 한국어 질문과 단계 설명은 낱말 단위로 줄을 바꾼다 */
   .route-q, .route-hint, .step-note { word-break: keep-all; }
@@ -1135,8 +1153,7 @@ const busSegments = busStops.slice(0, -1).map((x1, i) => {
   .route-src { display: flex; gap: 4px 12px; align-items: baseline; font-size: 12px; }
   .route-src-label { flex: none; margin: 0; color: var(--muted); }
   .route-src ul { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 0; padding: 0; list-style: none; }
-  .route-hint { display: none; margin: 0; font-size: 12px; color: var(--muted); }
-  .route-mode .route-hint { display: block; }
+  .route-hint { margin: 0; font-size: 12px; color: var(--muted); }
 
   .map text { fill: var(--text); font-family: inherit; text-anchor: middle; }
   .map .t { font-size: 12px; font-weight: 600; }
