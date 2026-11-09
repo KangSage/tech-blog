@@ -1,0 +1,181 @@
+---
+title: "Palantir Foundry에서 Materialization을 같은 오브젝트 타입의 백킹으로 되돌리면"
+description: "Palantir Foundry에서 오브젝트 타입의 Materialization 데이터셋을 파이프라인으로 가공해 같은 타입의 백킹 데이터셋으로 바꿔 끼우는 순환 구조를 개발자 티어에서 직접 만들어 보고 무한 빌드, 편집 중복 적용, 새 객체 값 지연을 확인한 기록입니다."
+publishedAt: "2026-11-09"
+lang: "ko"
+translationKey: "foundry-materialization-loop"
+category: "tech"
+tags: ["palantir-foundry", "ontology", "materialization", "pipeline", "access-control", "팔란티어", "온톨로지", "접근제어"]
+draft: true
+---
+
+import PostFigure from "@/components/PostFigure.astro";
+import backingB from "@/assets/blog/foundry-materialization-loop/01-datasources-backing-B.png";
+import hydrating from "@/assets/blog/foundry-materialization-loop/02-materializations-hydrating.png";
+import history from "@/assets/blog/foundry-materialization-loop/03-m-history-4-failures.png";
+import cycleError from "@/assets/blog/foundry-materialization-loop/04-failed-build-jobspeccycles.png";
+import pipeline from "@/assets/blog/foundry-materialization-loop/05-pipeline-m-to-b.png";
+import editKept from "@/assets/blog/foundry-materialization-loop/06-object-t001-alpha-edited.png";
+import newObject from "@/assets/blog/foundry-materialization-loop/07-new-object-empty-permission.png";
+import version from "@/assets/blog/foundry-materialization-loop/08-foundry-version.png";
+
+<details class="post-note">
+<summary>이 글을 쓰게 된 이유</summary>
+
+실무 Palantir Foundry 프로젝트를 준비하면서 개인 개발자 티어에 작은 검증용 환경(`Keystone PoC`)을 만들어 테스트하고 있습니다.\
+본문에 나오는 `Ks…`와 `loop_test_…` 이름은 모두 이 검증 환경에서 붙인 예시이고 데이터도 전부 가상입니다.
+
+행 단위 권한 값을 채우는 방법을 고민하던 중 이런 구조를 검토하게 됐습니다.\
+오브젝트 타입의 Materialization 데이터셋을 입력으로 받아 파이프라인에서 권한 값을 계산하고 그 결과 데이터셋을 다시 같은 타입의 백킹 데이터셋으로 쓰는 구조입니다.\
+듣기에는 깔끔하지만 출력이 다시 입력이 되는 순환이라서 세 가지가 걱정됐습니다.\
+빌드가 끝없이 돌지 않을지, 사용자 편집이 두 번 적용되지 않을지, 새 객체의 권한 값은 언제 채워질지입니다.\
+문서만으로는 답을 찾지 못해서 2026년 11월 9일 저녁에 직접 만들어 봤습니다.
+
+</details>
+
+## TL;DR
+
+- **결론**: 이 환경에서는 순환 구조를 **저장할 수는 있지만 동작하지 않았습니다.**\
+  Materialization 빌드가 매번 `ObjectsWriteback:JobSpecCycles` 오류로 1초 안에 실패했습니다.
+- **무한 빌드**: 일어나지 않았습니다.\
+  객체가 바뀔 때마다 Materialization 빌드가 시작되지만 곧바로 실패해서 다음 단계로 이어지지 않았습니다.
+- **편집 중복 적용**: 일어나지 않았습니다.\
+  사용자 편집은 한 번만 적용되고 백킹 데이터셋을 다시 빌드해도 유지됐습니다.
+- **새 객체의 값**: 영원히 채워지지 않았습니다.\
+  Action으로 만든 객체는 파이프라인이 계산하는 열이 끝까지 비어 있었습니다.
+- **그래서**: 새 객체의 권한 값은 객체를 만드는 Action에서 함께 넣어야 합니다.
+
+## 테스트 환경
+
+이 글의 동작 설명은 아래 환경에서 직접 확인한 결과입니다.\
+Foundry 버전에 따라 세부 동작은 달라질 수 있습니다.\
+스크린샷의 경로와 식별자는 회색 상자로 가렸고 이미지를 누르면 원래 크기로 볼 수 있습니다.
+
+| 항목 | 값 |
+|---|---|
+| Foundry 환경 | 개인 개발자 티어 |
+| Foundry 버전 | 6.556.36 (About Palantir Foundry 창) |
+| 작업 일자 | 2026-11-09 |
+| 브랜치 | Main (Global Branch 사용 안 함) |
+| 작업 위치 | 새로 만든 테스트 전용 프로젝트 |
+
+<PostFigure src={version} alt="About Palantir Foundry 창. Version 6.556.36">Support → About 창의 버전 표시입니다.</PostFigure>
+
+## 용어 정리
+
+- **오브젝트 타입(Object type)**: Ontology에서 업무 대상 하나를 나타내는 타입입니다.\
+  데이터베이스 테이블 하나에 대응하는 모델 클래스로 생각하면 쉽습니다.
+- **백킹 데이터셋(Backing datasource)**: 오브젝트 타입의 속성 값을 공급하는 데이터셋입니다.
+- **사용자 편집(User edits)**: Action 등으로 객체 값을 바꾼 기록입니다.\
+  백킹 데이터셋과 따로 저장되고 객체의 최종 값은 이 편집이 정합니다([공식 문서](https://www.palantir.com/docs/foundry/object-edits/how-edits-applied)).
+- **Materialization**: 백킹 데이터와 사용자 편집을 합친 객체의 최신 상태를 데이터셋으로 내보낸 것입니다([공식 문서](https://www.palantir.com/docs/foundry/object-edits/materializations)).\
+  화면에서는 *Object datasets*라는 이름으로 보였습니다.
+
+## 만든 구조
+
+<PostFigure src={pipeline} alt="Pipeline Builder 그래프. KsLoopTest_materialization 입력이 Transform path를 거쳐 loop_test_B 출력으로 이어진다">Pipeline Builder 그래프입니다.<br />Materialization 데이터셋(M)이 입력이고 출력은 <code>loop_test_B</code>(B)입니다.</PostFigure>
+
+1. CSV 3행으로 데이터셋 A를 만들고 A를 백킹으로 오브젝트 타입 `KsLoopTest`를 만들었습니다.\
+   편집을 켜고 이름을 고치는 Action과 객체를 만드는 Action을 하나씩 붙였습니다.
+2. 이 타입의 Materialization 데이터셋 M을 만들었습니다(빌드 주기 *Automatic*).
+3. Pipeline Builder에서 M을 입력으로 받아 열 두 개를 더한 데이터셋 B를 출력했습니다.\
+   `viewerGroupIds`는 권한 값을 흉내 낸 고정 문자열이고 `builtAt`은 빌드 시각입니다.
+4. 오브젝트 타입의 백킹을 A에서 B로 바꿔 끼웠습니다.
+
+이제 구조는 **객체 → M → 파이프라인 → B → 같은 객체**로 한 바퀴 돕니다.
+
+## 결과 1: 구성은 됐다
+
+<PostFigure src={backingB} alt="오브젝트 타입 Datasources 화면. Backing datasource가 loop_test_B로 바뀌어 있다">백킹을 B로 바꾼 뒤의 Datasources 화면입니다.</PostFigure>
+
+백킹 교체는 오류 없이 저장됐고 B에서 객체 3개가 인덱싱됐습니다.\
+저장 단계에서 순환을 막는 경고는 보지 못했습니다.
+
+다만 교체할 때 열 매핑을 다시 해야 했습니다.\
+이 환경에서 Materialization 데이터셋은 열 이름을 snake_case로 바꿨습니다(`projectId` → `project_id`).\
+`__is_deleted`와 `__patch_offset` 같은 열도 붙었습니다.\
+그래서 B의 스키마가 원래 타입과 맞지 않는다는 표시가 나왔고 속성마다 열을 다시 골라 해결했습니다.
+
+## 결과 2: Materialization 빌드가 매번 실패했다
+
+<PostFigure src={cycleError} alt="빌드 상세 화면. Failed to resolve dataset properties for input datasets: ObjectsWriteback:JobSpecCycles, errorCode INVALID_ARGUMENT, 0.82초 후 실패">실패한 M 빌드의 상세 화면입니다.<br /><code>objects-writeback</code>이 시작한 빌드가 0.82초 만에 실패했습니다.</PostFigure>
+
+오류 원문은 아래와 같습니다.
+
+```text
+Failed to resolve dataset properties for input datasets: ObjectsWriteback:JobSpecCycles {}
+errorCode: INVALID_ARGUMENT
+```
+
+이름 그대로 작업 정의(Job spec)에서 순환을 찾았다는 뜻으로 읽힙니다.\
+이 오류와 순환 금지 규칙을 설명한 공식 문서는 찾지 못했습니다.
+
+<PostFigure src={history} alt="M 데이터셋 History. 처음 스냅샷 1번 성공, 그 뒤 objects-writeback 빌드 4번 실패">M 데이터셋의 History입니다.<br />맨 아래 첫 스냅샷만 성공했고 그 위 4번은 모두 실패했습니다.</PostFigure>
+
+실패는 4번이었고 모두 객체가 바뀐 직후였습니다.
+
+| 시각 | 계기 |
+|---|---|
+| 21:54 | 백킹을 B로 교체 |
+| 21:56 | Action으로 이름 수정 |
+| 22:00 무렵 | Action으로 새 객체 생성 |
+| 22:02 | B를 손으로 다시 빌드 |
+
+<PostFigure src={hydrating} alt="Object datasets 영역. KsLoopTest_materialization 상태 Hydrating, Build interval Automatic">오브젝트 타입의 Object datasets 영역입니다.<br />빌드가 계속 실패하는 중에도 상태는 <em>Hydrating</em>으로 보였습니다.</PostFigure>
+
+**함정**: 오브젝트 타입 화면의 상태 표시만 보면 실패를 알 수 없었습니다.\
+성공 여부는 Materialization 데이터셋의 History에서 확인해야 했습니다.
+
+## 결과 3: 무한 빌드는 없었다
+
+처음 걱정은 이런 연쇄였습니다.\
+B가 바뀌면 객체가 바뀌고 객체가 바뀌면 M이 다시 빌드되고 M이 바뀌면 B가 다시 빌드되는 반복입니다.
+
+실제로는 M 빌드가 첫 단계에서 실패하므로 M이 바뀌지 않았습니다.\
+그래서 B를 다시 빌드할 계기가 생기지 않았습니다.\
+B 빌드 스케줄은 만들지 않았고 B는 손으로 두 번만 빌드했습니다.
+
+순환이 막히지 않는 버전이나 설정에서 같은 구조를 만들면 결과가 달라질 수 있습니다.\
+그 경우는 테스트하지 않았습니다.
+
+## 결과 4: 편집은 한 번만 적용됐다
+
+<PostFigure src={editKept} alt="SQL console 미리보기. T001의 name이 alpha-edited">오브젝트 타입 미리보기(Object mode)입니다.<br />T001의 이름이 편집한 값 <code>alpha-edited</code>입니다.</PostFigure>
+
+T001의 이름을 Action으로 `alpha-edited`로 바꿨습니다.\
+M이 갱신되지 않았으므로 B에는 옛 값 `alpha`가 남아 있었고 그 B를 다시 빌드했습니다.\
+그래도 객체의 이름은 `alpha-edited`로 유지됐습니다.\
+사용자 편집이 백킹 값보다 우선한다는 [공식 문서](https://www.palantir.com/docs/foundry/object-edits/how-edits-applied) 설명과 같은 동작입니다.
+
+이 결과에는 뒤집어 볼 면도 있습니다.\
+파이프라인이 권한 값을 계산하더라도 그 속성을 누군가 한 번 편집하면 이후 파이프라인 값은 객체에 반영되지 않습니다.
+
+## 결과 5: 새 객체의 값은 채워지지 않았다
+
+<PostFigure src={newObject} alt="SQL console 미리보기. Action으로 만든 delta-T004 행만 builtAt과 viewerGroupIds가 null">Action으로 만든 <code>delta-T004</code> 행만 <code>builtAt</code>과 <code>viewerGroupIds</code>가 <code>null</code>입니다.<br />나머지 3행은 B 빌드가 넣은 값입니다.</PostFigure>
+
+Action으로 만든 객체는 사용자 편집으로만 존재하고 B에는 없습니다.\
+B에 들어가려면 M을 거쳐야 하는데 M 빌드가 실패하므로 이 객체는 끝까지 B에 들어가지 못했습니다.\
+B를 다시 빌드한 뒤에도 파이프라인이 계산하는 열은 비어 있었습니다.
+
+행 단위 권한으로 치면 새 객체는 권한 값이 없는 상태로 남는다는 뜻입니다.\
+그래서 새 객체의 권한 값은 객체를 만드는 Action에서 함께 넣어야 합니다.
+
+## 정리
+
+| 질문 | 이 환경의 결과 |
+|---|---|
+| 순환 구조를 만들 수 있나 | 저장은 됩니다 |
+| 빌드가 끝없이 도나 | 아니요. M 빌드가 매번 순환 오류로 실패합니다 |
+| 편집이 두 번 적용되나 | 아니요. 한 번 적용되고 유지됩니다 |
+| 새 객체의 값은 언제 채워지나 | 채워지지 않습니다 |
+
+Materialization은 Ontology의 상태를 **밖으로 내보내는** 출구로 쓰는 편이 맞다고 봅니다.\
+같은 타입으로 되돌리는 입구로 쓰는 구조는 이 환경에서 동작하지 않았습니다.
+
+## 참고 문서
+
+- [Object edits • Materializations](https://www.palantir.com/docs/foundry/object-edits/materializations)
+- [Object edits • How user edits are applied](https://www.palantir.com/docs/foundry/object-edits/how-edits-applied)
+
+*(결과 1~5의 동작과 숫자는 공식 문서의 사양이 아니라 검증 환경에서 직접 관찰한 결과입니다.)*
