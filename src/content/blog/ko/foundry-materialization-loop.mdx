@@ -5,7 +5,7 @@ publishedAt: "2026-11-09"
 lang: "ko"
 translationKey: "foundry-materialization-loop"
 category: "tech"
-tags: ["palantir-foundry", "ontology", "materialization", "pipeline", "access-control", "팔란티어", "온톨로지", "접근제어"]
+tags: ["palantir-foundry", "ontology", "materialization", "pipeline", "access-control", "팔란티어", "온톨로지", "머티리얼라이제이션", "파이프라인", "접근제어"]
 draft: true
 ---
 
@@ -30,6 +30,47 @@ import version from "@/assets/blog/foundry-materialization-loop/08-foundry-versi
 듣기에는 깔끔하지만 출력이 다시 입력이 되는 순환이라서 세 가지가 걱정됐습니다.\
 빌드가 끝없이 돌지 않을지, 사용자 편집이 두 번 적용되지 않을지, 새 객체의 권한 값은 언제 채워질지입니다.\
 문서만으로는 답을 찾지 못해서 2026년 11월 9일 저녁에 직접 만들어 봤습니다.
+
+</details>
+
+<details class="post-note">
+<summary>따라 해 보려는 분들을 위한 코딩 AI 예제 프롬프트</summary>
+
+이 테스트는 대부분 Foundry 화면에서 하는 작업이라 코딩 AI에게는 계획과 기록을 맡기는 편이 맞습니다.\
+Foundry [VS Code 워크스페이스](https://www.palantir.com/docs/foundry/vs-code/overview) 터미널의 코딩 AI나 자기 컴퓨터의 코딩 AI에게 아래 프롬프트를 주면 됩니다.\
+Foundry 공지에 VS Code 워크스페이스 터미널의 Codex 지원이 소개되어 있습니다([2026년 9월 공지](https://www.palantir.com/docs/foundry/announcements/2026-09)).\
+다만 워크스페이스에 `Active (restricted outputs)`가 표시되면 외부 통신이 제한될 수 있으므로 업무 환경에서는 외부 통신 허용과 보안 승인을 먼저 확인하시기 바랍니다.\
+아래 프롬프트는 이 글을 바탕으로 만든 예시이며 코딩 AI에서 그대로 시험해 보지는 않았습니다.\
+`<...>` 부분을 자기 환경에 맞게 바꿔 넣고 AI가 내놓은 계획은 직접 검토하시기 바랍니다.
+
+<div class="prompt-block">
+
+```text
+Palantir Foundry에서 오브젝트 타입의 Materialization 데이터셋을 파이프라인으로 가공해 같은 타입의 백킹 데이터셋으로 되돌리는 구조를 시험하려고 합니다.
+먼저 단계별 계획을 보여 주세요.
+Ontology Manager와 Pipeline Builder에서 해야 하는 일은 제가 할 단계로 따로 적어 주세요.
+커밋과 푸시는 제가 확인한 뒤에만 해 주세요.
+확실하지 않은 부분은 추측하지 말고 확인이 필요하다고 표시해 주시고 근거가 되는 공식 문서 페이지도 함께 알려 주세요.
+
+[현재 환경]
+- Foundry 버전: <버전>
+- 테스트 전용 프로젝트: <프로젝트 이름> (기존 리소스는 건드리지 않습니다)
+- 테스트 데이터: <행 3개 정도의 CSV>
+
+[목표]
+1. 순환 구조를 저장할 수 있는지 확인합니다.
+2. Materialization 빌드가 끝없이 반복되는지 확인합니다.
+3. 사용자 편집이 두 번 적용되는지 확인합니다.
+4. Action으로 만든 새 객체에 파이프라인 계산 값이 언제 채워지는지 잽니다.
+
+[진행 순서와 주의할 점]
+- Materialization 데이터셋의 열 이름이 원래 속성 이름과 다를 수 있으니 백킹을 바꿀 때 열 매핑을 확인하는 단계를 넣어 주세요.
+- 오브젝트 타입 화면의 Materialization 상태만 믿지 말고 데이터셋 History에서 빌드 성공 여부를 확인하는 단계를 넣어 주세요.
+- 빌드 스케줄을 만든다면 빌드가 <N>번을 넘을 때 바로 끄는 중단 기준을 정해 주세요.
+- 결과는 시각과 오류 원문을 표로 남기는 형식을 제안해 주세요.
+```
+
+</div>
 
 </details>
 
